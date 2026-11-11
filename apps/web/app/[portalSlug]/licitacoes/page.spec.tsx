@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { loadLicitacoesData } from "./loader";
 
@@ -45,6 +45,58 @@ describe("LicitacoesPage", () => {
 
     expect(screen.getByText("Licitações e Contratos")).toBeInTheDocument();
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
+  });
+
+  it("destaque: licitações ativas e total empenhado em contratos vigentes", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(
+      makeRaw({
+        licitacoesEmAndamento: [
+          { situacao: "Em andamento", situacaoCodigo: "em_andamento" },
+          { situacao: "Aberta", situacaoCodigo: "nao_informada" },
+          { situacao: "Homologada", situacaoCodigo: "homologada" },
+        ],
+        contratosServicosVigentes: [
+          { totalEmpenhado: 1000 },
+          { totalEmpenhado: 500 },
+        ],
+      }),
+    );
+    render(await LicitacoesPage(props));
+    expect(screen.getByTestId("licitacoes-destaque-ativas")).toHaveTextContent(
+      "2",
+    );
+    expect(
+      screen.getByTestId("licitacoes-destaque-empenhado"),
+    ).toHaveTextContent(/contratos vigentes em 2024/);
+  });
+
+  it("destaque: ano atual usa 'agora' e 'já'", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(
+      makeRaw({
+        context: { selectedYear: 2024, isCurrentYear: true },
+      }),
+    );
+    render(await LicitacoesPage(props));
+    expect(screen.getByText(/ativas agora\?/)).toBeInTheDocument();
+    expect(screen.getByText(/Quanto já foi reservado/)).toBeInTheDocument();
+  });
+
+  it("destaque: ano passado evita 'agora' e 'já'", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(makeRaw());
+    render(await LicitacoesPage(props));
+    expect(screen.getByText(/estiveram ativas em 2024\?/)).toBeInTheDocument();
+    expect(screen.getByText(/Quanto foi reservado/)).toBeInTheDocument();
+  });
+
+  it("destaque: sem contratos vigentes mostra estado neutro", async () => {
+    loadLicitacoesDataMock.mockResolvedValue(makeRaw());
+    render(await LicitacoesPage(props));
+    expect(
+      screen.getByTestId("licitacoes-destaque-empenhado"),
+    ).toHaveTextContent("sem contratos vigentes em 2024");
+    expect(screen.getByTestId("licitacoes-destaque-ativas")).toHaveTextContent(
+      "nenhuma licitação ativa em 2024",
+    );
   });
 
   it("não exibe alerta de fracionamento quando não há casos", async () => {
@@ -109,7 +161,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getByText(/20[.,]00%/)).toBeInTheDocument();
     expect(
-      screen.queryByText(/Alerta de Concentração de Contratações Diretas/),
+      screen.queryByText("Muitas compras sem concorrência"),
     ).not.toBeInTheDocument();
   });
 
@@ -136,7 +188,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getAllByText(/75[.,]00%/).length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getByText(/Alerta de Concentração de Contratações Diretas:/),
+      screen.getByText("Muitas compras sem concorrência"),
     ).toBeInTheDocument();
 
     const linkArt74 = screen.getByRole("link", {
@@ -166,12 +218,8 @@ describe("LicitacoesPage", () => {
       "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art86",
     );
 
-    expect(
-      screen.getByText(
-        /No consolidado municipal de 2024, embora as contratações diretas representem/,
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/card acima/)).toBeInTheDocument();
+    expect(screen.getByText(/Contratações diretas somam/)).toBeInTheDocument();
+    expect(screen.queryByText(/card acima/)).not.toBeInTheDocument();
   });
 
   it("não exibe alerta quando entidade filtrada possui contratação direta baixa", async () => {
@@ -207,7 +255,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getByText(/10[.,]00%/)).toBeInTheDocument();
     expect(
-      screen.queryByText(/Alerta de Concentração de Contratações Diretas:/),
+      screen.queryByText("Muitas compras sem concorrência"),
     ).not.toBeInTheDocument();
   });
 
@@ -244,9 +292,7 @@ describe("LicitacoesPage", () => {
     expect(screen.getByText("Taxa de Contratação Direta")).toBeInTheDocument();
     expect(screen.getAllByText(/60[.,]00%/).length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getByText(
-        /Nas entidades selecionadas em 2024, 60\.00% do volume apurado/,
-      ),
+      screen.getByText(/Nas entidades selecionadas, 60,00% do valor apurado/),
     ).toBeInTheDocument();
   });
 
@@ -275,8 +321,11 @@ describe("LicitacoesPage", () => {
       screen.getByText("Licitações Abertas e em Andamento"),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/042\/2024/).length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
+    );
     expect(
-      screen.getAllByText("Secretaria de Obras").length,
+      screen.getAllByText(/Secretaria de Obras/).length,
     ).toBeGreaterThanOrEqual(1);
     expect(
       screen.getAllByText("Contratação de empresa para reforma de pontes")
@@ -329,25 +378,31 @@ describe("LicitacoesPage", () => {
     const element = await LicitacoesPage(props);
     render(element);
 
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Expandir detalhes da linha" })[0],
+    );
     expect(
       screen.getAllByRole("link", { name: /sala de disputa/i })[0],
     ).toHaveAttribute("href", "https://pncp.gov.br/app/editais/123/2024/1");
     expect(
-      screen.getAllByRole("button", { name: /detalhes/i })[0],
+      screen.getAllByRole("button", { name: /ver detalhes/i })[0],
     ).toBeInTheDocument();
   });
 
-  it("renderiza a barra de busca global de licitações e contratos no hero", async () => {
+  it("renderiza a barra de busca no topo, antes dos destaques", async () => {
     loadLicitacoesDataMock.mockResolvedValue(makeRaw());
 
     const element = await LicitacoesPage(props);
     render(element);
 
+    const busca = screen.getByRole("button", {
+      name: /abrir busca global de licitações e contratos/i,
+    });
+    const destaque = screen.getByTestId("licitacoes-destaque");
     expect(
-      screen.getByRole("button", {
-        name: /abrir busca global de licitações e contratos/i,
-      }),
-    ).toBeInTheDocument();
+      busca.compareDocumentPosition(destaque) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("renderiza a seção de contratos de serviços vigentes quando há contratos nos dados", async () => {

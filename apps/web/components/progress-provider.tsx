@@ -96,6 +96,7 @@ function RouteChangeListener() {
         rawHref.startsWith("tel:") ||
         rawHref.startsWith("#") ||
         rawHref.startsWith("javascript:") ||
+        rawHref.startsWith("vbscript:") ||
         rawHref.startsWith("blob:") ||
         rawHref.startsWith("data:") ||
         rawHref.startsWith("/api/") ||
@@ -141,7 +142,7 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
   return (
     <BProgressProvider
       height="3px"
-      color="oklch(0.55 0.11 250)"
+      color="var(--brand-fill)"
       options={{ showSpinner: false }}
       shallowRouting
     >

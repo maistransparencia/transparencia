@@ -97,8 +97,8 @@ describe("PrevidenciaPatrimonioHistoricoSection", () => {
     expect(screen.getAllByText("Pico Histórico").length).toBeGreaterThanOrEqual(
       1,
     );
-    expect(screen.getByText("Patrimônio Atual")).toBeInTheDocument();
-    expect(screen.getByText("Queima Média Anual")).toBeInTheDocument();
+    expect(screen.getByText("Patrimônio atual")).toBeInTheDocument();
+    expect(screen.getByText("Queima média anual")).toBeInTheDocument();
   });
 
   it("renderiza os 3 cards do diagnóstico de causas estruturais com links para legislação oficial", () => {

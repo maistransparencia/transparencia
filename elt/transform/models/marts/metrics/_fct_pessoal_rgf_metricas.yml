@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: fct_pessoal_rgf_metricas
+    description: Despesa total com pessoal do Executivo em 12 meses, RCL ajustada e percentual, todos do RGF Anexo 01 (SICONFI) e do mesmo período. Uma linha por portal, ano e período publicado.
+    columns:
+      - name: pessoal_rgf_metricas_id
+        description: Chave substituta de portal_slug, ano, periodicidade e periodo.
+        tests:
+          - unique
+          - not_null
+      - name: portal_slug
+        description: Identificador do portal tenant.
+        tests:
+          - not_null
+      - name: ano
+        description: Exercício do RGF.
+        tests:
+          - not_null
+      - name: periodicidade
+        description: Periodicidade em que o ente publica o RGF (quadrimestral ou semestral), como devolvida pela API.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['quadrimestral', 'semestral']
+      - name: periodo
+        description: Número do período dentro do exercício (1 a 3 no quadrimestral, 1 a 2 no semestral).
+        tests:
+          - not_null
+      - name: despesa_pessoal_12_meses
+        description: Despesa total com pessoal (DTP) dos últimos 12 meses por competência, conforme o RGF.
+        tests:
+          - not_null
+      - name: receita_corrente_liquida_ajustada
+        description: RCL ajustada para cálculo dos limites de pessoal, conforme o RGF.
+        tests:
+          - not_null
+      - name: percentual_despesa_pessoal
+        description: Percentual da DTP sobre a RCL ajustada, pronto na API do SICONFI (não recalculado).
+        tests:
+          - not_null
+
+unit_tests:
+  - name: test_pessoal_rgf_metricas_sem_cruzar_portais
+    description: Pivota as contas do RGF por período sem misturar portais com o mesmo período.
+    model: fct_pessoal_rgf_metricas
+    given:
+      - input: ref('int_siconfi_rgf_consolidada')
+        rows:
+          - { ano: 2024, cod_ibge: 1, periodicidade: quadrimestral, periodo: 3, cod_conta: DespesaComPessoalTotal, coluna: Valor, valor: 70 }
+          - { ano: 2024, cod_ibge: 1, periodicidade: quadrimestral, periodo: 3, cod_conta: DespesaComPessoalTotal, coluna: '% sobre a RCL Ajustada', valor: 50 }
+          - { ano: 2024, cod_ibge: 1, periodicidade: quadrimestral, periodo: 3, cod_conta: ReceitaCorrenteLiquidaAjustada, coluna: Valor, valor: 140 }
+          - { ano: 2024, cod_ibge: 2, periodicidade: semestral, periodo: 2, cod_conta: DespesaComPessoalTotal, coluna: Valor, valor: 30 }
+          - { ano: 2024, cod_ibge: 2, periodicidade: semestral, periodo: 2, cod_conta: DespesaComPessoalTotal, coluna: '% sobre a RCL Ajustada', valor: 20 }
+          - { ano: 2024, cod_ibge: 2, periodicidade: semestral, periodo: 2, cod_conta: ReceitaCorrenteLiquidaAjustada, coluna: Valor, valor: 150 }
+      - input: ref('dim_portais')
+        rows:
+          - { portal_slug: portal_a, cod_ibge: 1 }
+          - { portal_slug: portal_b, cod_ibge: 2 }
+    expect:
+      rows:
+        - { portal_slug: portal_a, ano: 2024, periodicidade: quadrimestral, periodo: 3, despesa_pessoal_12_meses: 70, receita_corrente_liquida_ajustada: 140, percentual_despesa_pessoal: 50 }
+        - { portal_slug: portal_b, ano: 2024, periodicidade: semestral, periodo: 2, despesa_pessoal_12_meses: 30, receita_corrente_liquida_ajustada: 150, percentual_despesa_pessoal: 20 }

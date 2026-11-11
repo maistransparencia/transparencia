@@ -2,12 +2,13 @@
 
 import {
   ChevronDown,
+  ChevronRight,
   ChevronsUpDown,
   ChevronUp,
   Download,
   Search,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useMemo, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 import {
   fmtCompact,
@@ -39,6 +40,8 @@ export interface Column<T> {
   exportValue?: (row: T) => string | number;
   renderCell?: (row: T) => React.ReactNode;
   footer?: React.ReactNode;
+  /** Coluna presente apenas na exportação CSV (não aparece na tabela). */
+  exportOnly?: boolean;
 }
 
 export interface DenseTableProps<T> {
@@ -58,6 +61,20 @@ export interface DenseTableProps<T> {
   csvButtonLabel?: string;
   recordLabel?: string;
   renderMobileCard?: (row: T) => React.ReactNode;
+  renderMobileRow?: (row: T) => {
+    resumo: React.ReactNode;
+    detalhes: React.ReactNode;
+  };
+  /** Painel de detalhe expansível por linha no desktop (seta no fim da linha). */
+  renderExpandedRow?: (row: T) => React.ReactNode;
+  hideSearch?: boolean;
+  /** Oculta o botão de exportar CSV em telas < sm. */
+  hideCsvOnMobile?: boolean;
+  /**
+   * Valor do `rowKey` da linha a ser revelada (deep link): a tabela vai até a
+   * página que a contém, expande a linha e rola até ela. Requer `rowKey`.
+   */
+  revealRowId?: string | null;
   rowClassName?: (row: T, index: number) => string | undefined;
   onFilteredDataChange?: (rows: T[]) => void;
   footerLabel?: string;
@@ -86,9 +103,9 @@ function SortIcon({
     );
   }
   if (sortDir === "asc") {
-    return <ChevronUp className="h-3.5 w-3.5 text-[#2b6cb0]" />;
+    return <ChevronUp className="h-3.5 w-3.5 text-brand" />;
   }
-  return <ChevronDown className="h-3.5 w-3.5 text-[#2b6cb0]" />;
+  return <ChevronDown className="h-3.5 w-3.5 text-brand" />;
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: T accepts any typed object model
@@ -109,11 +126,17 @@ export function DenseTable<T extends Record<string, any>>({
   csvButtonLabel = "Baixar CSV",
   recordLabel = "registros",
   renderMobileCard,
+  renderMobileRow,
+  renderExpandedRow,
+  hideSearch = false,
+  hideCsvOnMobile = false,
+  revealRowId,
   rowClassName,
   onFilteredDataChange,
   footerLabel = "Total",
 }: DenseTableProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sortSelectId = useId();
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [sortKey, setSortKey] = useState<keyof T | null>(
@@ -122,6 +145,13 @@ export function DenseTable<T extends Record<string, any>>({
   const [sortDir, setSortDir] = useState<"asc" | "desc">(
     defaultSortDir ?? "asc",
   );
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+  const visibleColumns = useMemo(
+    () => columns.filter((col) => !col.exportOnly),
+    [columns],
+  );
+  const toggleExpandedRow = (rowId: string) =>
+    setExpandedRowId((atual) => (atual === rowId ? null : rowId));
 
   // Chave estável: chamadores costumam passar `searchableKeys` como array literal
   const searchableKeysSignature = searchableKeys?.join("|");
@@ -151,6 +181,7 @@ export function DenseTable<T extends Record<string, any>>({
   const handleSort = (key?: keyof T) => {
     if (!key) return;
     setPage(1);
+    setExpandedRowId(null);
     if (sortKey === key) {
       setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -158,6 +189,32 @@ export function DenseTable<T extends Record<string, any>>({
       const col = columns.find((c) => c.accessorKey === key);
       setSortDir(col?.defaultSortDir ?? "asc");
     }
+  };
+
+  const mobileSortableColumns = visibleColumns.filter(
+    (col) => (col.sortable ?? sortable) && col.accessorKey !== undefined,
+  );
+
+  const handleMobileSortKeyChange = (value: string) => {
+    setPage(1);
+    setExpandedRowId(null);
+    if (!value) {
+      setSortKey(defaultSortKey ?? null);
+      setSortDir(defaultSortDir ?? "asc");
+      return;
+    }
+    const col = mobileSortableColumns.find(
+      (c) => String(c.accessorKey) === value,
+    );
+    if (!col?.accessorKey) return;
+    setSortKey(col.accessorKey);
+    setSortDir(col.defaultSortDir ?? "asc");
+  };
+
+  const toggleSortDir = () => {
+    setPage(1);
+    setExpandedRowId(null);
+    setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
   const sortedData = useMemo(() => {
@@ -210,6 +267,7 @@ export function DenseTable<T extends Record<string, any>>({
     const targetPage = Math.max(1, Math.min(newPage, totalPages));
     if (targetPage === currentPage) return;
     setPage(targetPage);
+    setExpandedRowId(null);
     if (typeof containerRef.current?.scrollIntoView === "function") {
       containerRef.current.scrollIntoView({
         behavior: "smooth",
@@ -223,6 +281,38 @@ export function DenseTable<T extends Record<string, any>>({
     const start = (currentPage - 1) * pageSize;
     return sortedData.slice(start, start + pageSize);
   }, [sortedData, pageSize, currentPage]);
+
+  const revealedRowIdRef = useRef<string | null>(null);
+  const pendingScrollRowIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!revealRowId || !rowKey) return;
+    if (revealedRowIdRef.current === revealRowId) return;
+    const index = sortedData.findIndex(
+      (row) => String(row[rowKey]) === revealRowId,
+    );
+    if (index < 0) return;
+    revealedRowIdRef.current = revealRowId;
+    pendingScrollRowIdRef.current = revealRowId;
+    if (pageSize) setPage(Math.floor(index / pageSize) + 1);
+    setExpandedRowId(revealRowId);
+  }, [revealRowId, rowKey, sortedData, pageSize]);
+
+  useEffect(() => {
+    const pendingId = pendingScrollRowIdRef.current;
+    if (!pendingId || expandedRowId !== pendingId) return;
+    pendingScrollRowIdRef.current = null;
+    containerRef.current
+      ?.querySelectorAll("[data-row-id]")
+      .forEach((element) => {
+        if (
+          element.getAttribute("data-row-id") === pendingId &&
+          typeof element.scrollIntoView === "function"
+        ) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+  }, [expandedRowId]);
 
   const handleExportCsv = () => {
     if (!sortedData.length) return;
@@ -336,28 +426,38 @@ export function DenseTable<T extends Record<string, any>>({
     return pages;
   }, [totalPages, currentPage]);
 
+  const hasMobileRenderer = Boolean(renderMobileRow ?? renderMobileCard);
+
   return (
     <div
       ref={containerRef}
       className={cn(
-        "scroll-mt-20 overflow-hidden rounded-xl border border-borderLine bg-white shadow-xs sm:scroll-mt-24",
+        "scroll-mt-20 overflow-hidden bg-page sm:scroll-mt-24",
         className,
       )}
     >
-      {(searchableKeys !== undefined || enableExportCsv) && (
-        <div className="flex items-center justify-between gap-2 border-borderLine border-b bg-gray-50/50 p-3">
-          {searchableKeys !== undefined ? (
+      {((searchableKeys !== undefined && !hideSearch) || enableExportCsv) && (
+        <div
+          className={cn(
+            "items-center justify-between gap-2 border-line border-b py-3",
+            hideCsvOnMobile && (searchableKeys === undefined || hideSearch)
+              ? "hidden sm:flex"
+              : "flex",
+          )}
+        >
+          {searchableKeys !== undefined && !hideSearch ? (
             <div className="flex flex-1 items-center gap-2">
-              <Search className="h-4 w-4 shrink-0 text-mutedText" />
+              <Search className="h-4 w-4 shrink-0 text-mute2" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
                   setPage(1);
+                  setExpandedRowId(null);
                 }}
                 placeholder={searchPlaceholder}
-                className="w-full bg-transparent text-ink text-xs placeholder:text-mutedText focus:outline-none"
+                className="w-full bg-transparent text-ink text-xs placeholder:text-mute2 focus:outline-none"
               />
             </div>
           ) : (
@@ -366,22 +466,24 @@ export function DenseTable<T extends Record<string, any>>({
 
           {enableExportCsv && (
             <>
+              {!hideCsvOnMobile && (
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  disabled={sortedData.length === 0}
+                  aria-label={csvButtonLabel}
+                  className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-md border border-line bg-page px-3 py-2.5 text-ink transition-colors hover:border-mute3 hover:bg-line2 disabled:opacity-40 sm:hidden"
+                >
+                  <Download className="h-3.5 w-3.5 text-mute2" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleExportCsv}
                 disabled={sortedData.length === 0}
-                aria-label={csvButtonLabel}
-                className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:opacity-40 sm:hidden"
+                className="hidden shrink-0 items-center justify-center gap-1.5 rounded-md border border-line bg-page px-3 py-1.5 font-medium text-ink text-xs transition-colors hover:border-mute3 hover:bg-line2 disabled:opacity-40 sm:inline-flex"
               >
-                <Download className="h-3.5 w-3.5 text-slate-500" />
-              </button>
-              <button
-                type="button"
-                onClick={handleExportCsv}
-                disabled={sortedData.length === 0}
-                className="hidden shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 text-xs transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:opacity-40 sm:inline-flex"
-              >
-                <Download className="h-3.5 w-3.5 text-slate-500" />
+                <Download className="h-3.5 w-3.5 text-mute2" />
                 <span>{csvButtonLabel}</span>
               </button>
             </>
@@ -389,10 +491,139 @@ export function DenseTable<T extends Record<string, any>>({
         </div>
       )}
 
-      {renderMobileCard && displayedData.length > 0 && (
-        <div className="block divide-y divide-borderLine border-borderLine border-b bg-white sm:hidden">
+      {renderMobileRow &&
+        mobileSortableColumns.length > 0 &&
+        displayedData.length > 0 && (
+          <div className="flex items-center gap-2 border-line border-b py-2 sm:hidden">
+            <label htmlFor={`${sortSelectId}-mobile-sort`} className="eyebrow">
+              Ordenar por
+            </label>
+            <select
+              id={`${sortSelectId}-mobile-sort`}
+              value={
+                sortKey &&
+                mobileSortableColumns.some((col) => col.accessorKey === sortKey)
+                  ? String(sortKey)
+                  : ""
+              }
+              onChange={(e) => handleMobileSortKeyChange(e.target.value)}
+              className="min-w-0 flex-1 cursor-pointer rounded-md border border-line bg-page px-2 py-1.5 text-ink text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              <option value="">Ordem padrão</option>
+              {mobileSortableColumns.map((col) => (
+                <option
+                  key={String(col.accessorKey)}
+                  value={String(col.accessorKey)}
+                >
+                  {col.header}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={toggleSortDir}
+              disabled={!sortKey}
+              aria-label={
+                sortDir === "asc"
+                  ? "Ordem crescente, alternar para decrescente"
+                  : "Ordem decrescente, alternar para crescente"
+              }
+              className="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-line bg-page text-ink hover:border-mute3 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {sortDir === "asc" ? (
+                <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+        )}
+
+      {renderMobileRow && renderExpandedRow && displayedData.length > 0 && (
+        <div className="block border-line border-b sm:hidden">
+          {displayedData.map((row, idx) => {
+            const rKey = getRowId(row, idx);
+            const isExpanded = expandedRowId === rKey;
+            const { resumo } = renderMobileRow(row);
+            return (
+              <div
+                key={`m-${rKey}`}
+                data-row-id={rKey}
+                className="border-line border-b last:border-b-0"
+              >
+                {/* biome-ignore lint/a11y/useSemanticElements: o resumo contém links/botões próprios, então não pode ser um <button> */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  onClick={(event) => {
+                    const alvo = event.target as HTMLElement;
+                    const interativo = alvo.closest(
+                      "a,button,input,select,textarea,summary,[role='button']",
+                    );
+                    if (interativo && interativo !== event.currentTarget) {
+                      return;
+                    }
+                    toggleExpandedRow(rKey);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      toggleExpandedRow(rKey);
+                    }
+                  }}
+                  className="flex cursor-pointer items-start gap-2 py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                >
+                  <div className="min-w-0 flex-1">{resumo}</div>
+                  <ChevronRight
+                    className={cn(
+                      "mt-1 h-4 w-4 shrink-0 text-mute transition-transform",
+                      isExpanded && "rotate-90",
+                    )}
+                    aria-hidden="true"
+                  />
+                </div>
+                {isExpanded && (
+                  <div className="border-line border-t px-3 py-3">
+                    {renderExpandedRow(row)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {renderMobileRow && !renderExpandedRow && displayedData.length > 0 && (
+        <div className="block border-line border-b sm:hidden">
+          {displayedData.map((row, idx) => {
+            const { resumo, detalhes } = renderMobileRow(row);
+            return (
+              <details
+                key={rowKey ? String(row[rowKey]) : idx}
+                className="group border-line border-b last:border-b-0"
+              >
+                <summary className="flex cursor-pointer list-none items-start gap-2 py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0 flex-1">{resumo}</div>
+                  {detalhes ? (
+                    <ChevronRight
+                      className="mt-1 h-4 w-4 shrink-0 text-mute transition-transform group-open:rotate-90"
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                </summary>
+                <div className="pb-3 text-xs">{detalhes}</div>
+              </details>
+            );
+          })}
+        </div>
+      )}
+
+      {!renderMobileRow && renderMobileCard && displayedData.length > 0 && (
+        <div className="block divide-y divide-line border-line border-b sm:hidden">
           {displayedData.map((row, idx) => (
-            <div key={rowKey ? String(row[rowKey]) : idx} className="p-3.5">
+            <div key={rowKey ? String(row[rowKey]) : idx} className="py-3.5">
               {renderMobileCard(row)}
             </div>
           ))}
@@ -402,13 +633,13 @@ export function DenseTable<T extends Record<string, any>>({
       <div
         className={cn(
           "overflow-x-auto",
-          renderMobileCard && displayedData.length > 0 && "hidden sm:block",
+          hasMobileRenderer && displayedData.length > 0 && "hidden sm:block",
         )}
       >
         <table className="w-full border-collapse text-left text-xs">
           <thead>
-            <tr className="border-borderLine border-b bg-gray-100/70 font-semibold text-subtleText uppercase tracking-wider">
-              {columns.map((col, _idx) => {
+            <tr className="border-line border-b font-semibold text-mute2 uppercase tracking-wider">
+              {visibleColumns.map((col, _idx) => {
                 const isSortable =
                   (col.sortable ?? sortable) && col.accessorKey !== undefined;
                 const isSorted = sortKey === col.accessorKey;
@@ -430,13 +661,13 @@ export function DenseTable<T extends Record<string, any>>({
                         onClick={() => handleSort(col.accessorKey)}
                         aria-label={`Ordenar por ${col.header.toLowerCase()}`}
                         className={cn(
-                          "inline-flex items-center gap-1.5 rounded px-1 font-bold uppercase transition-colors hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+                          "inline-flex items-center gap-1.5 rounded px-1 font-bold uppercase transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                           col.align === "right" && "ml-auto justify-end",
                           col.align === "center" && "justify-center",
                         )}
                       >
                         <span>{col.header}</span>
-                        <span className="inline-flex shrink-0 items-center text-slate-400">
+                        <span className="inline-flex shrink-0 items-center text-mute3">
                           <SortIcon isSorted={isSorted} sortDir={sortDir} />
                         </span>
                       </button>
@@ -456,12 +687,12 @@ export function DenseTable<T extends Record<string, any>>({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {displayedData.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length}
-                  className="px-4 py-6 text-center text-mutedText italic"
+                  colSpan={visibleColumns.length}
+                  className="px-4 py-6 text-center text-mute2 italic"
                 >
                   {emptyMessage}
                 </td>
@@ -469,48 +700,106 @@ export function DenseTable<T extends Record<string, any>>({
             ) : (
               displayedData.map((row, index) => {
                 const rKey = getRowId(row, index);
+                const isExpanded =
+                  renderExpandedRow !== undefined && expandedRowId === rKey;
                 return (
-                  <tr
-                    key={`tr-${rKey}`}
-                    className={cn(
-                      "transition-colors hover:bg-gray-50/80",
-                      rowClassName?.(row, index),
+                  <Fragment key={`tr-${rKey}`}>
+                    <tr
+                      data-row-id={rKey}
+                      onClick={
+                        renderExpandedRow
+                          ? (event) => {
+                              const alvo = event.target as HTMLElement;
+                              if (
+                                alvo.closest(
+                                  "a,button,input,select,textarea,summary,[role='button']",
+                                )
+                              ) {
+                                return;
+                              }
+                              toggleExpandedRow(rKey);
+                            }
+                          : undefined
+                      }
+                      className={cn(
+                        "transition-colors hover:bg-line2",
+                        renderExpandedRow && "cursor-pointer",
+                        isExpanded && "bg-line2",
+                        rowClassName?.(row, index),
+                      )}
+                    >
+                      {visibleColumns.map((col, colIndex) => (
+                        <td
+                          key={`td-${rKey}-${String(col.accessorKey || col.header)}`}
+                          title={
+                            col.accessorKey &&
+                            row[col.accessorKey] !== null &&
+                            row[col.accessorKey] !== undefined
+                              ? String(row[col.accessorKey])
+                              : undefined
+                          }
+                          className={cn(
+                            col.className ? col.className : "whitespace-nowrap",
+                            "px-3 py-2 text-ink sm:px-4",
+                            col.align === "right" && "text-right",
+                            col.align === "center" && "text-center",
+                            (col.isSerifNumeric ||
+                              col.format === "currency" ||
+                              col.format === "compact") &&
+                              "numeric",
+                            row.className,
+                          )}
+                        >
+                          {renderExpandedRow && colIndex === 0 ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => toggleExpandedRow(rKey)}
+                                aria-expanded={isExpanded}
+                                aria-label={
+                                  isExpanded
+                                    ? "Recolher detalhes da linha"
+                                    : "Expandir detalhes da linha"
+                                }
+                                className="inline-flex min-h-11 min-w-8 shrink-0 cursor-pointer items-center justify-center rounded text-mute hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                              >
+                                <ChevronRight
+                                  className={cn(
+                                    "h-4 w-4 transition-transform",
+                                    isExpanded && "rotate-90",
+                                  )}
+                                  aria-hidden="true"
+                                />
+                              </button>
+                              <span className="min-w-0">
+                                {renderCellValue(col, row)}
+                              </span>
+                            </div>
+                          ) : (
+                            renderCellValue(col, row)
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                    {isExpanded && renderExpandedRow && (
+                      <tr className="border-line border-t hover:bg-transparent">
+                        <td
+                          colSpan={visibleColumns.length}
+                          className="px-4 py-4 text-ink"
+                        >
+                          {renderExpandedRow(row)}
+                        </td>
+                      </tr>
                     )}
-                  >
-                    {columns.map((col) => (
-                      <td
-                        key={`td-${rKey}-${String(col.accessorKey || col.header)}`}
-                        title={
-                          col.accessorKey &&
-                          row[col.accessorKey] !== null &&
-                          row[col.accessorKey] !== undefined
-                            ? String(row[col.accessorKey])
-                            : undefined
-                        }
-                        className={cn(
-                          col.className ? col.className : "whitespace-nowrap",
-                          "px-3 py-2 text-ink sm:px-4",
-                          col.align === "right" && "text-right",
-                          col.align === "center" && "text-center",
-                          (col.isSerifNumeric ||
-                            col.format === "currency" ||
-                            col.format === "compact") &&
-                            "font-semibold font-serif",
-                          row.className,
-                        )}
-                      >
-                        {renderCellValue(col, row)}
-                      </td>
-                    ))}
-                  </tr>
+                  </Fragment>
                 );
               })
             )}
           </tbody>
-          {columns.some((col) => col.footer !== undefined) && (
+          {visibleColumns.some((col) => col.footer !== undefined) && (
             <tfoot>
-              <tr className="border-borderLine border-t-2 bg-slate-100 font-bold text-slate-900">
-                {columns.map((col, idx) => (
+              <tr className="border-line border-t font-bold text-ink">
+                {visibleColumns.map((col, idx) => (
                   <td
                     key={String(col.accessorKey || col.header)}
                     className={cn(
@@ -522,6 +811,7 @@ export function DenseTable<T extends Record<string, any>>({
                     {col.footer ?? (idx === 0 ? footerLabel : null)}
                   </td>
                 ))}
+                {renderExpandedRow && <td />}
               </tr>
             </tfoot>
           )}
@@ -529,14 +819,14 @@ export function DenseTable<T extends Record<string, any>>({
       </div>
 
       {pageSize && (
-        <div className="flex flex-col items-center justify-between gap-3 border-slate-100 border-t bg-white px-4 py-3 text-slate-500 text-xs sm:flex-row sm:px-5">
+        <div className="flex flex-col items-center justify-between gap-3 border-line border-t py-3 text-mute2 text-xs sm:flex-row">
           <div>
             Mostrando{" "}
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-ink">
               {displayedData.length}
             </span>{" "}
             de{" "}
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-ink">
               {filteredData.length}
             </span>{" "}
             {recordLabel}
@@ -549,17 +839,14 @@ export function DenseTable<T extends Record<string, any>>({
                 aria-label="Página anterior"
                 disabled={currentPage <= 1}
                 onClick={() => handlePageChange(currentPage - 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-line text-ink transition-colors hover:bg-line2 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
               >
                 &larr;
               </button>
 
               {pageNumbers.map((pageNum) =>
                 typeof pageNum === "string" ? (
-                  <span
-                    key={pageNum}
-                    className="px-1 font-semibold text-slate-400"
-                  >
+                  <span key={pageNum} className="px-1 font-semibold text-mute3">
                     ...
                   </span>
                 ) : (
@@ -569,10 +856,10 @@ export function DenseTable<T extends Record<string, any>>({
                     aria-label={`Página ${pageNum}`}
                     onClick={() => handlePageChange(pageNum)}
                     className={cn(
-                      "flex h-9 w-9 items-center justify-center rounded-lg font-semibold text-xs transition-colors sm:h-7 sm:w-7",
+                      "flex h-9 w-9 items-center justify-center rounded-md font-semibold text-xs transition-colors sm:h-7 sm:w-7",
                       pageNum === currentPage
-                        ? "bg-[#2b6cb0] text-white"
-                        : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                        ? "bg-ink text-onink"
+                        : "border border-line text-ink hover:bg-line2",
                     )}
                   >
                     {pageNum}
@@ -585,7 +872,7 @@ export function DenseTable<T extends Record<string, any>>({
                 aria-label="Próxima página"
                 disabled={currentPage >= totalPages}
                 onClick={() => handlePageChange(currentPage + 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-line text-ink transition-colors hover:bg-line2 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
               >
                 &rarr;
               </button>

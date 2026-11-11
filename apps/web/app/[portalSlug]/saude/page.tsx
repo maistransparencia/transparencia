@@ -1,47 +1,44 @@
 import {
+  getComparacaoReceitaEstadual,
+  getEmendasEstaduais,
+  getFontesEmendas,
+  resumirFiscalizacaoSaude,
+} from "@transparencia/db";
+import {
   AlertBox,
-  cn,
   fmtCompact,
+  fmtDate,
   fmtPercent,
-  KPICard,
+  Indicator,
+  IndicatorPanel,
+  SectionHeader,
 } from "@transparencia/ui";
 import type { Metadata } from "next";
-import nextDynamic from "next/dynamic";
-import { KPIGrid } from "@/components/kpi-grid";
+import { buildFornecedoresLinhas } from "@/app/[portalSlug]/despesas/view-model";
+import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
+import { EmendasSection } from "@/components/emendas-section";
+import { EvolucaoAnual } from "@/components/evolucao-anual";
+import { LeiLink, LinhaLeiEFonte } from "@/components/lei-e-fonte";
+import { SaudeProducaoSus } from "@/components/saude/saude-producao-sus";
+import { SaudeRedeSus } from "@/components/saude/saude-rede-sus";
 import { SaudeContratacaoSection } from "@/components/saude-contratacao-section";
-import { SaudeEmendasSection } from "@/components/saude-emendas-section";
 import { SaudeHeroSection } from "@/components/saude-hero-section";
+import { SaudeOrigemRecursos } from "@/components/saude-origem-recursos";
+import { SectionWithHeader } from "@/components/section-with-header";
+import {
+  pickTense,
+  tituloDaSerie,
+  tituloDoExercicio,
+} from "@/lib/escopo-bloco";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadSaudeData } from "./loader";
 import { buildSaudeViewModel } from "./view-model";
-
-const SaudeFontesDonut = nextDynamic(
-  () =>
-    import("@/components/saude-fontes-donut").then(
-      (mod) => mod.SaudeFontesDonut,
-    ),
-  {
-    loading: () => (
-      <div className="h-[280px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-    ),
-  },
-);
-
-const SaudeTrendChart = nextDynamic(
-  () =>
-    import("@/components/saude-trend-chart").then((mod) => mod.SaudeTrendChart),
-  {
-    loading: () => (
-      <div className="h-[320px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-    ),
-  },
-);
 
 export const dynamic = "force-dynamic";
 
 interface SaudePageProps {
   params: Promise<{ portalSlug: string }>;
-  searchParams: Promise<{ ano?: string; entidades?: string }>;
+  searchParams: Promise<{ ano?: string; entidades?: string; numero?: string }>;
 }
 
 export async function generateMetadata({
@@ -70,82 +67,80 @@ export default async function SaudePage({
   const resolvedSearchParams = await searchParams;
   const rawData = await loadSaudeData(portalSlug, resolvedSearchParams);
   const viewModel = buildSaudeViewModel(rawData);
-  const { selectedYear, isCurrentYear, partialPeriod, saude } = viewModel;
+  const {
+    selectedYear,
+    isCurrentYear,
+    partialPeriod,
+    minimoSaude,
+    redePorMilMoradores,
+    producaoSus,
+    farmaciaResumo,
+    portalUrl,
+    dataColeta,
+    saude,
+  } = viewModel;
+  const [emendasEstaduais, comparacaoReceitaEstadual] = await Promise.all([
+    getEmendasEstaduais(portalSlug, selectedYear, "saude"),
+    getComparacaoReceitaEstadual(portalSlug, selectedYear),
+  ]);
+  const fontesEmendas = await getFontesEmendas(
+    portalSlug,
+    selectedYear,
+    emendasEstaduais,
+  );
 
-  const totalEmendas =
-    saude.emendasStats?.totalAutorizado ??
-    saude.fontesReceita?.emendasParlamentares ??
-    0;
-  const totalEmpenhado = saude.emendasStats?.totalEmpenhado ?? 0;
-  const taxaEmpenho = saude.emendasStats?.taxaEmpenho ?? 0;
-  const hasEmendas = totalEmendas > 0;
+  const fornecedoresLinhas = buildFornecedoresLinhas(
+    saude.topFornecedores,
+    saude.orcamento.pago,
+  );
+  const valorPagoTopFornecedores = fornecedoresLinhas.reduce(
+    (total, fornecedor) => total + fornecedor.valorPago,
+    0,
+  );
+  const concentracaoTopFornecedores = fornecedoresLinhas.reduce(
+    (total, fornecedor) => total + fornecedor.percentualTotalPago,
+    0,
+  );
 
-  const emendasSubtext = (() => {
-    if (!hasEmendas) {
-      return "Nenhuma emenda destinada no exercício";
-    }
-    if (totalEmpenhado === 0) {
-      return (
-        <span className="font-semibold text-amber-700">
-          Nenhum valor empenhado
-        </span>
-      );
-    }
-    return `${fmtCompact(totalEmpenhado)} empenhados (${fmtPercent(taxaEmpenho * 100)})`;
-  })();
-
-  const concentracao = saude.farmaceutica?.concentracao ?? {
-    hhi: 0,
-    nivel: "baixa" as const,
-    label: "Não aplicável",
-    descricao:
-      "Sem registros de aquisições de insumos ou contratos no exercício",
-  };
-
-  const badgeColorClasses = (() => {
-    if (concentracao.nivel === "alta") {
-      return "text-rose-700 bg-rose-50 border-rose-200";
-    }
-    if (concentracao.nivel === "moderada") {
-      return "text-amber-700 bg-amber-50 border-amber-200";
-    }
-    return "text-emerald-700 bg-emerald-50 border-emerald-200";
-  })();
+  const resumo = resumirFiscalizacaoSaude({
+    emendas: {
+      ...saude.emendasStats,
+      totalAutorizado: saude.emendasTotal,
+    },
+    caminhosContratacao: saude.licitacoesSaude.caminhos,
+    quantidadeLicitacoesEmAndamento: saude.licitacoesEmAndamento?.length ?? 0,
+    topFornecedores: saude.topFornecedores ?? [],
+    totalPagoFundo: saude.orcamento.pago,
+  });
+  const pluralizar = (quantidade: number, singular: string, plural: string) =>
+    `${quantidade} ${quantidade === 1 ? singular : plural}`;
+  const resumoEmendas = `${pluralizar(resumo.emendas.quantidade, "emenda", "emendas")} · ${fmtCompact(resumo.emendas.totalAutorizado)} autorizados${emendasEstaduais.emendas.length > 0 ? ` · ${emendasEstaduais.emendas.length} do Estado` : ""}`;
+  const resumoContratacao = `${pluralizar(resumo.contratacao.quantidadeLicitacoesProprias, "licitação própria", "licitações próprias")} · ${fmtCompact(resumo.contratacao.totalEmpenhadoLicitacoesProprias)} empenhados · ${pluralizar(resumo.contratacao.quantidadeLicitacoesEmAndamento, "licitação em andamento", "licitações em andamento")} · ${pluralizar(saude.orcamento.contratosVinculadosCount, "contrato vinculado", "contratos vinculados")}`;
+  const resumoFornecedores =
+    resumo.fornecedores.quantidade === 0
+      ? "Nenhum pagamento a fornecedores registrado"
+      : `${pluralizar(saude.orcamento.fornecedoresAtivosCount, "fornecedor ativo", "fornecedores ativos")} · os ${resumo.fornecedores.quantidade} maiores receberam ${fmtCompact(resumo.fornecedores.totalPago)} (${fmtPercent(resumo.fornecedores.percentualTotalPago)} do total pago)`;
 
   return (
     <div className="space-y-12 pb-12">
-      {/* Seção 1: Hero (Novo) */}
-      <div className="space-y-8">
-        <SaudeHeroSection
-          ano={selectedYear}
-          isCurrentYear={isCurrentYear}
-          partialPeriod={partialPeriod}
-          orcamento={saude.orcamento}
-          fontesReceita={saude.fontesReceita}
-        />
-
-        {/* Hero KPIs com KPIGrid e KPICard */}
-        <KPIGrid columns={4}>
-          <KPICard
-            title="Emendas na Saúde"
-            value={fmtCompact(totalEmendas)}
-            subtext={emendasSubtext}
-            accent={hasEmendas && taxaEmpenho >= 0.7}
-          />
-          <KPICard
-            title="Contratos vinculados"
-            value={saude.orcamento.contratosVinculadosCount}
-          />
-          <KPICard
-            title="Fornecedores ativos"
-            value={saude.orcamento.fornecedoresAtivosCount}
-          />
-          <KPICard
-            title="Medicamentos e Insumos"
-            value={fmtCompact(saude.orcamento.medicamentosInsumos)}
-          />
-        </KPIGrid>
-      </div>
+      <SaudeHeroSection
+        ano={selectedYear}
+        isCurrentYear={isCurrentYear}
+        partialPeriod={partialPeriod}
+        portalSlug={portalSlug}
+        orcamento={saude.orcamento}
+        minimoSaude={minimoSaude}
+        fontesReceita={saude.fontesReceita}
+        redePorMilMoradores={redePorMilMoradores}
+        farmacia={farmaciaResumo}
+        portalUrl={portalUrl || null}
+        dataColeta={dataColeta || null}
+        resumoFiscalizacao={[
+          resumoEmendas,
+          resumoContratacao,
+          resumoFornecedores,
+        ]}
+      />
 
       {/* Alerta de Subexecução se aplicável (apenas exercícios encerrados) */}
       {saude.orcamento.alertaSubExecucao && (
@@ -156,98 +151,133 @@ export default async function SaudePage({
       )}
 
       {/* Seção 2: O que entrou no Fundo (Existente) */}
-      <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-2xl text-slate-900">
-          O que entrou
-        </h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="md:col-span-2">
-            <SaudeFontesDonut data={saude.fontesReceita} ano={selectedYear} />
-          </div>
-          <div className="flex flex-col gap-4">
-            <KPICard
-              title="Repasses da Prefeitura ao Fundo"
-              value={fmtCompact(saude.fontesReceita.repassesPrefeitura)}
-            />
-            <KPICard
-              title="Emendas parlamentares"
-              value={fmtCompact(saude.fontesReceita.emendasParlamentares)}
-            />
-          </div>
-        </div>
+      <section id="o-que-entrou" className="scroll-mt-20 space-y-6">
+        <SectionHeader
+          title={tituloDoExercicio("O que entrou", selectedYear)}
+          description={
+            saude.fontesReceita.totalEntrada > 0
+              ? `Em ${selectedYear}, entraram ${fmtCompact(saude.fontesReceita.totalEntrada)} no Fundo Municipal de Saúde. ${saude.fontesReceita.percentualUniaoSus} de cada R$ 100 vêm do Governo Federal. Veja de onde veio cada parte.`
+              : undefined
+          }
+        />
+        <SaudeOrigemRecursos fontes={saude.fontesReceita} ano={selectedYear} />
+        {portalUrl && (
+          <LinhaLeiEFonte
+            source={
+              <LeiLink
+                label="Portal da Transparência da Prefeitura"
+                url={portalUrl}
+              />
+            }
+            extra={
+              dataColeta ? `Coletado em ${fmtDate(dataColeta)}` : undefined
+            }
+          />
+        )}
       </section>
 
       {/* Seção 3: Empenhado no ano (Existente) */}
-      <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-2xl text-slate-900">
-          Empenhado no ano
-        </h2>
-        <SaudeTrendChart
+      <section className="space-y-6">
+        <SectionHeader
+          title={tituloDaSerie(
+            "Como mudou ao longo dos anos",
+            saude.executionTrend.map((ponto) => ponto.ano),
+          )}
+          description={`Quanto o Fundo reservou (empenhado) e quanto já pagou em cada ano. Reservar não é pagar: a diferença é o que ainda não saiu do caixa.${
+            isCurrentYear
+              ? ` O ano de ${selectedYear} está em andamento${partialPeriod ? ` (${partialPeriod})` : ""} e não deve ser comparado com anos completos.`
+              : ""
+          }`}
+        />
+        <EvolucaoAnual
           data={saude.executionTrend}
           selectedYear={selectedYear}
+          partialYear={isCurrentYear ? selectedYear : undefined}
+          mensagemVazia="Sem execução da saúde registrada para comparar os anos."
         />
       </section>
 
-      {/* Seção 4: Como o Fundo contrata (Novo) */}
-      <SaudeContratacaoSection
-        portalSlug={portalSlug}
-        ano={selectedYear}
-        orcamento={saude.orcamento}
-        licitacoesSaude={saude.licitacoesSaude}
-        licitacoesEmAndamento={saude.licitacoesEmAndamento}
-      />
+      <SaudeRedeSus rede={redePorMilMoradores} />
 
-      {/* Seção 5: Insumos e assistência farmacêutica (Existente) */}
-      <section className="space-y-6 border-[#1a1d21] border-t-2 pt-8">
-        <h2 className="font-bold font-serif text-2xl text-slate-900">
-          Insumos e assistência farmacêutica
-        </h2>
-        <KPIGrid columns={3}>
-          <KPICard
-            title="Medicamentos e insumos"
-            value={fmtCompact(saude.farmaceutica.medicamentosInsumos)}
-            subtext={`${fmtCompact(saude.farmaceutica.medicamentosInsumosPago)} pagos (Subfunção 10.303)`}
-          />
-          <KPICard
-            title="Judicialização da saúde"
-            value={
-              <span className="font-bold text-amber-700">
-                {fmtCompact(saude.farmaceutica.judicializacao)}
-              </span>
-            }
-            subtext={`${fmtCompact(saude.farmaceutica.judicializacaoPago)} pagos (sentenças judiciais)`}
-          />
-          <KPICard
-            title="Concentração de Fornecedores"
-            value={
-              <span className="flex flex-wrap items-center gap-2">
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-sm",
-                    badgeColorClasses,
-                  )}
-                >
-                  {concentracao.label}
-                </span>
-                <span
-                  className="font-medium text-[11px] text-slate-500"
-                  title="Metodologia CADE/STN: Índice Herfindahl-Hirschman (HHI). Abaixo de 1.500: baixa concentração; 1.500 a 2.500: moderada; acima de 2.500: alta concentração."
-                >
-                  Índice HHI: {concentracao.hhi.toLocaleString("pt-BR")}
-                </span>
-              </span>
-            }
-            subtext={concentracao.descricao}
-          />
-        </KPIGrid>
-      </section>
+      <SaudeProducaoSus producao={producaoSus} />
 
-      {/* Seção 6: Emendas parlamentares destinadas à Saúde (Existente, com mais detalhes) */}
-      <SaudeEmendasSection
-        ano={selectedYear}
-        emendasStats={saude.emendasStats}
-        portalSlug={portalSlug}
-      />
+      <div id="para-fiscalizar" className="scroll-mt-20 space-y-2">
+        <SectionHeader
+          title="Para fiscalizar"
+          description="Para conferir como o Fundo contrata, fornecedor por fornecedor e emenda por emenda."
+        />
+
+        {/* Seção 4: Como o Fundo contrata (Novo) */}
+        <SaudeContratacaoSection
+          portalSlug={portalSlug}
+          ano={selectedYear}
+          isCurrentYear={isCurrentYear}
+          orcamento={saude.orcamento}
+          licitacoesSaude={saude.licitacoesSaude}
+          licitacoesEmAndamento={saude.licitacoesEmAndamento}
+          itensByLicitacao={saude.itensByLicitacao}
+          resumo={resumoContratacao}
+          defaultOpen={Boolean(resolvedSearchParams.numero)}
+        />
+
+        {/* Seção 5: Quem recebe o dinheiro da saúde */}
+        <SectionWithHeader
+          id="fornecedores-saude"
+          title={tituloDoExercicio(
+            pickTense(
+              isCurrentYear,
+              "Quem recebe o dinheiro da saúde",
+              "Quem recebeu o dinheiro da saúde",
+            ),
+            selectedYear,
+          )}
+          summary={
+            fornecedoresLinhas.length > 0
+              ? resumoFornecedores
+              : "Nenhum pagamento a fornecedores"
+          }
+        >
+          {fornecedoresLinhas.length > 0 ? (
+            <>
+              <IndicatorPanel columns={2}>
+                <Indicator
+                  label={`Parte do total pago que foi para os ${fornecedoresLinhas.length} maiores fornecedores`}
+                  value={fmtPercent(concentracaoTopFornecedores)}
+                  note={`do que o Fundo pagou em ${selectedYear}`}
+                />
+                <Indicator
+                  label={`Pago aos ${fornecedoresLinhas.length} maiores fornecedores`}
+                  value={fmtCompact(valorPagoTopFornecedores)}
+                  note={`de ${fmtCompact(saude.orcamento.pago)} pagos pelo Fundo`}
+                />
+              </IndicatorPanel>
+              <DespesasFornecedoresSection
+                fornecedores={fornecedoresLinhas}
+                portalSlug={portalSlug}
+                ano={selectedYear}
+                nota="Consórcios de saúde e contratos grandes naturalmente concentram valores. O valor mostra o que foi pago, não se o preço foi justo."
+              />
+            </>
+          ) : (
+            <p className="border-line border-y py-4 text-mute">
+              Sem pagamentos a fornecedores registrados para a saúde em{" "}
+              {selectedYear}.
+            </p>
+          )}
+        </SectionWithHeader>
+
+        {/* Seção 6: Emendas parlamentares destinadas à Saúde (Existente, com mais detalhes) */}
+        <EmendasSection
+          id="emendas-saude"
+          resumo={resumoEmendas}
+          ano={selectedYear}
+          emendasStats={saude.emendasStats}
+          portalSlug={portalSlug}
+          emendasEstaduais={emendasEstaduais}
+          comparacaoReceitaEstadual={comparacaoReceitaEstadual}
+          fontes={fontesEmendas}
+        />
+      </div>
     </div>
   );
 }

@@ -223,6 +223,55 @@ pncp_exclusivas as (
       and l.licitacao_numero is null
       and c.objeto_compra is not null
       and c.portal_slug is not null
+),
+
+licitacoes_unificadas as (
+    select
+        portal_slug,
+        ano,
+        empresa_id,
+        licitacao_numero,
+        modalidade,
+        objeto,
+        discriminacao,
+        valor,
+        valor_estimado,
+        valor_homologado,
+        situacao,
+        data_abertura,
+        carona,
+        fonte_objeto,
+        link_sistema_origem
+    from licitacoes_enriched
+    where dedupe_rn = 1
+
+    union all
+
+    select
+        portal_slug,
+        ano,
+        empresa_id,
+        licitacao_numero,
+        modalidade,
+        objeto,
+        discriminacao,
+        valor,
+        valor_estimado,
+        valor_homologado,
+        situacao,
+        data_abertura,
+        carona,
+        fonte_objeto,
+        link_sistema_origem
+    from pncp_exclusivas
+    where dedupe_rn = 1
+),
+
+licitacoes_com_situacao as (
+    select
+        *,
+        unaccent(lower(trim(coalesce(situacao, '')))) as situacao_normalizada
+    from licitacoes_unificadas
 )
 
 select
@@ -237,30 +286,23 @@ select
     valor_estimado,
     valor_homologado,
     situacao,
+    case
+        when situacao_normalizada in ('homologada', 'homologado') then 'homologada'
+        when coalesce(valor_homologado, 0) > 0
+            and situacao_normalizada in ('em andamento', 'em_andamento', 'aberta', 'em aberto', 'publicada', 'publicado', 'divulgada no pncp')
+            then 'homologada'
+        when situacao_normalizada in ('em andamento', 'em_andamento', 'aberta', 'em aberto', 'publicada', 'publicado', 'divulgada no pncp') then 'em_andamento'
+        when situacao_normalizada in ('encerrada', 'encerrado') then 'encerrada'
+        when situacao_normalizada in ('deserta', 'deserto') then 'deserta'
+        when situacao_normalizada in ('fracassada', 'fracassado') then 'fracassada'
+        when situacao_normalizada like '%revogad%'
+            or situacao_normalizada like '%anulad%'
+            or situacao_normalizada like '%cancelad%' then 'cancelada'
+        when situacao_normalizada in ('classificada', 'classificado') then 'classificada'
+        else 'nao_informada'
+    end as situacao_codigo,
     data_abertura,
     carona,
     fonte_objeto,
     link_sistema_origem
-from licitacoes_enriched
-where dedupe_rn = 1
-
-union all
-
-select
-    portal_slug,
-    ano,
-    empresa_id,
-    licitacao_numero,
-    modalidade,
-    objeto,
-    discriminacao,
-    valor,
-    valor_estimado,
-    valor_homologado,
-    situacao,
-    data_abertura,
-    carona,
-    fonte_objeto,
-    link_sistema_origem
-from pncp_exclusivas
-where dedupe_rn = 1
+from licitacoes_com_situacao

@@ -1,7 +1,7 @@
 "use client";
 
 import type { SiconfiEvolucaoMensalPontoDTO } from "@transparencia/db";
-import { fmtCurrency } from "@transparencia/ui";
+import { corDoGrafico, fmtCurrency } from "@transparencia/ui";
 import { useId } from "react";
 import {
   Area,
@@ -38,40 +38,66 @@ function renderCustomTooltip({ active, payload }: CustomTooltipProps) {
   }
 
   return (
-    <div className="pointer-events-none w-[230px] space-y-1.5 rounded-xl border border-slate-200/90 bg-white/95 p-3 text-xs shadow-lg backdrop-blur-xs sm:w-[260px]">
-      <div className="border-slate-100 border-b pb-1 font-semibold text-slate-800">
+    <div className="pointer-events-none w-[230px] space-y-1.5 border border-line bg-page p-3 text-xs">
+      <div className="border-line border-b pb-1 font-semibold text-ink">
         <span>{ponto.mesNome}</span>
       </div>
       <div className="space-y-1 pt-0.5">
         <div className="flex items-baseline justify-between">
-          <span className="flex items-center gap-1.5 text-[11px] text-emerald-800">
-            <span className="inline-block h-2 w-2 rounded-full bg-emerald-600" />
-            Recursos Livres:
+          <span className="flex items-center gap-1.5 text-mute text-xs">
+            <span className="inline-block h-2 w-2 bg-ok-fill" />
+            Recursos livres
           </span>
-          <span className="font-bold text-emerald-700 text-xs tabular-nums">
+          <span className="font-semibold text-ink tabular-nums">
             {fmtCurrency(ponto.saldoRecursosLivres)}
           </span>
         </div>
         <div className="flex items-baseline justify-between">
-          <span className="flex items-center gap-1.5 text-[11px] text-amber-800">
-            <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
-            Recursos Vinculados:
+          <span className="flex items-center gap-1.5 text-mute text-xs">
+            <span className="inline-block h-2 w-2 bg-warn-fill" />
+            Recursos vinculados
           </span>
-          <span className="font-semibold text-amber-700 text-xs tabular-nums">
+          <span className="font-semibold text-ink tabular-nums">
             {fmtCurrency(ponto.saldoRecursosVinculados)}
           </span>
         </div>
-        <div className="flex items-baseline justify-between border-slate-100 border-t pt-1">
-          <span className="flex items-center gap-1.5 text-[11px] text-slate-600">
-            <span className="inline-block h-2 w-2 rounded-full bg-slate-700" />
-            Total em Caixa:
+        <div className="flex items-baseline justify-between border-line border-t pt-1">
+          <span className="flex items-center gap-1.5 text-mute text-xs">
+            <span className="inline-block h-2 w-2 bg-mute" />
+            Total em caixa
           </span>
-          <span className="font-bold text-slate-900 text-xs tabular-nums">
+          <span className="font-semibold text-ink tabular-nums">
             {fmtCurrency(ponto.saldoCaixaBancos)}
           </span>
         </div>
       </div>
     </div>
+  );
+}
+
+const MILHAO = 1_000_000;
+const MIL = 1_000;
+const LARGURA_CARACTERE_EIXO = 6.6;
+const FOLGA_EIXO = 8;
+
+function formatarEixo(valor: number): string {
+  if (valor === 0) return "0";
+  const numero = (n: number) =>
+    n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+  if (Math.abs(valor) >= MILHAO) return `${numero(valor / MILHAO)} mi`;
+  return `${numero(valor / MIL)} mil`;
+}
+
+/** Largura do eixo Y ajustada ao maior rótulo, para o gráfico ocupar o resto. */
+function larguraEixo(pontos: SiconfiEvolucaoMensalPontoDTO[]): number {
+  const maior = Math.max(
+    ...pontos.flatMap((p) => [
+      Math.abs(p.saldoCaixaBancos),
+      Math.abs(p.saldoRecursosLivres),
+    ]),
+  );
+  return Math.ceil(
+    formatarEixo(maior).length * LARGURA_CARACTERE_EIXO + FOLGA_EIXO,
   );
 }
 
@@ -85,64 +111,56 @@ export function SaldoCaixaEvolucaoMensalChart({
     return null;
   }
 
+  const corLivres = corDoGrafico("ok");
+  const corTotal = corDoGrafico("mute");
+
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div className="flex flex-col gap-1 border-slate-100 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h4 className="font-bold text-base text-slate-900">
-            Trajetória Mensal de Disponibilidade em Caixa
-          </h4>
-          <p className="text-subtleText text-xs">
-            Valores reportados ao SICONFI/STN em cada competência do exercício
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <span className="flex items-center gap-1 font-medium text-emerald-700">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-600" />
-            Recursos Livres
-          </span>
-          <span className="flex items-center gap-1 font-medium text-slate-600">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-slate-700" />
-            Total Disponível
-          </span>
-        </div>
+    <div className={`space-y-3 ${className}`}>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-mute text-xs">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 bg-ok-fill" />
+          Recursos livres
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-0 w-4 border-mute border-t-2 border-dashed" />
+          Total em caixa
+        </span>
+        <span className="text-mute2">Valores em reais</span>
       </div>
 
-      <div className="h-[220px] w-full pt-1 sm:h-[270px] sm:pt-2">
+      <div
+        className="h-[220px] w-full sm:h-[270px] [&_*]:outline-none"
+        aria-hidden="true"
+      >
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
+            accessibilityLayer={false}
             data={pontos}
-            margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+            margin={{ top: 10, right: 8, left: 0, bottom: 0 }}
           >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#059669" stopOpacity={0.35} />
-                <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
+                <stop offset="5%" stopColor={corLivres} stopOpacity={0.35} />
+                <stop offset="95%" stopColor={corLivres} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}
-              stroke="#f1f5f9"
+              stroke={corDoGrafico("line")}
             />
             <XAxis
               dataKey="mesAbreviado"
-              tick={{ fill: "#64748b", fontSize: 12 }}
-              axisLine={{ stroke: "#e2e8f0" }}
+              tick={{ fill: corDoGrafico("mute2"), fontSize: 12 }}
+              axisLine={{ stroke: corDoGrafico("line") }}
               tickLine={false}
             />
             <YAxis
-              tickFormatter={(val: number) => {
-                if (val === 0) return "0";
-                if (Math.abs(val) < 1_000_000) {
-                  return `${(val / 1_000).toFixed(0)}k`;
-                }
-                return `${(val / 1_000_000).toFixed(1)}M`;
-              }}
-              tick={{ fill: "#64748b", fontSize: 10 }}
+              tickFormatter={formatarEixo}
+              tick={{ fill: corDoGrafico("mute2"), fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              width={48}
+              width={larguraEixo(pontos)}
             />
             <Tooltip
               content={renderCustomTooltip}
@@ -152,24 +170,45 @@ export function SaldoCaixaEvolucaoMensalChart({
             <Area
               type="monotone"
               dataKey="saldoRecursosLivres"
-              stroke="#059669"
+              stroke={corLivres}
               strokeWidth={2.5}
               fillOpacity={1}
               fill={`url(#${gradientId})`}
-              activeDot={{ r: 6, stroke: "#047857", strokeWidth: 2 }}
+              activeDot={{ r: 6, stroke: corLivres, strokeWidth: 2 }}
             />
             <Line
               type="monotone"
               dataKey="saldoCaixaBancos"
-              stroke="#475569"
+              stroke={corTotal}
               strokeWidth={1.75}
               strokeDasharray="4 4"
               dot={false}
-              activeDot={{ r: 4, stroke: "#334155", strokeWidth: 1.5 }}
+              activeDot={{ r: 4, stroke: corTotal, strokeWidth: 1.5 }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      <table className="sr-only">
+        <caption>Saldo em caixa mês a mês</caption>
+        <thead>
+          <tr>
+            <th scope="col">Mês</th>
+            <th scope="col">Recursos livres</th>
+            <th scope="col">Recursos vinculados</th>
+            <th scope="col">Total em caixa</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pontos.map((ponto) => (
+            <tr key={ponto.mesReferencia}>
+              <th scope="row">{ponto.mesNome}</th>
+              <td>{fmtCurrency(ponto.saldoRecursosLivres)}</td>
+              <td>{fmtCurrency(ponto.saldoRecursosVinculados)}</td>
+              <td>{fmtCurrency(ponto.saldoCaixaBancos)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

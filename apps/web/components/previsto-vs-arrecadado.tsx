@@ -1,10 +1,11 @@
-import { fmtCompact } from "@transparencia/ui";
+import { cn, fmtCompact } from "@transparencia/ui";
 
 export interface PrevistoVsArrecadadoItem {
   fonte: string;
   previsto: number;
   arrecadado: number;
   pctRealizado: number;
+  semPrevisao?: boolean;
   previstoFormatted?: string;
   arrecadadoFormatted?: string;
 }
@@ -24,8 +25,8 @@ export function PrevistoVsArrecadadoOrigem({
     Math.max(...items.flatMap((item) => [item.previsto, item.arrecadado]), 1);
 
   return (
-    <div className="space-y-6 rounded-[14px] border border-[#e7e9ee] bg-white p-6 shadow-sm">
-      {items.map((item, idx) => {
+    <div className="space-y-5">
+      {items.map((item) => {
         // O comprimento da trilha representa o previsto (ou arrecadado se superado), com piso mínimo de 18% para manter legibilidade visual
         const baseVal = Math.max(item.previsto, item.arrecadado);
         const trackWidthPct = Math.min(
@@ -43,43 +44,42 @@ export function PrevistoVsArrecadadoOrigem({
             : 0;
 
         const falta = Math.max(0, item.previsto - item.arrecadado);
-        const faltaText = falta > 0 ? ` · faltam ${fmtCompact(falta)}` : "";
+        const faltaText = falta > 0 ? ` · restam ${fmtCompact(falta)}` : "";
 
         const isPropria =
           item.fonte.toLowerCase().includes("própria") ||
           item.fonte.toLowerCase().includes("propria");
 
-        const barColorClass = isPropria ? "bg-[#3c914e]" : "bg-[#3775b3]";
+        const barColorClass = isPropria ? "bg-ok-fill" : "bg-brand-fill";
 
         return (
-          <div
-            key={`previsto-vs-arrecadado-${item.fonte}`}
-            className={idx > 0 ? "pt-2" : ""}
-          >
-            {/* Linha de Cabeçalho: Nome da Fonte vs Arrecadado / Previsto (fmtCompact já inclui R$) */}
+          <div key={`previsto-vs-arrecadado-${item.fonte}`}>
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="font-bold text-ink">{item.fonte}</span>
-              <span className="font-medium text-subtleText text-xs">
+              <span className="font-semibold text-ink">{item.fonte}</span>
+              <span className="caption font-medium">
                 {fmtCompact(item.arrecadado)} / {fmtCompact(item.previsto)}
               </span>
             </div>
 
-            {/* Trilha de fundo (previsto/meta) com largura proporcional à régua de R$ */}
             <div className="w-full">
               <div
-                className="h-5 overflow-hidden rounded-md bg-[#eef0f4]"
+                className="h-5 overflow-hidden bg-track"
                 style={{ width: `${trackWidthPct}%` }}
               >
                 <div
-                  className={`h-full rounded-md ${barColorClass} transition-all duration-500`}
+                  className={cn(
+                    "h-full transition-all duration-500",
+                    barColorClass,
+                  )}
                   style={{ width: `${fillPct}%` }}
                 />
               </div>
             </div>
 
-            {/* Subtexto: % realizado · faltam R$ X */}
-            <div className="mt-1 font-medium text-subtleText text-xs">
-              {Math.round(item.pctRealizado)}% realizado{faltaText}
+            <div className="caption mt-1 font-medium">
+              {item.semPrevisao
+                ? "Dinheiro que a prefeitura retém do salário dos servidores e de pagamentos a fornecedores (como contribuição à previdência, imposto de renda e parcelas de empréstimo) e repassa a quem de direito. Passa pelo caixa, mas não é dinheiro da prefeitura."
+                : `${Math.round(item.pctRealizado)}% do previsto já arrecadado${faltaText}`}
             </div>
           </div>
         );

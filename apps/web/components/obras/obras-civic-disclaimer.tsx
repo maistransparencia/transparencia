@@ -1,7 +1,10 @@
 "use client";
 
+import { Button, SectionHeader } from "@transparencia/ui";
 import { Check, Copy, ExternalLink, MessageSquare } from "lucide-react";
 import { useRef, useState } from "react";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface ObrasCivicDisclaimerProps {
   municipioNome?: string;
@@ -54,32 +57,24 @@ export function ObrasCivicDisclaimer({
 
   return (
     <section
-      aria-labelledby="titulo-disclaimer-obrasgov"
-      className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-sky-50/40 p-6 shadow-xs sm:p-8"
+      aria-label="Notou obras sem contrato ou licitação vinculados?"
+      className="space-y-4"
     >
+      <SectionHeader
+        eyebrow="Controle Social & Transparência Pública"
+        title="Notou obras sem contrato ou licitação vinculados?"
+        className="pb-0"
+      />
       <div className="gap-6 space-y-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-3xl space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sky-900 text-xs uppercase tracking-wider">
-              Controle Social & Transparência Pública
-            </span>
-          </div>
-
-          <h2
-            id="titulo-disclaimer-obrasgov"
-            className="font-bold font-serif text-slate-900 text-xl sm:text-2xl"
-          >
-            Notou obras sem contrato ou licitação vinculados?
-          </h2>
-
-          <p className="text-slate-600 text-sm leading-relaxed">
+          <p className="text-mute">
             As intervenções desta página são obtidas diretamente do cadastro
             oficial no{" "}
             <a
-              href="https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html"
+              href={FONTES_OFICIAIS.obrasgov.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-semibold text-sky-800 hover:text-sky-950 hover:underline"
+              className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
             >
               <span>ObrasGov.br</span>
               <ExternalLink className="inline h-3.5 w-3.5" aria-hidden="true" />
@@ -89,26 +84,26 @@ export function ObrasCivicDisclaimer({
             parte dos gestores do Poder Executivo no sistema federal.
           </p>
 
-          <p className="text-slate-600 text-sm leading-relaxed">
+          <p className="text-mute">
             Se alguma obra estiver sem vinculação ou com informações
             desatualizadas, você pode exercer sua cidadania cobrando as
             autoridades municipais e os vereadores para que solicitem a devida
             regularização no ObrasGov.br, em conformidade com a{" "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm"
+              href={urlLegislacao("lai")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-sky-800 hover:underline"
+              className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
             >
               <span>Lei nº 12.527/2011 (LAI)</span>
               <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
             </a>{" "}
             e a{" "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm"
+              href={urlLegislacao("lei14133")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-sky-800 hover:underline"
+              className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
             >
               <span>Lei nº 14.133/2021</span>
               <ExternalLink className="inline h-3 w-3" aria-hidden="true" />
@@ -118,45 +113,34 @@ export function ObrasCivicDisclaimer({
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
-          <button
-            type="button"
+          <Button
+            variant={copied ? "secondary" : "primary"}
             onClick={handleCopy}
-            className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-medium text-sm transition-all focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 ${
-              copied
-                ? "bg-emerald-600 text-white shadow-xs"
-                : "bg-slate-900 text-white shadow-xs hover:bg-slate-800"
-            }`}
             aria-label="Copiar mensagem para cobrar vereador ou autoridade"
           >
             {copied ? (
               <>
-                <Check
-                  className="h-4 w-4 text-emerald-100"
-                  aria-hidden="true"
-                />
+                <Check className="h-4 w-4 text-ok-text" aria-hidden="true" />
                 <span>Mensagem copiada!</span>
               </>
             ) : (
               <>
                 <Copy className="h-4 w-4" aria-hidden="true" />
-                <span>Copiar texto para vereador</span>
+                <span>Copiar texto</span>
               </>
             )}
-          </button>
+          </Button>
 
           <a
-            href="https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html"
+            href={FONTES_OFICIAIS.obrasgov.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm hover:bg-slate-50 hover:text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-sky-500"
+            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-page px-4 py-2 font-medium text-ink text-sm no-underline transition-colors hover:bg-line2 focus-visible:outline-2 focus-visible:outline-focus-ring focus-visible:outline-offset-2"
           >
-            <MessageSquare
-              className="h-4 w-4 text-slate-500"
-              aria-hidden="true"
-            />
+            <MessageSquare className="h-4 w-4 text-mute2" aria-hidden="true" />
             <span>Conhecer o ObrasGov.br</span>
             <ExternalLink
-              className="h-3.5 w-3.5 text-slate-400"
+              className="h-3.5 w-3.5 text-mute2"
               aria-hidden="true"
             />
           </a>
@@ -167,7 +151,7 @@ export function ObrasCivicDisclaimer({
         <div
           role="status"
           aria-live="polite"
-          className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800 text-xs"
+          className="mt-4 border-ok-fill border-l-[3px] bg-ok-fill/15 px-3 py-2 text-ink text-xs"
         >
           Texto formal copiado com sucesso! Você pode colar em um e-mail,
           mensagem de WhatsApp ou canal de ouvidoria para enviar ao seu vereador

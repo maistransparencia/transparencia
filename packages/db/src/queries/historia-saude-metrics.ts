@@ -1,11 +1,6 @@
 import { sql } from "kysely";
 import { db } from "../client";
 import { montarEmendasStats } from "./emendas-parlamentares";
-import {
-  getAdesaoDeAtaMetrics,
-  getAdesaoExternaMetrics,
-  getDistribucaoModalidadesMetrics,
-} from "./licitacoes-metrics";
 
 export interface HistoriaSaudeMetricsDTO {
   historiaSaudeId: string;
@@ -47,32 +42,57 @@ export interface EmendaSaudeDTO {
   esferaOrigem: string;
   atoNormativo: string;
   destinacao: string;
-  qtdEmpenhos: number;
+  quantidadeEmpenhos: number;
   empenhos: EmendaEmpenhoItemDTO[];
+  /** Valor da emenda quando aparece como receita arrecadada pelo fundo (indício por valor). */
+  valorRecebidoFundo: number;
+  /** confirmado_por_proposta, valor_igual (só o valor coincide) ou nao_identificado. */
+  recebimentoFundo: string;
+  /** Linha de receita correspondente, para o cidadão conferir. */
+  receitaCodigo: string | null;
+  receitaDescricao: string | null;
 }
 
 export interface EmendasStatsSaudeDTO {
   totalAutorizado: number;
   totalEmpenhado: number;
+  /** Soma das emendas que aparecem como receita arrecadada pelo fundo. */
+  totalRecebidoFundo: number;
+  /** Soma das emendas com receita de mesmo valor, sem o número da proposta (indício fraco). */
+  totalReceitaPossivel: number;
   taxaEmpenho: number;
   maiorEmenda: number;
   lista: EmendaSaudeDTO[];
 }
 
 export interface FontesReceitaSaudeDTO {
-  uniaoSusPct: number;
-  estadoPct: number;
-  propriaPct: number;
+  percentualUniaoSus: number;
+  percentualEstado: number;
+  percentualPropria: number;
+  percentualOutrasReceitas: number;
+  /** Transferências da União (SUS) recebidas pelo fundo, em reais. */
+  receitaUniao: number;
+  /** Transferências do Estado recebidas pelo fundo, em reais. */
+  receitaEstado: number;
+  /** Repasse financeiro medido da entidade pagadora ao fundo, em reais. */
   repassesPrefeitura: number;
+  /** Receita orçamentária do fundo que não vem da União nem do Estado. */
+  receitaOutras: number;
+  /** União + Estado + repasse + outras receitas. */
+  totalEntrada: number;
   emendasParlamentares: number;
 }
 
+export interface CaminhoContratacaoSaudeDTO {
+  /** Código em snake_case: licitacao_propria, adesao_ata_interna, adesao_ata_externa, gap_licitacao. */
+  tipoContratacao: string;
+  quantidade: number;
+  valorEmpenhado: number;
+}
+
 export interface LicitacoesSaudeResultDTO {
-  adesaoCaronaCount: number;
-  adesaoCaronaValor: number;
-  empenhosAtaExternaCount: number;
-  pagoAtaExternaValor: number;
-  modalidades: Array<{ nome: string; valor: number; pct: number }>;
+  /** Caminhos de contratação do fundo, com o valor empenhado ligado a cada um. */
+  caminhos: CaminhoContratacaoSaudeDTO[];
 }
 
 export async function getHistoriaSaudeMetrics(
@@ -115,11 +135,11 @@ export async function getHistoriaSaudeMetrics(
 
 export async function getSaudeExecutionTrendMetrics(
   portalSlug: string,
-): Promise<Array<{ ano: number; empenhado: number }>> {
+): Promise<Array<{ ano: number; empenhado: number; pago: number }>> {
   try {
     const results = await db
       .selectFrom("fct_historia_saude_metricas")
-      .select(["ano", "total_empenhado as empenhado"])
+      .select(["ano", "total_empenhado as empenhado", "total_pago as pago"])
       .where("portal_slug", "=", portalSlug)
       .orderBy("ano", "asc")
       .execute();
@@ -127,6 +147,7 @@ export async function getSaudeExecutionTrendMetrics(
     return results.map((r) => ({
       ano: Number(r.ano),
       empenhado: Number(r.empenhado ?? 0),
+      pago: Number(r.pago ?? 0),
     }));
   } catch {
     return [];
@@ -141,6 +162,8 @@ export async function getSaudeEmendasMetrics(
   const empty: EmendasStatsSaudeDTO = {
     totalAutorizado: 0,
     totalEmpenhado: 0,
+    totalRecebidoFundo: 0,
+    totalReceitaPossivel: 0,
     taxaEmpenho: 0,
     maiorEmenda: 0,
     lista: [],
@@ -235,10 +258,15 @@ export async function getSaudeFontesReceitaMetrics(params: {
   empenhadoTotal?: number;
 }): Promise<FontesReceitaSaudeDTO> {
   const empty: FontesReceitaSaudeDTO = {
-    uniaoSusPct: 0,
-    estadoPct: 0,
-    propriaPct: 0,
+    percentualUniaoSus: 0,
+    percentualEstado: 0,
+    percentualPropria: 0,
+    percentualOutrasReceitas: 0,
+    receitaUniao: 0,
+    receitaEstado: 0,
     repassesPrefeitura: 0,
+    receitaOutras: 0,
+    totalEntrada: 0,
     emendasParlamentares: 0,
   };
 
@@ -246,10 +274,15 @@ export async function getSaudeFontesReceitaMetrics(params: {
     const row = await db
       .selectFrom("fct_historia_saude_metricas")
       .select([
-        "uniao_sus_pct",
-        "estado_pct",
-        "propria_pct",
+        "percentual_uniao_sus",
+        "percentual_estado",
+        "percentual_propria",
+        "percentual_outras_receitas",
+        "receita_uniao_saude",
+        "receita_estado_saude",
         "repasses_prefeitura_saude",
+        "receita_outras_saude",
+        "total_entrada_saude",
         "emendas_saude_arrecadado",
       ])
       .where("portal_slug", "=", params.portalSlug)
@@ -259,10 +292,15 @@ export async function getSaudeFontesReceitaMetrics(params: {
     if (!row) return empty;
 
     return {
-      uniaoSusPct: Number(row.uniao_sus_pct ?? 0),
-      estadoPct: Number(row.estado_pct ?? 0),
-      propriaPct: Number(row.propria_pct ?? 0),
+      percentualUniaoSus: Number(row.percentual_uniao_sus ?? 0),
+      percentualEstado: Number(row.percentual_estado ?? 0),
+      percentualPropria: Number(row.percentual_propria ?? 0),
+      percentualOutrasReceitas: Number(row.percentual_outras_receitas ?? 0),
+      receitaUniao: Number(row.receita_uniao_saude ?? 0),
+      receitaEstado: Number(row.receita_estado_saude ?? 0),
       repassesPrefeitura: Number(row.repasses_prefeitura_saude ?? 0),
+      receitaOutras: Number(row.receita_outras_saude ?? 0),
+      totalEntrada: Number(row.total_entrada_saude ?? 0),
       emendasParlamentares: Number(row.emendas_saude_arrecadado ?? 0),
     };
   } catch {
@@ -270,95 +308,36 @@ export async function getSaudeFontesReceitaMetrics(params: {
   }
 }
 
-function normalizeModalidadeName(
-  rawName: string,
-  carona: string | null,
-): string {
-  const norm = rawName
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  if (carona === "S" || norm.includes("carona") || norm.includes("adesao")) {
-    return "Adesão a ata (carona)";
-  }
-  if (norm.includes("pregao eletronico")) {
-    return "Pregão eletrônico";
-  }
-  if (norm.includes("dispensa")) {
-    return "Dispensa de licitação";
-  }
-  if (norm.includes("inexig")) {
-    return "Inexigibilidade";
-  }
-  return "Tomada de preços / outros";
-}
-
 export async function getSaudeLicitacoesMetrics(
   portalSlug: string,
   ano: number,
   empresaIds: string[],
 ): Promise<LicitacoesSaudeResultDTO> {
-  const empty: LicitacoesSaudeResultDTO = {
-    adesaoCaronaCount: 0,
-    adesaoCaronaValor: 0,
-    empenhosAtaExternaCount: 0,
-    pagoAtaExternaValor: 0,
-    modalidades: [],
-  };
+  const empty: LicitacoesSaudeResultDTO = { caminhos: [] };
 
   if (empresaIds.length === 0) return empty;
 
   try {
-    const adesao = await getAdesaoDeAtaMetrics(portalSlug, ano, empresaIds);
-    const adesaoExterna = await getAdesaoExternaMetrics(
-      portalSlug,
-      ano,
-      empresaIds,
-    );
-    const distModalidades = await getDistribucaoModalidadesMetrics(
-      portalSlug,
-      ano,
-      empresaIds,
-    );
-
-    const modalityTotals: Record<string, number> = {
-      "Pregão eletrônico": 0,
-      "Adesão a ata (carona)": 0,
-      "Dispensa de licitação": 0,
-      Inexigibilidade: 0,
-      "Tomada de preços / outros": 0,
-    };
-
-    for (const item of distModalidades) {
-      const modGroup = normalizeModalidadeName(item.modalidade, "N");
-      modalityTotals[modGroup] =
-        (modalityTotals[modGroup] || 0) + item.valorTotal;
-    }
-
-    if (adesao.valor > 0) {
-      modalityTotals["Adesão a ata (carona)"] = Math.max(
-        modalityTotals["Adesão a ata (carona)"],
-        adesao.valor,
-      );
-    }
-
-    const totalModalityValue = Object.values(modalityTotals).reduce(
-      (a, b) => a + b,
-      0,
-    );
-
-    const modalidades = Object.entries(modalityTotals).map(([nome, valor]) => ({
-      nome,
-      valor,
-      pct: totalModalityValue > 0 ? (valor / totalModalityValue) * 100 : 0,
-    }));
+    const rows = await db
+      .selectFrom("fct_licitacoes_metricas")
+      .select([
+        "tipo_contratacao",
+        db.fn.countAll<string>().as("quantidade"),
+        db.fn.sum<string>("empenhado_contrato").as("valor_empenhado"),
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "=", ano)
+      .where("empresa_id", "in", empresaIds)
+      .groupBy("tipo_contratacao")
+      .orderBy("tipo_contratacao")
+      .execute();
 
     return {
-      adesaoCaronaCount: adesao.quantidade,
-      adesaoCaronaValor: adesao.valor,
-      empenhosAtaExternaCount: adesaoExterna.quantidade,
-      pagoAtaExternaValor: adesaoExterna.totalPago,
-      modalidades,
+      caminhos: rows.map((row) => ({
+        tipoContratacao: String(row.tipo_contratacao ?? "nao_informado"),
+        quantidade: Number(row.quantidade ?? 0),
+        valorEmpenhado: Number(row.valor_empenhado ?? 0),
+      })),
     };
   } catch {
     return empty;

@@ -37,20 +37,26 @@ describe("PushNotificationTopbarButton", () => {
 
   it("não renderiza nada se o navegador não suportar Web Push", () => {
     mockHookState.isSupported = false;
-    const { container } = render(<PushNotificationTopbarButton />);
+    const { container } = render(
+      <PushNotificationTopbarButton portalSlug="slug_teste" />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
   it("não renderiza nada se o usuário já estiver inscrito", () => {
     mockHookState.isSubscribed = true;
     mockHookState.permission = "granted";
-    const { container } = render(<PushNotificationTopbarButton />);
+    const { container } = render(
+      <PushNotificationTopbarButton portalSlug="slug_teste" />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
   it("não renderiza nada se as notificações estiverem bloqueadas pelo navegador", () => {
     mockHookState.permission = "denied";
-    const { container } = render(<PushNotificationTopbarButton />);
+    const { container } = render(
+      <PushNotificationTopbarButton portalSlug="slug_teste" />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 

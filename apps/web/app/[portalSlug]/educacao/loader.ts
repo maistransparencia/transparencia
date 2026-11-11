@@ -1,17 +1,29 @@
 import {
   type EducacaoContratoDTO,
+  type EducacaoExecucaoAnualDTO,
+  type EducacaoMatriculasDTO,
   type EducacaoMediasEstaduais,
+  type EducacaoMediasNacionais,
   type EducacaoMetricDTO,
   type EducacaoOrigemRecursosDTO,
+  type EducacaoRankingEstadualDTO,
+  type EducacaoSiopeDTO,
   type EmendasEducacaoStatsDTO,
   type EtapaEnsino,
+  type FornecedorExecucaoItemDTO,
   getEducacaoContratos,
   getEducacaoEmendasMetrics,
+  getEducacaoExecucaoAnual,
+  getEducacaoMatriculas,
   getEducacaoMediasEstaduais,
+  getEducacaoMediasNacionais,
   getEducacaoMetrics,
   getEducacaoOrigemRecursos,
+  getEducacaoRankingEstadual,
+  getEducacaoSiope,
   getPortalConfig,
   getResumoEducacao,
+  getTopFornecedoresEducacaoMetrics,
   type ResumoEducacaoDTO,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
@@ -68,8 +80,15 @@ export interface RawEducacaoData {
   resumo: ResumoEducacaoDTO | null;
   contratos: EducacaoContratoDTO[];
   mediasEstaduais: EducacaoMediasEstaduais;
+  mediasNacionais: EducacaoMediasNacionais;
   emendas: EmendasEducacaoStatsDTO;
   origemRecursos: EducacaoOrigemRecursosDTO | null;
+  execucaoAnual: EducacaoExecucaoAnualDTO[];
+  siope: EducacaoSiopeDTO;
+  matriculas: EducacaoMatriculasDTO | null;
+  topFornecedores: FornecedorExecucaoItemDTO[];
+  rankingAnosIniciais: EducacaoRankingEstadualDTO | null;
+  rankingAnosFinais: EducacaoRankingEstadualDTO | null;
 }
 
 export async function fetchRawEducacaoCoreData(
@@ -84,14 +103,20 @@ export async function fetchRawEducacaoCoreData(
     resumo,
     contratos,
     mediasEstaduais,
+    mediasNacionais,
     emendas,
     origemRecursos,
+    execucaoAnual,
+    siope,
+    matriculas,
+    topFornecedores,
   ] = await Promise.all([
     getPortalConfig(tenantSlug),
     getEducacaoMetrics(tenantSlug),
     getResumoEducacao(tenantSlug, targetAno),
     getEducacaoContratos(tenantSlug, targetAno),
     getEducacaoMediasEstaduais(tenantSlug),
+    getEducacaoMediasNacionais(),
     getEducacaoEmendasMetrics(
       tenantSlug,
       targetAno ?? new Date().getFullYear(),
@@ -100,7 +125,30 @@ export async function fetchRawEducacaoCoreData(
       portalSlug: tenantSlug,
       ano: targetAno ?? new Date().getFullYear(),
     }),
+    getEducacaoExecucaoAnual(tenantSlug),
+    getEducacaoSiope({
+      portalSlug: tenantSlug,
+      ano: targetAno ?? new Date().getFullYear(),
+    }),
+    getEducacaoMatriculas({
+      portalSlug: tenantSlug,
+      ano: targetAno ?? new Date().getFullYear(),
+    }),
+    getTopFornecedoresEducacaoMetrics({
+      portalSlug: tenantSlug,
+      year: targetAno ?? new Date().getFullYear(),
+      limit: 5,
+    }),
   ]);
+
+  const [rankingAnosIniciais, rankingAnosFinais] = await Promise.all(
+    (["anosIniciais", "anosFinais"] as const).map((etapaEnsino) =>
+      getEducacaoRankingEstadual(tenantSlug, {
+        ano: resumo?.[etapaEnsino]?.ano,
+        etapaEnsino,
+      }),
+    ),
+  );
 
   return {
     portalSlug: tenantSlug,
@@ -109,8 +157,15 @@ export async function fetchRawEducacaoCoreData(
     resumo,
     contratos,
     mediasEstaduais,
+    mediasNacionais,
     emendas,
     origemRecursos,
+    execucaoAnual,
+    siope,
+    matriculas,
+    topFornecedores,
+    rankingAnosIniciais,
+    rankingAnosFinais,
   };
 }
 

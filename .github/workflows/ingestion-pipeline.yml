@@ -35,6 +35,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # O cron sempre dispara na branch padrão (dev); a ingestão de produção usa o código de main.
+          ref: ${{ github.event_name == 'schedule' && 'main' || github.ref }}
 
       - name: Resolve Target Portals
         id: discover
@@ -84,6 +87,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # O cron sempre dispara na branch padrão (dev); a ingestão de produção usa o código de main.
+          ref: ${{ github.event_name == 'schedule' && 'main' || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -146,6 +152,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # O cron sempre dispara na branch padrão (dev); a ingestão de produção usa o código de main.
+          ref: ${{ github.event_name == 'schedule' && 'main' || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5

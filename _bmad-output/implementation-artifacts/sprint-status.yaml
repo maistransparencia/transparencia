@@ -1,0 +1,297 @@
+# generated: 2026-08-04T22:50:52-03:00
+# last_updated: 2026-10-28T00:00:00-03:00
+# project: transparencia
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#   - not-planned: Story abandoned or postponed with no date; counts as closed, so it does not keep the epic open
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; sprint-status surfaces open ones
+
+generated: 2026-08-04T22:50:52-03:00
+last_updated: 2026-11-11
+project: transparencia
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  epic-1: done
+  1-1-fase-de-descoberta-e-auditoria-de-regras-fiscais-ocultas-no-typescript: done
+  1-2-modelagem-das-dimensoes-canonicas-fiscais-stnmcasp-no-dbt: done
+  1-3-modelo-de-metricas-de-posicao-fiscal-no-dbt-fct-posicao-fiscal-metricas: done
+  1-4-modelo-de-metricas-de-analise-de-despesas-no-dbt-fct-analise-despesas-metricas: done
+  1-5-modelos-de-metricas-de-dominio-especifico-no-dbt-fct-execucao-orcamentaria-metricas-fct-fontes-receita-metricas-fct-historia-caprem-metricas-e-fct-historia-saude-metricas: done
+  epic-1-retrospective: optional
+  epic-2: done
+  2-1-leitores-burros-atomicos-para-posicao-fiscal-getposicaofiscalmetrics: done
+  2-2-leitores-burros-atomicos-para-dominios-especificos-despesas-receitas-caprem-e-saude: done
+  epic-2-retrospective: done
+  epic-3: done
+  3-1-desacoplamento-da-ui-migracao-dos-componentes-de-dominio-para-apps-web-components: done
+  3-2-co-localizacao-de-data-loaders-e-view-models-em-apps-web-app: done
+  3-3-migracao-completa-dos-loaders-web-para-leitores-de-metricas: done
+  3-4-validacao-final-e-gate-de-encerramento-da-story-3-3: done
+  3-5-complemento-metrico-de-visao-geral-e-orcamento: done
+  3-6-complemento-metrico-de-despesas-saude-e-caprem: done
+  3-7-metricas-de-pessoal-e-licitacoes-cobertura-total: done
+  3-8-hard-cutover-e-remocao-definitiva-do-legado: done
+  epic-3-retrospective: optional
+  epic-4: done
+  4-1-correcao-de-roteamento-do-favicon-e-suporte-a-icones-personalizados: done
+  4-2-titulos-dinamicos-de-pagina-com-prefixo-transparenciaweb: done
+  4-3-responsividade-mobile-e-adequacao-para-telas-menores: done
+  4-4-investigacao-e-correcao-de-emendas-pix-zeradas-em-recebido-por-emendas-parlamentares: done
+  4-5-estruturacao-para-leitura-por-llms-llm-friendly-app-architecture: done
+  4-6-seo-basico-meta-tags-open-graph-sitemap-e-robots: done
+  4-7-suporte-a-pwa-instalabilidade-e-notificacoes-de-extracao: done
+  4-8-aplicacao-de-diretrizes-do-projeto-no-codigo-frontend-non-python-files: done
+  4-9-modelagem-dbt-e-exibicao-de-receitas-extra-orcamentarias-no-portal: done
+  4-10-contratos-servicos-vigentes-cards-e-vigencia-na-pagina-de-licitacoes: done
+  4-11-contratos-servicos-na-pagina-da-saude: done
+  4-12-otimizacao-de-performance-e-web-vitals: done
+  4-13-parametrizacao-dinamica-de-limites-fiscais-na-ui-de-licitacoes: done
+  4-14-derivacao-de-status-de-inexecucao-contratual-e-filtro-de-segmentacao-de-execucao-na-ui: done
+  4-15-revelacao-progressiva-e-segregacao-didatica-de-restos-a-pagar-e-contratos-plurianuais-na-ui: done
+  epic-5: done
+  5-1-adaptar-pipeline-dbt-para-dbt-duckdb: done
+  5-2-refatorar-suite-de-testes-do-etl-conftest-py: done
+  5-1a-exportacao-automatizada-dos-marts-postgresql-para-parquet: done
+  5-3-provisionar-infraestrutura-cloudflare-r2-via-pulumi: done
+  5-8-limpeza-duckdb-wasm-e-migracao-ai-postgresql: done
+  5-9-indices-performance-e-protection-supabase-postgres: done
+  5-10-rate-limiting-anonimo-e-mcp-guardrails: done
+  5-11-funil-conversao-ui-e-supabase-auth-integration: done
+  5-12-expurgo-geral-duckdb-e-cloudflare-r2: done
+  5-13-experiencia-avancada-cache-kv-ast-guardrail-e-telemetria: done
+  5-15-blindagem-guardrails-ui-429-superadmin-e-lucide-icons: done
+  5-16-historico-de-conversas-local-first-e-telemetria-anonima: done
+  5-17-limitador-de-caracteres-guardrails-ui-e-fallback-com-chips-de-navegacao: done
+  5-18-modal-de-compartilhamento-social-estilo-youtube-e-rate-limiting-mcp-stateless: done
+  epic-6: done
+  6-1-reformulacao-do-card-de-despesas-e-antiguidade-de-restos-a-pagar-na-homepage: done
+  6-2-despoluicao-da-homepage-e-transferencia-do-ranking-de-credores-para-a-pagina-dedicada: done
+  6-3-mart-dbt-fct-despesas-por-funcao-metricas-e-reader-kysely-getdespesasporfuncaometrics-para-areas-de-interesse-publico: done
+  6-4-redesenho-da-interface-da-pagina-de-despesas-detalhadas-despesas: done
+  6-5-otimizacao-do-data-loader-loaddespesasdata-e-desativacao-do-bloco-de-gastos-locais: done
+  6-6-atualizacao-dos-guias-de-consumo-publico-de-ia-llms-txt-e-llms-full-txt: done
+  6-7-radar-de-opacidade-orcamentaria-e-auditoria-forense-de-subitens-residuais-99: done
+  6-8-modelo-intermediario-de-reclassificacao-orcamentaria-stn-e-inferencia-de-natureza-sugerida: done
+  epic-6-retrospective: optional
+  epic-7: done
+  7-1-geracao-dinamica-de-imagens-opengraph-og-cards-para-compartilhamento-social-e-whatsapp: done
+  7-2-infraestrutura-de-newsletter-civica-com-resend-react-email-modal-interativo-e-links-sociais: done
+  7-3-automacao-de-alertas-pos-elt-e-boletim-periodico-municipal-radar-porciuncula: done
+  7-4-integracao-social-e-bot-automatizado-no-x-com-mtransparenciax: done
+  7-5-documentacao-de-canais-de-distribuicao-e-sincronizacao-dos-guias-de-ia-llms-txt: done
+  7-6-centralizacao-e-validacao-de-variaveis-de-ambiente-com-t3-env: done
+  epic-7-retrospective: optional
+  epic-8: done
+  8-1-estabilizacao-do-ci-e-alinhamento-dos-testes-de-variaveis-de-ambiente-e-redes-sociais: done
+  8-2-barra-fixa-de-navegacao-mobile-continua-mobilebottomnav-com-stepper-civico-e-seletor-de-ano: done
+  8-3-infraestrutura-show-your-work-exportacao-direta-de-dados-brutos-csv-por-card-e-metrica: done
+  8-4-popover-decomposto-da-divida-real-por-entidade-no-radar-de-gastos-sensiveis: done
+  8-5-seletor-compacto-de-perimetro-institucional-no-header-movel: done
+  8-6-documentacao-metodologica-civica-e-sincronizacao-dos-guias-de-ia-llms-txt: done
+  epic-9: done
+  9-1-quick-wins-consistencia-ui-data-extracao-mobile-e-ordenacao-contratos: done
+  9-2-redesign-indicadores-saude-emendas-parlamentares-e-concentracao-fornecedores: done
+  9-3-pipeline-elt-e-modelagem-siconfi-msc-patrimonial-caixa-por-entidade: done
+  9-4-exibicao-do-saldo-em-caixa-por-entidade-na-ui: done
+  9-5-painel-de-pessoal-por-regime-juridico-e-vinculo-funcional: done
+  epic-9-retrospective: optional
+  epic-10: done
+  10-1-auditoria-enxugamento-de-modelos-redundantes-e-zero-warnings-no-dbt: done
+  10-2-isolamento-dos-marts-analiticos-no-schema-dedicado-analytics: done
+  10-3-blindagem-de-ci-cd-e-governanca-estrita-de-fixtures-sql-de-teste: done
+  epic-10-retrospective: optional
+  epic-11: done
+  11-1-spike-rd-viabilidade-dados-granulares-tce-rj-sigfis-e-siconfi: done
+  11-2-infraestrutura-de-automacao-de-ingestao-de-dados-cloudflare: done
+  11-3-backend-infraestrutura-web-push-vapid-subscriptions-dispatcher: done
+  11-4-frontend-ux-consentimento-e-gestao-notificacoes-pwa: done
+  epic-11-retrospective: optional
+  epic-12: done
+  12-1-modelagem-dbt-motor-estatistico-anomalias-fiscais: done
+  12-2-camada-dados-kysely-roteamento-canonico-dtos-tipados: done
+  12-3-feed-mobile-first-radar-civico-homepage-funil-navegacao: done
+  12-4-distribuicao-multicanal-web-push-cards-sociais-telemetria-posthog: done
+  12-5-radar-licitacoes-abertas-em-andamento-licitacoes-e-saude: done
+  12-6-pagina-historico-radar-civico-todos-os-anos: done
+  12-7-expansao-do-radar-civico-alertas-previdenciarios-caprem-rpps: done
+  12-8-destruncamento-enriquecimento-objetos-licitacoes: done
+  12-9-componente-modal-leitura-celulas-extensas-tabelas: done
+  epic-12-retrospective: optional
+  epic-13: done
+  13-1-busca-global-de-licitacoes-e-contratos-com-spotlight-modal-e-postgres-fts: done
+  13-2-visibilidade-e-sinalizacao-do-radar-civico-na-navegacao-desktop-e-mobile: done
+  13-3-selecao-rapida-de-entidade-unica-apenas-esta-no-multi-select-institucional: done
+  13-4-modelagem-e-integracao-da-anomalia-de-dependencia-fiscal-no-dbt-e-radar-civico: done
+  13-5-criacao-das-paginas-estaticas-de-termos-de-uso-e-politica-de-privacidade: done
+  13-6-otimizacao-da-barra-de-ferramentas-e-botao-baixar-csv-no-mobile: done
+  13-7-scroll-suave-automatico-para-o-topo-da-tabela-ao-paginar: done
+  13-8-deep-link-e-modal-de-detalhes-de-contratos-com-retencao-de-busca: done
+  13-9-desacoplamento-de-rotas-de-navegacao-do-mart-fct-anomalias-fiscais-metricas: done
+  13-10-refinamento-da-busca-de-licitacoes-e-contratos-vigencia-multi-ano-vencedores-e-precisao-textual: done
+  epic-13-retrospective: optional
+  epic-14: done
+  14-1-captura-das-contas-de-investimentos-do-rpps-na-msc-patrimonial-e-consolidacao-do-saldo-financeiro-total: done
+  14-2-serie-historica-plurianual-do-patrimonio-financeiro-do-rpps-2021-corrente: done
+  14-3-visualizacao-de-desidratacao-da-poupanca-e-diagnostico-de-causas-na-rota-caprem: done
+  14-4-alerta-de-sustentabilidade-atuarial-do-rpps-no-radar-civico: done
+  14-5-consolidacao-da-rota-caprem-remocao-de-cards-redundantes-e-destaque-ao-cadprev: done
+  epic-14-retrospective: optional
+  epic-15: done
+  15-1-generalizacao-analitica-do-rpps-no-dbt-fct-previdencia-particionamento-multi-portal-e-governanca-de-fixtures: done
+  15-2-camada-de-dados-kysely-transparencia-db-e-parametrizacao-de-previdencia-e-temas-no-portalconfig: done
+  15-3-camada-web-roteamento-canonico-portalslug-previdencia-redirect-308-e-navegacao-dinamica-por-portal: done
+  15-4-generalizacao-do-extrator-fiorilli-sigcorp-pipelines-de-ingestao-natividade-bom-jesus-sao-fidelis-e-spike-campos: done
+  15-5-rollout-do-portal-de-natividade-natprevi-homologacao-civica-e-llms-txt: done
+  15-6-desacoplamento-de-nomes-hardcoded-de-previdencia-no-dbt: done
+  epic-15-retrospective: optional
+  epic-16: backlog
+  16-1-rollout-do-portal-de-bom-jesus-do-itabapoana-funprev-homologacao-civica-e-llms-txt: backlog
+  16-2-rollout-do-portal-de-sao-fidelis-fasp-homologacao-civica-e-llms-txt: backlog
+  epic-16-retrospective: optional
+  epic-17: done
+  17-1-pipeline-elt-obrasgov-ingestao-multi-tenant-e-modelagem-mart-fct-obras-no-dbt: done
+  17-2-contratos-de-dados-tipagem-estrita-e-queries-kysely-no-transparencia-db: done
+  17-3-rota-publica-obras-mapa-interativo-de-impacto-urbano-e-filtros-civicos-no-apps-web: done
+  17-4-dossie-detalhado-da-obra-auditoria-de-avanco-fisico-vs-financeiro-e-fundamentacao-legal: done
+  17-5-correlacao-de-obras-publicas-com-contratos-municipais-e-licitacoes: done
+  17-6-card-resumo-de-obras-publicas-na-visao-geral-homepage: done
+  epic-17-retrospective: optional
+  epic-18: done
+  18-1-ingestao-de-dados-educacionais-oficiais-do-inep-dbt-seed-e-workflow-de-atualizacao-automatizada: done
+  18-2-fato-analitica-de-metricas-educacionais-e-cruzamento-orcamentario-fct-educacao-metricas: done
+  18-3-camada-de-dados-kysely-transparencia-db-com-contratos-fortemente-tipados-em-camelcase: done
+  18-4-pagina-tematica-da-educacao-portal-slug-educacao-com-especificacoes-de-ux-ui-sally: done
+  18-5-card-resumo-de-educacao-na-homepage-portal-slug-e-sincronizacao-de-contexto-para-llms: done
+  18-6-consistencia-de-dados-e-textos-da-educacao-etapa-do-ideb-formatacao-compacta-pt-br-e-sincronizacao-de-contexto-para-llms: done
+  epic-18-retrospective: optional
+
+
+  epic-19: done
+  19-1-pipeline-elt-da-farmacia-sus-lei-14654-estoque-bnafar-horus-e-estabelecimentos-cnes: done
+  19-2-pagina-da-farmacia-sus-camada-de-dados-e-card-resumo-na-home: done
+  19-3-reorganizacao-da-arquitetura-da-homepage-dobra-de-sentinela-civica-e-trofeus-da-cidade: done
+  19-4-acao-civica-no-card-da-farmacia-na-home: done
+  19-7-sincronizacao-da-nova-arquitetura-da-home-em-llms-txt-e-otimizacoes-de-acessibilidade-mobile: done
+  19-8-historico-de-estoque-da-farmacia-sus-snapshots-diarios-e-historico-de-coletas: done
+  19-9-medicamentos-sentinela-da-farmacia-sus-disponibilidade-por-unidade-sob-a-busca: done
+  19-11-redesenho-do-conteudo-da-pagina-da-farmacia-sus-busca-em-destaque-resultados-com-mapa-e-remedios-essenciais: done
+  19-10-pagina-dedicada-da-farmacia-sus-com-estatisticas-de-estoque-e-acao-por-medicamento: done
+  19-12-download-do-estoque-completo-da-farmacia-sus-em-csv: done
+  19-13-ajustes-da-secao-em-destaque-da-home-realce-por-status-e-ordem-dos-cards: done
+  19-5-entrada-por-tema-na-raiz-farmacia-com-seletor-de-cidade-e-faixa-trocar-cidade: optional
+  19-6-atalho-remedios-no-topbar-mobile: optional
+  epic-19-retrospective: optional
+
+  epic-20: done
+  20-1-tokens-tema-claro-escuro-e-guarda-de-arquitetura: done
+  20-2-shell-sidebar-ribbon-footer-e-alternador-de-tema: done
+  20-3-componentes-de-packages-ui-no-padrao-divisorias: done
+  20-4-baseline-visual-e-home-no-padrao-divisorias: done
+  20-5-farmacia-sus-no-padrao-divisorias-pagina-piloto: done
+  20-6-densetable-formato-mobile-e-telas-de-licitacoes: done
+  20-7-pessoal-receitas-e-orcamento: done
+  20-8-saude-e-educacao: done
+  20-9-obras-previdencia-radar-graficos-restantes-e-mapa-no-tema-escuro: done
+  20-10-acabamento-do-shell-notificacoes-instalacao-do-app-e-rodape: done
+  20-11-despesas-no-padrao-divisorias: done
+  20-12-cores-semanticas-do-tema-claro-fill-e-text: done
+  20-13-despesas-detalhadas-reorganizacao-da-pagina-com-os-dados-existentes: done
+  20-14-elementos-base-papeis-visuais-e-plex-mono: done
+  20-15-packages-ui-sem-dependencia-do-next: done
+  20-16-storybook-fase-1: done
+  20-20-ajustes-dos-destaques-de-despesas-licitacoes-e-pessoal: done
+  20-17-guardas-de-teste-dos-padroes-base: done
+  20-18-varredura-final-dos-padroes-base: done
+  20-19-remocao-dos-aliases-e-zeramento-das-excecoes-do-tema: done
+  epic-20-retrospective: optional
+
+  epic-23: backlog
+  23-7-origem-das-entradas-fora-do-orcamento-em-receitas: backlog
+  23-8-cadencia-de-ingestao-por-fonte: backlog
+
+  epic-24: done
+  24-1-ingestao-do-relatorio-gerencial-do-siope: done
+  24-2-staging-e-mart-de-indicadores-do-siope-no-dbt: done
+  24-3-contratos-de-dados-do-siope-em-transparencia-db: done
+  24-4-valor-por-aluno-na-pagina-de-educacao: done
+  24-5-minimos-constitucionais-de-educacao-mde-e-fundeb: done
+  24-6-total-de-alunos-com-fonte-verificada-inep: done
+  24-7-aprendizado-no-topo-da-pagina-de-educacao: done
+  24-9-siope-em-schema-por-fonte-com-portal-slug-na-chave: done
+  24-10-ingestao-bimestral-do-siope-para-o-ano-em-andamento: done
+  24-11-tres-respostas-no-topo-da-pagina-de-educacao: done
+  24-12-refino-visual-da-pagina-de-educacao-hero-com-barra-do-minimo-e-leis-e-fontes-em-destaque: done
+  24-13-hierarquia-da-pagina-de-educacao-para-entender-e-para-fiscalizar: done
+  epic-24-retrospective: optional
+
+  epic-25: done
+  25-1a-spike-de-emendas-fonte-federal-e-conferencia-com-o-portal-municipal: done
+  25-1c-spike-de-emendas-estaduais-fonte-oficial-e-conferencia-com-o-portal-municipal: done
+  25-1-spike-de-fontes-oficiais-dos-indicadores-de-saude: done
+  25-2-minimo-constitucional-de-saude-no-dbt: done
+  25-3-contratos-em-transparencia-db-e-bloco-do-minimo-no-topo-de-saude: done
+  25-4-quanto-a-uniao-e-o-estado-repassam-ao-fundo-municipal-de-saude: done
+  25-5-emendas-da-saude-conferencia-entre-o-portal-municipal-e-a-fonte-federal: not-planned
+  25-6a-leitos-e-profissionais-de-saude-por-mil-moradores: done
+  25-6b-atendimentos-e-internacoes-do-sus-na-cidade: done
+  25-6c-fonte-em-massa-do-datasus-para-a-rede-e-a-producao-de-saude: done
+  25-7-emendas-da-educacao-conferencia-entre-o-portal-municipal-e-a-fonte-federal: not-planned
+  25-8-objeto-correto-das-emendas-na-saude-e-na-educacao: done
+  25-9-emendas-estaduais-lista-oficial-e-conferencia-com-o-portal-municipal: done
+  25-10-hierarquia-da-pagina-de-saude-para-entender-e-para-fiscalizar: done
+  25-11-titulo-sem-ano-e-escopo-declarado-em-cada-bloco: done
+  epic-25-retrospective: optional
+
+  epic-26: backlog
+  26-1-siconfi-msc-patrimonial-em-schema-por-fonte: backlog
+  26-2-inventario-e-plano-de-migracao-do-legado: backlog
+  epic-26-retrospective: optional
+
+  epic-27: in-progress
+  27-1-contrato-de-dados-da-home-minimos-etiqueta-com-motivo-e-estados: done
+  27-2-card-de-situacao-saude-obras-e-educacao: done
+  27-3-reorganizacao-da-home-nova-ordem-hero-rebaixado-e-radar-fora: done
+  27-4-dinheiro-que-entra-na-cidade-13o-salario-sazonal: done
+  27-5-ajustes-da-home-e-do-layout-resumo-nos-atalhos-compartilhar-a-pagina-sidebar-recolhivel: done
+  epic-27-retrospective: optional
+
+  td-backlog: in-progress
+  td-2-gasto-com-pessoal-pelo-numero-oficial-do-rgf: review

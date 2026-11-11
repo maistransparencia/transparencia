@@ -1,6 +1,6 @@
 SRC = elt
 
-.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/fixture/dump db/fixture/check db/test/restore docker/elt/build docker/elt/run
+.PHONY: install-uv install type-check lint lint/ruff lint/fix format format/check check test verify pipeline pipeline/extract pipeline/load elt/extract elt/extract-csv elt/load elt/load-csv elt/siconfi elt/siconfi-rgf elt/siope elt/siops elt/emendas-estaduais elt/saude-datasus elt/inep-censo elt/pncp r2/pull r2/push dbt/deps dbt/run dbt/seed dbt/test dbt/debug dbt/compile dbt/docs dev build lint/ts test/ts digest/send digest/dry-run bot/post bot/dry-run push/send push/dry-run db/init-roles db/test/build db/backup db/restore-raw docker/elt/build docker/elt/run
 
 # SETUP TASKS
 
@@ -37,7 +37,7 @@ test:
 	uv run --project elt pytest -v
 
 # PORTÃO DE QUALIDADE UNIFICADO (PARIDADE LOCAL ↔ CI)
-verify: check db/fixture/check test lint/ts test/ts build
+verify: check test db/test/build lint/ts test/ts build
 
 # PIPELINE
 
@@ -79,8 +79,52 @@ ifndef PORTAL
 endif
 	PYTHONPATH=. uv run --project elt python elt/extract/siconfi_msc.py --with-db --portal $(PORTAL) $(if $(YEARS),--years $(YEARS))
 
+elt/siconfi-rgf:
+ifndef PORTAL
+	$(error PORTAL is required. Usage: make elt/siconfi-rgf PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
+endif
+	PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS)) --only siconfi_rgf
+	PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $(PORTAL)
+
+elt/siope:
+ifndef PORTAL
+	$(error PORTAL is required. Usage: make elt/siope PORTAL=porciuncula_prefeitura [YEARS="2024 2025"] [DRY_RUN=1])
+endif
+	PYTHONPATH=. uv run --project elt python elt/extract/siope.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
+
+elt/siops:
+	PYTHONPATH=. uv run --project elt python elt/extract/siops.py $(if $(PORTAL),--portal $(PORTAL)) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
+
+elt/inep-censo:
+ifndef PORTAL
+	$(error PORTAL is required. Usage: make elt/inep-censo PORTAL=porciuncula_prefeitura [YEARS="2023 2024"] [DRY_RUN=1])
+endif
+	PYTHONPATH=. uv run --project elt python elt/extract/inep_censo.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
+
+elt/emendas-estaduais:
+	PYTHONPATH=. uv run --project elt python elt/extract/emendas_estaduais.py $(if $(FONTE),--fonte $(FONTE)) $(if $(DRY_RUN),--dry-run)
+
 elt/pncp:
 	PYTHONPATH=. uv run --project elt python elt/extract/pncp.py --with-db $(if $(CNPJ),--cnpj $(CNPJ)) $(if $(YEARS),--years $(YEARS))
+
+elt/farmacia-sus:
+	@for portal in $(if $(PORTAL),$(PORTAL),$$(ls elt/portals/*.yml | xargs -n1 basename | sed 's/\.yml$$//')); do \
+		echo "=== Farmácia SUS: $$portal ==="; \
+		PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $$portal --only farmacia_sus && \
+		PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $$portal || exit 1; \
+	done
+	uv run --project elt python elt/scripts/run_dbt.py seed --full-refresh --select seed_farmacia_medicamentos_sentinela
+	uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/farmacia_sus fct_farmacia_estoque fct_farmacia_estoque_historico fct_farmacia_coletas_historico fct_farmacia_sentinela_disponibilidade
+
+# Rede e produção de saúde (CNES, SIA e SIH) dos arquivos mensais por UF do DATASUS; população pela API.
+# Uso: make elt/saude-datasus [PORTAL=slug] [COMPETENCIAS="202601 202602"] [YEARS="2025"] [DRY_RUN=1]
+# Sem COMPETENCIAS nem YEARS busca as 4 últimas fechadas. Backfill (ano_inicial_historico em diante) é manual,
+# em partes e só no banco local (Regra 15): o SIA do mês ocupa ~3,4 GB de disco temporário.
+# Toda execução sem DRY_RUN grava no DATABASE_URL do ambiente e roda o dbt nele: confira que é o banco local (5544)
+# antes de rodar, e nunca exporte esse DATABASE_URL junto de db/test/build, pnpm test ou make test/ts.
+elt/saude-datasus:
+	PYTHONPATH=. uv run --project elt python elt/extract/saude_datasus.py $(if $(PORTAL),--portal $(PORTAL)) $(if $(COMPETENCIAS),--competencias $(COMPETENCIAS)) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
+	$(if $(DRY_RUN),,uv run --project elt python elt/scripts/run_dbt.py run --select path:models/staging/saude_rede fct_saude_rede_por_mil_moradores_metricas fct_saude_producao_sus_metricas)
 
 # CLOUDFLARE R2 DATA LAKE SYNC
 
@@ -120,6 +164,20 @@ docker/elt/run:
 
 db/init-roles:
 	psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" -f docker/init/01-init-roles.sql
+
+# Backup dos dados raw do banco de desenvolvimento (contêiner transparencia_postgres). Recarregar
+# o raw de todos os anos leva horas; restaurar o dump leva minutos. Guarda os 5 mais recentes.
+db/backup:
+	mkdir -p docker/backups
+	docker exec transparencia_postgres pg_dump -U postgres -Fc -n 'raw*' postgres \
+		> docker/backups/raw-$$(date +%Y%m%d-%H%M%S).dump
+	ls -1t docker/backups/raw-*.dump | tail -n +6 | xargs rm -f
+	ls -lh docker/backups
+
+# Restaura um backup do raw por cima do atual. Uso: make db/restore-raw ARQUIVO=docker/backups/raw-....dump
+db/restore-raw:
+	test -n "$(ARQUIVO)"
+	docker exec -i transparencia_postgres pg_restore -U postgres -d postgres --clean --if-exists < "$(ARQUIVO)"
 
 migrate/grant:
 	psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5544/postgres}" -f elt/migrations/grant_readonly.sql
@@ -181,33 +239,11 @@ push/dry-run:
 
 
 
-# DB TEST FIXTURE (packages/db)
-# Dump de schema (--schema-only) das tabelas fct_/dim_ e seed_ do schema `analytics`
-# do banco de dev local (porta 5544) + dados estáticos (--data-only) das tabelas seed_*
-# (constantes fiscais, portais, classificações STN) — sem nenhuma linha de dado real
-# transacional (fct_*) e sem views de staging/intermediate.
-# Dados transacionais de teste são semeados dinamicamente via seed.ts.
-#
-# Ciclo de sincronização e governança:
-# 1. Qualquer alteração em modelos marts (elt/transform/models/marts/) ou seeds (elt/transform/seeds/)
-#    exige regerar o fixture: make db/fixture/dump
-# 2. Validar a paridade semântica entre dbt e o fixture: make db/fixture/check
-
-db/fixture/dump:
-	( \
-		set -eo pipefail ; \
-		echo 'CREATE SCHEMA IF NOT EXISTS analytics;' ; \
-		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
-			--schema-only --no-owner --no-privileges --no-comments \
-			-t 'analytics.fct_*' -t 'analytics.dim_*' -t 'analytics.seed_*' ; \
-		PGPASSWORD=postgres pg_dump -h localhost -p 5544 -U postgres -d postgres \
-			--data-only --inserts --no-owner --no-privileges --no-comments \
-			-t 'analytics.seed_*' -t 'analytics.dim_portais' -t 'analytics.dim_orgao' ; \
-	) | grep -v -E '^(\\restrict|\\unrestrict|SET transaction_timeout = 0;)' | gzip -9 > packages/db/tests/fixtures/schema.sql.gz
-
-db/fixture/check:
-	uv run --project elt pytest elt/tests/test_fixture_sync.py -v
-
-db/test/restore:
-	psql -v ON_ERROR_STOP=1 "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}" -c "CREATE EXTENSION IF NOT EXISTS unaccent; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
-	gunzip -c packages/db/tests/fixtures/schema.sql.gz | psql "$${DATABASE_URL:-postgresql://postgres:postgres@localhost:5545/postgres}"
+# Banco de testes de packages/db: construído pelo dbt (seeds + marts como tabelas vazias)
+# a partir dos _sources.yml. Local e CI usam exatamente este mesmo alvo; não há fixture
+# versionado para manter. Dados transacionais de teste são semeados via seed.ts.
+# Uso local: docker compose up -d postgres_test && make db/test/build && make test/ts
+# Lê só TEST_DATABASE_URL (padrão localhost:5545), nunca DATABASE_URL: o script recusa outro host,
+# outra porta ou banco com dados raw.
+db/test/build:
+	uv run --project elt python elt/scripts/build_test_db.py

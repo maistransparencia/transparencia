@@ -23,13 +23,28 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     expect(trigger).toBeDefined();
     expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    expect(screen.getByText("Consolidado")).toBeDefined();
+    expect(screen.getByText("Todos os órgãos")).toBeDefined();
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("deve incluir o texto visível do gatilho no nome acessível", () => {
+    render(
+      <EntidadeSelectCompact
+        entidades={mockEntidades}
+        selectedEntidades={["2"]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: /^Fundo Municipal de Saúde, escolher órgãos do município$/i,
+      }),
+    ).toBeDefined();
   });
 
   it("deve renderizar o nome amigável quando 1 entidade estiver selecionada", () => {
@@ -51,7 +66,7 @@ describe("EntidadeSelectCompact Component", () => {
       />,
     );
 
-    expect(screen.getByText("2 entidades")).toBeDefined();
+    expect(screen.getByText("2 órgãos")).toBeDefined();
   });
 
   it("deve abrir o popover com role='dialog' e aria-modal='true' ao clicar no gatilho", () => {
@@ -63,7 +78,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
@@ -71,8 +86,8 @@ describe("EntidadeSelectCompact Component", () => {
     expect(dialog).toBeDefined();
     expect(dialog.getAttribute("aria-modal")).toBe("true");
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(screen.getByText(/perímetro institucional/i)).toBeDefined();
-    expect(screen.getByText("Todas (Consolidado)")).toBeDefined();
+    expect(screen.getByText("Órgãos do município")).toBeDefined();
+    expect(screen.getByRole("button", { name: "Marcar todos" })).toBeDefined();
   });
 
   it("deve fechar o popover ao pressionar Escape", () => {
@@ -84,7 +99,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
     expect(screen.getByRole("dialog")).toBeDefined();
@@ -106,7 +121,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
     expect(screen.getByRole("dialog")).toBeDefined();
@@ -115,7 +130,7 @@ describe("EntidadeSelectCompact Component", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("deve acionar onChange com array vazio ao clicar em Todas (Consolidado)", () => {
+  it("deve acionar onChange com array vazio ao clicar em Marcar todos", () => {
     const handleChange = vi.fn();
     render(
       <EntidadeSelectCompact
@@ -126,12 +141,12 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
     const consolidadoBtn = screen.getByRole("button", {
-      name: /todas \(consolidado\)/i,
+      name: "Marcar todos",
     });
     fireEvent.click(consolidadoBtn);
 
@@ -149,7 +164,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
@@ -173,7 +188,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
@@ -196,7 +211,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
@@ -219,7 +234,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
@@ -240,7 +255,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
@@ -277,10 +292,10 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     expect(trigger.hasAttribute("disabled")).toBe(true);
-    expect(screen.getByText("Nenhuma entidade")).toBeDefined();
+    expect(screen.getByText("Nenhum órgão")).toBeDefined();
   });
 
   it("deve renderizar os itens de entidade com role='checkbox' e aria-checked correto", () => {
@@ -292,7 +307,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
@@ -313,11 +328,13 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
-    expect(screen.getAllByText("Consolidado").length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("Todos selecionados").length,
+    ).toBeGreaterThanOrEqual(1);
 
     rerender(
       <EntidadeSelectCompact
@@ -325,7 +342,7 @@ describe("EntidadeSelectCompact Component", () => {
         selectedEntidades={["2"]}
       />,
     );
-    expect(screen.getByText("1 de 3 selecionadas")).toBeDefined();
+    expect(screen.getByText("1 de 3 selecionados")).toBeDefined();
   });
 
   it("deve interromper a propagação do evento ao pressionar Escape", () => {
@@ -337,7 +354,7 @@ describe("EntidadeSelectCompact Component", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /filtrar entidades públicas municipais/i,
+      name: /escolher órgãos do município/i,
     });
     fireEvent.click(trigger);
 
@@ -362,8 +379,8 @@ describe("EntidadeSelectCompact Component", () => {
       />,
     );
 
-    // Como nenhum ID existe em entidades, deve ser tratado como Consolidado (sem filtro válido)
-    expect(screen.getByText("Consolidado")).toBeDefined();
+    // Como nenhum ID existe em entidades, deve ser tratado como todos os órgãos (sem filtro válido)
+    expect(screen.getByText("Todos os órgãos")).toBeDefined();
   });
 });
 

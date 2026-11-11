@@ -9,8 +9,8 @@ const mockObraExecucao: ObraItemViewModel = {
   nomeObra: "Construção de UBS Central",
   situacao: "em_execucao",
   situacaoLabel: "Em Execução",
-  situacaoColorHex: "#2563eb",
-  situacaoBadgeClasses: "bg-blue-50 text-blue-700 border-blue-200",
+  situacaoCorPreenchimento: "#2563eb",
+  situacaoBadgeVariant: "accent" as const,
   orgaoResponsavel: "Secretaria de Obras",
   valorInvestimentoPrevisto: 1200000,
   valorInvestimentoFormatado: "R$ 1.200.000,00",
@@ -36,8 +36,8 @@ const mockObraParalisada: ObraItemViewModel = {
   nomeObra: "Reforma de Creche",
   situacao: "paralisada",
   situacaoLabel: "Paralisada",
-  situacaoColorHex: "#dc2626",
-  situacaoBadgeClasses: "bg-rose-50 text-rose-700 border-rose-200",
+  situacaoCorPreenchimento: "#dc2626",
+  situacaoBadgeVariant: "danger" as const,
   motivoParalisacao: "Rescisão unilateral de contrato por abandono da empresa",
 };
 
@@ -57,7 +57,7 @@ describe("ObrasDetalheModal Component", () => {
     expect(screen.getByText("Secretaria de Obras")).toBeInTheDocument();
     expect(screen.getByText("Em Execução")).toBeInTheDocument();
     expect(screen.getByText("R$ 1.200.000,00")).toBeInTheDocument();
-    expect(screen.getByText("55.00%")).toBeInTheDocument();
+    expect(screen.getByText("55,00%")).toBeInTheDocument();
   });
 
   it("exibe alerta destacado de obra paralisada com justificativa oficial e base legal", () => {
@@ -150,8 +150,7 @@ describe("ObrasDetalheModal Component", () => {
           licitacaoNumero: "LIC-050/2024",
           status: "vigente",
           statusLabel: "Vigente",
-          statusBadgeClasses:
-            "bg-emerald-50 text-emerald-700 border-emerald-200",
+          statusBadgeVariant: "success" as const,
           dataInicio: "2024-01-01",
           dataInicioFormatada: "01/01/2024",
           vencimentoAtual: "2025-01-01",
@@ -263,8 +262,7 @@ describe("ObrasDetalheModal Component", () => {
           modalidadeLabel: "Concorrência Eletrônica",
           status: "vigente",
           statusLabel: "Vigente",
-          statusBadgeClasses:
-            "bg-emerald-50 text-emerald-700 border-emerald-200",
+          statusBadgeVariant: "success" as const,
           licitacaoNumero: null,
           licitacaoAno: null,
           linkContrato: "/porciuncula_prefeitura/contratos?numero=045%2F2024",

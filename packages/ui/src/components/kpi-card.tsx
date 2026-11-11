@@ -8,9 +8,61 @@ export interface KPICardProps {
     value: string | number;
     isPositive?: boolean;
   };
+  /** Destaque de marca. Tem precedência sobre `alert` quando ambos são informados. */
   accent?: boolean;
+  /** Destaque de atenção. Ignorado quando `accent` está ativo. */
   alert?: boolean;
+  /** Inverte a cor da tendência: use quando subir é ruim (ex.: dívida). */
+  invertTrend?: boolean;
   className?: string;
+}
+
+const temConteudo = (conteudo: React.ReactNode) =>
+  conteudo !== undefined &&
+  conteudo !== null &&
+  conteudo !== false &&
+  conteudo !== "" &&
+  conteudo !== 0;
+
+interface KPICardRodapeProps {
+  subtext?: React.ReactNode;
+  trend?: KPICardProps["trend"];
+  invertTrend: boolean;
+  className: string;
+  trendPositiveClassName: string;
+  trendNegativeClassName: string;
+}
+
+/** Rodapé do indicador; omitido quando não há conteúdo. */
+function KPICardRodape({
+  subtext,
+  trend,
+  invertTrend,
+  className,
+  trendPositiveClassName,
+  trendNegativeClassName,
+}: KPICardRodapeProps) {
+  const temSubtexto = temConteudo(subtext);
+  if (!temSubtexto && !trend) return null;
+  const tendenciaBoa =
+    invertTrend && typeof trend?.isPositive === "boolean"
+      ? !trend.isPositive
+      : trend?.isPositive;
+  return (
+    <div className={className}>
+      {temSubtexto && <span>{subtext}</span>}
+      {trend && (
+        <span
+          className={cn(
+            "shrink-0 whitespace-nowrap font-semibold",
+            tendenciaBoa ? trendPositiveClassName : trendNegativeClassName,
+          )}
+        >
+          {trend.value}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export function KPICard({
@@ -20,45 +72,30 @@ export function KPICard({
   trend,
   accent = false,
   alert = false,
+  invertTrend = false,
   className,
 }: KPICardProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col justify-between rounded-xl border border-borderLine bg-white p-5 transition-shadow hover:shadow-sm",
-        accent && "border-l-4 border-l-accent",
-        alert && "border-l-4 border-l-warning bg-amber-50/20",
-        className,
-      )}
-    >
+    <div className={cn("flex flex-col justify-between py-1 pr-5", className)}>
       <div>
-        <p className="mb-1 font-medium text-subtleText text-xs tracking-wider">
-          {title}
-        </p>
+        <p className="eyebrow mb-1.5">{title}</p>
         <p
           className={cn(
-            "font-bold font-serif text-2xl leading-tight",
-            accent ? "text-accent" : alert ? "text-warning" : "text-ink",
+            "font-semibold text-[26px] leading-tight",
+            accent ? "text-brand" : alert ? "text-warn-text" : "text-ink",
           )}
         >
           {value}
         </p>
       </div>
-      {(subtext || trend) && (
-        <div className="mt-3 flex items-center justify-between gap-2 border-gray-100 border-t pt-2 text-mutedText text-xs">
-          {subtext && <span>{subtext}</span>}
-          {trend && (
-            <span
-              className={cn(
-                "shrink-0 whitespace-nowrap font-semibold",
-                trend.isPositive ? "text-emerald-600" : "text-rose-600",
-              )}
-            >
-              {trend.value}
-            </span>
-          )}
-        </div>
-      )}
+      <KPICardRodape
+        subtext={subtext}
+        trend={trend}
+        invertTrend={invertTrend}
+        className="mt-2 flex items-center justify-between gap-2 text-mute2 text-xs"
+        trendPositiveClassName="text-ok-text"
+        trendNegativeClassName="text-danger-text"
+      />
     </div>
   );
 }

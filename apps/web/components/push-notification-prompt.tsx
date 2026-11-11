@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 export interface PushNotificationPromptProps {
   portalSlug?: string;
@@ -56,11 +57,20 @@ function safeSetSessionStorage(key: string, value: string): void {
 }
 
 export function PushNotificationPrompt({
-  portalSlug = "porciuncula_prefeitura",
+  portalSlug,
+  ...props
+}: PushNotificationPromptProps) {
+  // Sem portal ativo (ex.: página raiz) não há a quem associar a inscrição.
+  if (!portalSlug) return null;
+  return <PushNotificationPromptContent portalSlug={portalSlug} {...props} />;
+}
+
+function PushNotificationPromptContent({
+  portalSlug,
   cooldownDays = DEFAULT_COOLDOWN_DAYS,
   minPageViews = 0,
   delayMs = 0,
-}: PushNotificationPromptProps) {
+}: PushNotificationPromptProps & { portalSlug: string }) {
   const pathname = usePathname();
   const { isSupported, isSubscribed, permission, isLoading, subscribe } =
     usePushNotifications({ portalSlug });
@@ -228,36 +238,34 @@ export function PushNotificationPrompt({
   return (
     <section
       aria-label="Consentimento de Notificações Cívicas"
-      className="fixed right-4 bottom-24 z-50 max-w-md rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl ring-1 ring-slate-900/5 sm:right-6 md:bottom-6"
+      className="fixed right-4 bottom-24 z-50 max-w-md rounded-lg border border-line bg-page p-4 text-ink shadow-2xl ring-1 ring-ink/5 sm:right-6 md:bottom-6"
     >
       <div className="flex items-start gap-3.5">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand-text">
           <Bell className="h-5 w-5" aria-hidden="true" />
         </div>
 
         <div className="flex-1 space-y-1.5">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900 text-sm">
-              Notificações de Contas Públicas
-            </h3>
+            <h3>Notificações de Contas Públicas</h3>
             <button
               type="button"
               onClick={handleDismiss}
-              className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded-md p-1 text-mute3 transition-colors hover:bg-line2 hover:text-mute focus:outline-none focus:ring-2 focus:ring-focus-ring"
               aria-label="Fechar aviso de notificações"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <p className="text-slate-600 text-xs leading-relaxed">
+          <p className="text-mute text-xs leading-relaxed">
             Acompanhe em tempo real novos gastos, empenhos e liquidações da
             prefeitura com a frequência exigida pelo{" "}
             <a
-              href="https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art48a"
+              href={urlLegislacao("lrf", "art48a")}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-blue-600 underline transition-colors hover:text-blue-800"
+              className="font-medium text-brand-text underline transition-colors hover:opacity-80"
             >
               Art. 48-A da LC 101/2000 (LRF)
             </a>
@@ -269,14 +277,14 @@ export function PushNotificationPrompt({
               type="button"
               onClick={handleAccept}
               disabled={isSubscribing || isLoading}
-              className="cursor-pointer rounded-lg bg-blue-600 px-3.5 py-1.5 font-semibold text-white text-xs shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="cursor-pointer rounded-lg bg-brand-fill px-3.5 py-1.5 font-semibold text-onink text-xs shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubscribing ? "Ativando..." : "Ativar Notificações"}
             </button>
             <button
               type="button"
               onClick={handleDismiss}
-              className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-600 text-xs transition-colors hover:bg-slate-50 hover:text-slate-800"
+              className="cursor-pointer rounded-lg border border-line bg-page px-3 py-1.5 font-medium text-mute text-xs transition-colors hover:bg-line2 hover:text-ink"
             >
               Agora não
             </button>

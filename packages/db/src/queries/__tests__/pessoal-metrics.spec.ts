@@ -5,6 +5,7 @@ import {
   seedFontesReceita,
   seedPessoalDepartamento,
   seedPessoalFolha,
+  seedPessoalRgf,
 } from "../../../tests/fixtures/seed";
 import { TEST_YEAR } from "../../test-helpers";
 import {
@@ -75,7 +76,7 @@ describe("pessoal-metrics", () => {
     expect(limiteLrf).toBe(54);
   });
 
-  it("deve manter rclProxy consolidado mesmo com empresaIds filtrados", async () => {
+  it("deve manter receitaCorrenteLiquida consolidada mesmo com empresaIds filtrados", async () => {
     await seedFontesReceita({
       portalSlug: PORTAL,
       empresaId: "1",
@@ -110,10 +111,12 @@ describe("pessoal-metrics", () => {
     expect(folhaConsolidada.length).toBeGreaterThan(0);
     expect(folhaEntidade.length).toBeGreaterThan(0);
 
-    // O denominador rclProxy deve ser idêntico (a receita consolidada do município)
-    expect(folhaEntidade[0].rclProxy).toBe(folhaConsolidada[0].rclProxy);
-    expect(folhaEntidade[0].rclProxy).toBeGreaterThan(0);
-    expect(folhaEntidade[0].rclProxy).toBe(10_000_000);
+    // O denominador deve ser idêntico (a receita consolidada do município)
+    expect(folhaEntidade[0].receitaCorrenteLiquida).toBe(
+      folhaConsolidada[0].receitaCorrenteLiquida,
+    );
+    expect(folhaEntidade[0].receitaCorrenteLiquida).toBeGreaterThan(0);
+    expect(folhaEntidade[0].receitaCorrenteLiquida).toBe(10_000_000);
 
     // O total da folha consolidada soma as entidades
     expect(folhaConsolidada[0].totalFolha).toBe(4_000_000);
@@ -153,7 +156,8 @@ describe("pessoal-metrics", () => {
     expect(metrics2024[0].despesaPessoalLrf).toBe(5_500_000);
     expect(metrics2024[0].receitaCorrenteLiquida).toBe(10_000_000);
     expect(metrics2024[0].percentualFolha).toBe(55);
-    expect(metrics2024[0].statusLrf).toBe("excedido");
+    // Estimativa do portal nunca recebe veredito nem número oficial
+    expect(metrics2024[0].rgf).toBeNull();
 
     // Caso 2: 5.2M / 10M = 52% (>= 51.3% -> prudencial)
     await seedFontesReceita({
@@ -177,6 +181,77 @@ describe("pessoal-metrics", () => {
       portalSlug: PORTAL,
     });
     expect(metrics2025[0].percentualFolha).toBe(52);
-    expect(metrics2025[0].statusLrf).toBe("prudencial");
+    expect(metrics2025[0].rgf).toBeNull();
+  });
+
+  it("deve usar o último período do RGF do ano e classificar com > nos limites", async () => {
+    const rgf = (ano: number, periodo: number, percentual: number) =>
+      seedPessoalRgf({
+        portalSlug: PORTAL,
+        ano,
+        periodo,
+        despesaPessoal12Meses: percentual * 1_000_000,
+        receitaCorrenteLiquidaAjustada: 100_000_000,
+        percentualDespesaPessoal: percentual,
+      });
+    await rgf(2024, 2, 40);
+    await rgf(2024, 3, 54);
+    await rgf(2023, 3, 51.3);
+    await rgf(2023, 1, 48.6);
+
+    const [metrics] = await getFolhaVsServicosMetrics({
+      years: [2024],
+      portalSlug: PORTAL,
+    });
+
+    expect(metrics.rgf?.periodo).toBe(3);
+    expect(metrics.rgf?.periodicidade).toBe("quadrimestral");
+    expect(metrics.rgf?.percentualDespesaPessoal).toBe(54);
+    // Igual ao teto (54%) não é excesso: fica no limite prudencial
+    expect(metrics.rgf?.statusLrf).toBe("prudencial");
+    expect(metrics.rgfAnoAnteriorMesmoPeriodo?.periodo).toBe(3);
+    // 51,3% igual ao prudencial não passa dele: só alerta
+    expect(metrics.rgfAnoAnteriorMesmoPeriodo?.statusLrf).toBe("alerta");
+  });
+
+  it("deve omitir a comparação anual quando o ano anterior não tem o mesmo período", async () => {
+    await seedPessoalRgf({
+      portalSlug: PORTAL,
+      ano: 2024,
+      periodo: 2,
+      despesaPessoal12Meses: 1,
+      receitaCorrenteLiquidaAjustada: 2,
+      percentualDespesaPessoal: 50,
+    });
+    await seedPessoalRgf({
+      portalSlug: PORTAL,
+      ano: 2023,
+      periodo: 3,
+      despesaPessoal12Meses: 1,
+      receitaCorrenteLiquidaAjustada: 2,
+      percentualDespesaPessoal: 50,
+    });
+    const [metrics] = await getFolhaVsServicosMetrics({
+      years: [2024],
+      portalSlug: PORTAL,
+    });
+    expect(metrics.rgf?.periodo).toBe(2);
+    expect(metrics.rgfAnoAnteriorMesmoPeriodo).toBeNull();
+  });
+
+  it("não deve cruzar RGF entre portais", async () => {
+    await seedPessoalRgf({
+      portalSlug: PORTAL,
+      ano: 2024,
+      periodo: 3,
+      despesaPessoal12Meses: 1,
+      receitaCorrenteLiquidaAjustada: 2,
+      percentualDespesaPessoal: 50,
+    });
+    const [outro] = await getFolhaVsServicosMetrics({
+      years: [2024],
+      portalSlug: `${PORTAL}_outro`,
+    });
+    expect(outro.rgf).toBeNull();
   });
 });

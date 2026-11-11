@@ -1,11 +1,12 @@
+import { AlertBox } from "@transparencia/ui";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { env } from "@/env";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 
 const baseUrl = env.NEXT_PUBLIC_APP_URL ?? "https://maistransparencia.com";
 
-const PLANALTO = "https://www.planalto.gov.br/ccivil_03";
-const LEI_14133_URL = `${PLANALTO}/_ato2019-2022/2021/lei/l14133.htm`;
+const LEI_14133_URL = urlLegislacao("lei14133");
 
 export const metadata: Metadata = {
   title: "Termos de Uso | MaisTransparencia",
@@ -40,14 +41,14 @@ const legalBases: {
   {
     name: "Lei 12.527/2011",
     detail: "Lei de Acesso à Informação (LAI)",
-    href: `${PLANALTO}/_ato2011-2014/2011/lei/l12527.htm`,
+    href: urlLegislacao("lai"),
     description:
       "Assegura o direito de qualquer pessoa a obter informações públicas detidas pelo Estado, promovendo a transparência ativa.",
   },
   {
     name: "Lei Complementar 131/2009",
     detail: "Lei da Transparência",
-    href: `${PLANALTO}/leis/lcp/lcp131.htm`,
+    href: urlLegislacao("lcp131"),
     description:
       "Determina a divulgação em tempo real de informações detalhadas sobre a execução orçamentária e financeira dos entes públicos.",
   },
@@ -87,18 +88,15 @@ function Section({ index, children }: { index: number; children: ReactNode }) {
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="scroll-mt-24 border-slate-200 border-t pt-10 first:border-t-0 first:pt-0"
+      className="scroll-mt-24 border-line border-t pt-10 first:border-t-0 first:pt-0"
     >
-      <h2
-        id={`${id}-title`}
-        className="!mt-0 flex items-baseline gap-3 font-semibold text-2xl text-slate-900 tracking-tight"
-      >
-        <span className="font-medium text-base text-emerald-700 tabular-nums">
+      <h2 id={`${id}-title`} className="flex items-baseline gap-3">
+        <span className="font-medium text-base text-brand-text tabular-nums">
           {index + 1}.
         </span>
         {title}
       </h2>
-      {children}
+      <div className="space-y-4 pt-3">{children}</div>
     </section>
   );
 }
@@ -109,7 +107,7 @@ function CheckIcon() {
       aria-hidden="true"
       viewBox="0 0 20 20"
       fill="currentColor"
-      className="mt-0.5 h-5 w-5 flex-none text-emerald-700"
+      className="mt-0.5 h-5 w-5 flex-none text-brand-text"
     >
       <path
         fillRule="evenodd"
@@ -125,18 +123,14 @@ export default function TermosPage() {
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-20">
       {/* Cabeçalho */}
       <header className="max-w-3xl">
-        <h1 className="font-bold text-4xl text-slate-900 tracking-tight sm:text-5xl">
-          Termos de Uso
-        </h1>
-        <p className="mt-4 text-slate-500 text-sm">
+        <h1>Termos de Uso</h1>
+        <p className="mt-4 text-mute2 text-sm">
           Última atualização: <time dateTime="2026-09">setembro de 2026</time>
         </p>
-        <p className="mt-6 text-lg text-slate-600 leading-8">
+        <p className="mt-6 text-lg text-mute leading-8">
           Bem-vindo ao{" "}
-          <strong className="font-semibold text-slate-900">
-            MaisTransparencia
-          </strong>
-          . Ao utilizar esta plataforma, você concorda com os termos descritos
+          <strong className="font-semibold text-ink">MaisTransparencia</strong>.
+          Ao utilizar esta plataforma, você concorda com os termos descritos
           abaixo. Leia-os com atenção.
         </p>
       </header>
@@ -144,20 +138,12 @@ export default function TermosPage() {
       {/* Resumo */}
       <aside
         aria-labelledby="resumo-title"
-        className="mt-10 max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 sm:p-8"
+        className="panel panel-brand mt-10 max-w-3xl"
       >
-        <h2
-          id="resumo-title"
-          className="font-semibold text-emerald-950 text-lg"
-        >
-          Em resumo
-        </h2>
+        <h2 id="resumo-title">Em resumo</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {commitments.map((item) => (
-            <li
-              key={item}
-              className="flex gap-3 text-emerald-950 text-sm leading-6"
-            >
+            <li key={item} className="flex gap-3 text-ink text-sm leading-6">
               <CheckIcon />
               {item}
             </li>
@@ -169,17 +155,15 @@ export default function TermosPage() {
         {/* Sumário */}
         <nav aria-label="Seções destes termos" className="hidden lg:block">
           <div className="sticky top-24">
-            <p className="font-semibold text-slate-900 text-sm">Nesta página</p>
-            <ol className="mt-4 space-y-1 border-slate-200 border-l">
+            <p className="font-semibold text-ink text-sm">Nesta página</p>
+            <ol className="mt-4 space-y-1 border-line border-l">
               {sections.map((s, i) => (
                 <li key={s.id}>
                   <a
                     href={`#${s.id}`}
-                    className="-ml-px flex gap-2 border-transparent border-l py-1.5 pl-4 text-slate-600 text-sm transition-colors hover:border-emerald-700 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+                    className="-ml-px flex gap-2 border-transparent border-l py-1.5 pl-4 text-mute text-sm transition-colors hover:border-brand hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   >
-                    <span className="text-slate-400 tabular-nums">
-                      {i + 1}.
-                    </span>
+                    <span className="text-mute3 tabular-nums">{i + 1}.</span>
                     {s.title}
                   </a>
                 </li>
@@ -189,7 +173,7 @@ export default function TermosPage() {
         </nav>
 
         {/* Conteúdo */}
-        <article className="prose prose-slate prose-li:my-1.5 max-w-3xl space-y-10 prose-a:font-medium prose-a:text-emerald-800 prose-strong:text-slate-900 prose-p:leading-7 prose-a:decoration-emerald-300 prose-a:underline-offset-4 prose-li:marker:text-emerald-700 hover:prose-a:decoration-emerald-700">
+        <article className="max-w-3xl space-y-10">
           <Section index={0}>
             <p>
               O MaisTransparencia é uma plataforma cívica independente de
@@ -216,19 +200,19 @@ export default function TermosPage() {
               fundamental de acesso à informação garantido pela Constituição
               Federal de 1988 (Art. 5.º, XXXIII) e pelas seguintes normas:
             </p>
-            <dl className="not-prose mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200">
+            <dl className="mt-6 divide-y divide-line border-line border-y">
               {legalBases.map((law) => (
                 <div
                   key={law.name}
                   className="grid gap-1 px-5 py-4 sm:grid-cols-[12rem_1fr] sm:gap-6"
                 >
-                  <dt className="font-semibold text-slate-900 text-sm">
+                  <dt className="font-semibold text-ink text-sm">
                     {law.href ? (
                       <a
                         href={law.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-emerald-800 underline decoration-emerald-300 underline-offset-4 hover:decoration-emerald-700"
+                        className="text-brand-text underline decoration-brand/40 underline-offset-4 hover:decoration-brand"
                       >
                         {law.name}
                         <span className="sr-only"> (abre em nova aba)</span>
@@ -237,12 +221,12 @@ export default function TermosPage() {
                       law.name
                     )}
                     {law.detail && (
-                      <span className="block font-normal text-slate-500">
+                      <span className="block font-normal text-mute2">
                         {law.detail}
                       </span>
                     )}
                   </dt>
-                  <dd className="text-slate-700 text-sm leading-6">
+                  <dd className="text-mute text-sm leading-6">
                     {law.description}
                   </dd>
                 </div>
@@ -257,18 +241,15 @@ export default function TermosPage() {
               apresenta dados agregados e estatísticos sobre remunerações de
               agentes públicos municipais: indicadores de massa salarial,
               distribuição por regime jurídico e conformidade com os limites da{" "}
-              <ExternalLink href={`${PLANALTO}/leis/lcp/lcp101.htm`}>
+              <ExternalLink href={urlLegislacao("lrf")}>
                 Lei de Responsabilidade Fiscal (LC 101/2000)
               </ExternalLink>
               .
             </p>
-            <div className="not-prose mt-6 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-700 text-sm leading-6">
-              <strong className="font-semibold text-slate-900">
-                Não são exibidos:
-              </strong>{" "}
+            <AlertBox type="info" title="Não são exibidos">
               dados individualizados nominais de servidores públicos de
               carreira.
-            </div>
+            </AlertBox>
           </Section>
 
           <Section index={3}>
@@ -277,7 +258,7 @@ export default function TermosPage() {
               administrativos e intervenções de infraestrutura urbana (obras
               públicas) são reproduzidos a partir de fontes oficiais:
             </p>
-            <ul>
+            <ul className="list-text">
               <li>Portal Nacional de Contratações Públicas (PNCP);</li>
               <li>
                 Portal ObrasGov.br (obrasgov.br — painel de obras e Cadastro
@@ -304,7 +285,7 @@ export default function TermosPage() {
               como plataforma derivada de fontes públicas de terceiros, não pode
               ser responsabilizado por:
             </p>
-            <ul>
+            <ul className="list-text">
               <li>
                 erros, inconsistências ou omissões originários das bases de
                 dados oficiais dos órgãos públicos;
@@ -318,13 +299,13 @@ export default function TermosPage() {
                 exibidos sem a devida consulta a profissionais habilitados.
               </li>
             </ul>
-            <div className="not-prose mt-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950 text-sm leading-6">
+            <AlertBox type="info" title="Uso dos dados">
               Os dados são fornecidos{" "}
               <em className="font-medium">“como estão”</em> para fins de
               controle social e auditoria cidadã. Para fins jurídicos ou de
               prestação de contas formal, confronte-os com as fontes primárias
               oficiais.
-            </div>
+            </AlertBox>
           </Section>
         </article>
       </div>

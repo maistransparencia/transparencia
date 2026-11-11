@@ -1,20 +1,12 @@
-import {
-  DenseTable,
-  fmtCompact,
-  fmtCurrency,
-  fmtPercent,
-  KPICard,
-} from "@transparencia/ui";
+import { DenseTable, fmtCurrency, SectionHeader } from "@transparencia/ui";
 import { Landmark } from "lucide-react";
 import type { Metadata } from "next";
 import nextDynamic from "next/dynamic";
 import { BarChartH } from "@/components/bar-chart-h";
-import { KPIGrid } from "@/components/kpi-grid";
 import { PrevidenciaActuarialRiskSection } from "@/components/previdencia-actuarial-risk-section";
 import { PrevidenciaHeroSection } from "@/components/previdencia-hero-section";
 import { PrevidenciaPatrimonioHistoricoSection } from "@/components/previdencia-patrimonio-historico-section";
 import { PrevidenciaSaldoCaixaCard } from "@/components/previdencia-saldo-caixa-card";
-import { SectionHeader } from "@/components/section-header";
 import { createPortalMetadata, getCachedPortalConfig } from "@/lib/metadata";
 import { loadPrevidenciaData } from "./loader";
 import { buildPrevidenciaViewModel } from "./view-model";
@@ -25,9 +17,7 @@ const PrevidenciaEntidadesDonut = nextDynamic(
       (mod) => mod.PrevidenciaEntidadesDonut,
     ),
   {
-    loading: () => (
-      <div className="h-[280px] w-full animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-    ),
+    loading: () => <div className="h-[280px] w-full animate-pulse bg-line2" />,
   },
 );
 
@@ -100,18 +90,19 @@ export default async function PrevidenciaPage({
           title={`Previdência Municipal (${previdenciaSigla})`}
           description="Informações sobre o regime previdenciário municipal."
         />
-        <div className="rounded-xl border border-borderLine bg-white p-8 text-center">
+        <div className="border-line border-y py-8 text-center">
           <Landmark
-            className="mx-auto h-10 w-10 text-mutedText"
+            className="mx-auto h-10 w-10 text-mute"
             strokeWidth={1.5}
+            aria-hidden="true"
           />
-          <h3 className="mt-4 font-semibold text-lg text-slate-800">
-            Município sem Regime Próprio de Previdência Social (RPPS) ativo
+          <h3 className="mt-4">
+            Este município não tem fundo próprio de aposentadoria dos servidores
           </h3>
-          <p className="mx-auto mt-2 max-w-lg text-slate-600 text-sm">
-            Os servidores públicos deste município estão vinculados ao Regime
-            Geral de Previdência Social (RGPS / INSS) ou não possuem autarquia
-            previdenciária própria habilitada.
+          <p className="mx-auto mt-2 max-w-lg text-mute">
+            Os servidores contribuem para o INSS (Regime Geral de Previdência
+            Social), que é federal. Por isso não há um fundo municipal para
+            acompanhar nesta página.
           </p>
         </div>
       </div>
@@ -140,33 +131,8 @@ export default async function PrevidenciaPage({
         }
       />
 
-      {/* Seção 2: KPIs de Alto Nível (Grid Limpo de 4 Colunas) */}
-      <KPIGrid columns={4}>
-        <KPICard
-          title="Total Empenhado"
-          value={fmtCompact(previdencia.totalEmpenhado)}
-          subtext="Compromissos previdenciários"
-          accent
-        />
-        <KPICard
-          title="Total Repassado / Pago"
-          value={fmtCompact(previdencia.totalPago)}
-          subtext="Efetivamente transferido"
-        />
-        <KPICard
-          title="Aporte Déficit Atuarial"
-          value={fmtCompact(previdencia.totalAporteAtuarial)}
-          subtext="Elemento 97 (Equilíbrio RPPS)"
-        />
-        <KPICard
-          title="Índice de Adimplência"
-          value={fmtPercent(previdencia.taxaExecucao * 100)}
-          subtext="% Quitado do Empenhado"
-        />
-      </KPIGrid>
-
       {previdencia.entidades.length > 0 && (
-        <section className="">
+        <section>
           <PrevidenciaEntidadesDonut
             data={previdencia.entidades}
             ano={selectedYear}
@@ -179,6 +145,7 @@ export default async function PrevidenciaPage({
       <PrevidenciaSaldoCaixaCard
         posicaoFinanceira={viewModel.posicaoFinanceira}
         ano={selectedYear}
+        isCurrentYear={isCurrentYear}
         portalSlug={portalSlug}
         previdenciaSigla={previdenciaSigla}
       />
@@ -204,18 +171,18 @@ export default async function PrevidenciaPage({
       {previdencia.natureza.length > 0 && (
         <section className="space-y-6">
           <SectionHeader
-            title="Composição Contábil dos Repasses"
+            title={`Para onde foi o dinheiro repassado à previdência em ${selectedYear}?`}
             description="Detalhamento das obrigações por elemento de despesa (Contribuições patronais ordinárias, aportes de equilíbrio atuarial, amortização de dívidas e previdência)"
           />
 
           {naturezaChartData.length > 0 && (
-            <div className="space-y-4 rounded-xl border border-borderLine bg-white p-5">
-              <div className="flex items-center justify-between border-gray-100 border-b pb-3">
-                <h4 className="font-semibold font-serif text-slate-800 text-sm">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h4>
                   Distribuição por Destino Contábil e Regime ({selectedYear})
                 </h4>
-                <span className="font-medium text-slate-500 text-xs">
-                  Total Repassado: {fmtCurrency(previdencia.totalPago)}
+                <span className="caption">
+                  Total repassado: {fmtCurrency(previdencia.totalPago)}
                 </span>
               </div>
               <BarChartH data={naturezaChartData} />
@@ -223,9 +190,7 @@ export default async function PrevidenciaPage({
           )}
 
           <div className="space-y-3">
-            <h4 className="font-semibold font-serif text-slate-800 text-sm">
-              Detalhamento de Lançamentos Contábeis (Paginado)
-            </h4>
+            <h4>Detalhamento de Lançamentos Contábeis (Paginado)</h4>
             <DenseTable
               data={previdencia.natureza.map((item) => ({
                 ...item,
