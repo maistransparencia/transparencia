@@ -524,6 +524,32 @@ export interface PessoalFolhaRow {
   binAcima20k?: number;
 }
 
+export interface PessoalRgfRow {
+  portalSlug: string;
+  ano: number;
+  periodicidade?: "quadrimestral" | "semestral";
+  periodo: number;
+  despesaPessoal12Meses: number;
+  receitaCorrenteLiquidaAjustada: number;
+  percentualDespesaPessoal: number;
+}
+
+export async function seedPessoalRgf(row: PessoalRgfRow): Promise<void> {
+  await db
+    .insertInto("fct_pessoal_rgf_metricas")
+    .values({
+      pessoal_rgf_metricas_id: nextId("prgf"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      periodicidade: row.periodicidade ?? "quadrimestral",
+      periodo: row.periodo,
+      despesa_pessoal_12_meses: row.despesaPessoal12Meses,
+      receita_corrente_liquida_ajustada: row.receitaCorrenteLiquidaAjustada,
+      percentual_despesa_pessoal: row.percentualDespesaPessoal,
+    })
+    .execute();
+}
+
 export async function seedPessoalFolha(row: PessoalFolhaRow): Promise<void> {
   await db
     .insertInto("fct_pessoal_folha_metricas")
@@ -1833,6 +1859,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_pessoal_folha_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_pessoal_rgf_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
