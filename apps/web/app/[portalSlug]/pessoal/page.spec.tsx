@@ -156,14 +156,13 @@ describe("PessoalPage", () => {
     expect(destaque.querySelector(".stat-value-lg")?.textContent).toBe(
       "47,16%",
     );
-    expect(destaque).toHaveTextContent("Gasto: 47,16%");
-    expect(destaque).toHaveTextContent("Teto da LRF: 54%");
+    expect(destaque).toHaveTextContent("Teto: 54%");
     expect(destaque).toHaveTextContent("Limite prudencial: 51,3%");
     expect(destaque).toHaveTextContent(
-      "Cálculo do portal com a receita corrente líquida estimada",
+      "O número oficial sai no Relatório de Gestão Fiscal",
     );
     const barra = screen.getByRole("meter", {
-      name: "Gasto com pessoal sobre a receita corrente líquida",
+      name: "Gasto com pessoal sobre a receita",
     });
     expect(barra.getAttribute("aria-valuenow")).toBe("47.16");
   });

@@ -68,9 +68,7 @@ describe("buildPessoalViewModel", () => {
       }),
     );
     expect(vmNormal.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
-    expect(vmNormal.folhaKpi.subtext).toBe(
-      "dentro dos limites da LRF (teto 54%)",
-    );
+    expect(vmNormal.folhaKpi.subtext).toBe("Dentro dos limites da lei.");
     expect(vmNormal.folhaKpi.alert).toBe(false);
 
     const vmAlerta = buildPessoalViewModel(
@@ -88,7 +86,9 @@ describe("buildPessoalViewModel", () => {
       }),
     );
     expect(vmAlerta.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
-    expect(vmAlerta.folhaKpi.subtext).toBe("acima do limite de alerta (48,6%)");
+    expect(vmAlerta.folhaKpi.subtext).toBe(
+      "Acima do limite de alerta (48,6%).",
+    );
     expect(vmAlerta.folhaKpi.alert).toBe(true);
 
     const vmPrudencial = buildPessoalViewModel(
@@ -106,9 +106,7 @@ describe("buildPessoalViewModel", () => {
       }),
     );
     expect(vmPrudencial.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
-    expect(vmPrudencial.folhaKpi.subtext).toBe(
-      "acima do limite prudencial (51,3%)",
-    );
+    expect(vmPrudencial.folhaKpi.subtext).toBe("Acima do limite prudencial.");
     expect(vmPrudencial.folhaKpi.alert).toBe(true);
 
     const vmEstouro = buildPessoalViewModel(
@@ -126,8 +124,28 @@ describe("buildPessoalViewModel", () => {
       }),
     );
     expect(vmEstouro.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
-    expect(vmEstouro.folhaKpi.subtext).toBe("acima do teto de 54%");
+    expect(vmEstouro.folhaKpi.subtext).toBe("Acima do teto da lei.");
     expect(vmEstouro.folhaKpi.alert).toBe(true);
+  });
+
+  it("descreve a página e o teto da lei em uma frase curta", () => {
+    const vm = buildPessoalViewModel(
+      makeRaw({
+        folhaData: [
+          {
+            totalFolha: 1000,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 45,
+            limitesLrf: LIMITES_LRF,
+          },
+        ],
+      }),
+    );
+    expect(vm.headerDescription).toBe(
+      "Quanto a Prefeitura paga ao pessoal e quanto isso pesa na receita.",
+    );
+    expect(vm.limitesLrfDescricao).toBe("limita esse gasto a 54% da receita.");
   });
 
   it("configura folhaKpi e headerDescription contextuais quando há entidade filtrada", () => {
@@ -157,10 +175,10 @@ describe("buildPessoalViewModel", () => {
     );
     expect(vm.folhaKpi.alert).toBe(false);
     expect(vm.headerDescription).toContain(
-      "desta entidade pesa na receita do município",
+      "deste órgão pesa na receita do município",
     );
     expect(vm.limitesLrfDescricao).toBe(
-      "limita o gasto total com pessoal a 54% da RCL no Poder Executivo.",
+      "limita o gasto total com pessoal a 54% da receita do município.",
     );
   });
 
@@ -274,15 +292,16 @@ describe("buildPessoalViewModel", () => {
 
     expect(vm.folhaTrend).toBeUndefined();
     expect(vm.folhaKpi.alert).toBe(false);
-    expect(vm.folhaKpi.subtext).toBe(
-      "Ano em andamento: estimativa com os meses até agora. A LRF mede 12 meses, então ainda não dá para julgar o limite.",
+    expect(vm.folhaKpi.subtext).toBe("");
+    expect(vm.notaEstimativaLrf).toBe(
+      "Conta parcial do portal; a lei mede 12 meses. O número oficial sai no Relatório de Gestão Fiscal.",
     );
   });
 
-  it("avisa que o percentual é cálculo do portal com a receita corrente líquida estimada", () => {
+  it("avisa que o percentual é conta do portal e aponta o número oficial", () => {
     const vm = buildPessoalViewModel(makeRaw());
     expect(vm.notaEstimativaLrf).toBe(
-      "Cálculo do portal com a receita corrente líquida estimada; o número oficial sai no Relatório de Gestão Fiscal.",
+      "Conta do portal. O número oficial sai no Relatório de Gestão Fiscal.",
     );
   });
 

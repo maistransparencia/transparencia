@@ -128,28 +128,23 @@ export default async function PessoalPage({
             {fmtPercent(currentYearRow.percentualFolha)}
           </p>
           {barraLimitesLrf && (
-            <div className="space-y-2">
-              <p className="font-semibold text-sm tabular-nums">
-                Gasto: {fmtPercent(currentYearRow.percentualFolha)}
-              </p>
-              <ThresholdMeter
-                value={currentYearRow.percentualFolha}
-                threshold={barraLimitesLrf.teto}
-                secondaryThreshold={barraLimitesLrf.prudencial}
-                label="Gasto com pessoal sobre a receita corrente líquida"
-                valueText={`${fmtPercent(currentYearRow.percentualFolha)} da receita corrente líquida; teto de ${barraLimitesLrf.tetoTexto}; limite prudencial de ${barraLimitesLrf.prudencialTexto}`}
-              />
-            </div>
+            <ThresholdMeter
+              value={currentYearRow.percentualFolha}
+              threshold={barraLimitesLrf.teto}
+              secondaryThreshold={barraLimitesLrf.prudencial}
+              label="Gasto com pessoal sobre a receita"
+              valueText={`${fmtPercent(currentYearRow.percentualFolha)} da receita; teto de ${barraLimitesLrf.tetoTexto}; limite prudencial de ${barraLimitesLrf.prudencialTexto}`}
+            />
           )}
           <p className="caption space-y-0.5">
             {barraLimitesLrf && (
-              <>
+              <span className="flex flex-wrap items-center gap-x-4">
                 <span className="flex items-center gap-x-2">
                   <span
                     aria-hidden="true"
                     className="inline-block h-3 w-0.5 bg-ink"
                   />
-                  Teto da LRF: {barraLimitesLrf.tetoTexto}
+                  Teto: {barraLimitesLrf.tetoTexto}
                 </span>
                 <span className="flex items-center gap-x-2">
                   <span
@@ -158,18 +153,20 @@ export default async function PessoalPage({
                   />
                   Limite prudencial: {barraLimitesLrf.prudencialTexto}
                 </span>
-              </>
+              </span>
             )}
-            <span className="flex flex-wrap gap-x-3">
-              <span>{folhaKpi.subtext}</span>
-              {folhaTrend && (
-                <span
-                  className={`font-semibold ${folhaTrend.isPositive ? "text-ok-text" : "text-danger-text"}`}
-                >
-                  {folhaTrend.value}
-                </span>
-              )}
-            </span>
+            {(folhaKpi.subtext || folhaTrend) && (
+              <span className="flex flex-wrap gap-x-3">
+                {folhaKpi.subtext && <span>{folhaKpi.subtext}</span>}
+                {folhaTrend && (
+                  <span
+                    className={`font-semibold ${folhaTrend.isPositive ? "text-ok-text" : "text-danger-text"}`}
+                  >
+                    {folhaTrend.value}
+                  </span>
+                )}
+              </span>
+            )}
             <span className="block">{notaEstimativaLrf}</span>
           </p>
         </section>
