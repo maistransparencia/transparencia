@@ -185,6 +185,14 @@ def main() -> None:
                     schema,
                 )
                 continue
+            if table == "siconfi_rgf":
+                from elt.load.siconfi import ensure_siconfi_rgf_table, load_siconfi_rgf
+
+                ensure_siconfi_rgf_table(engine, schema)
+                rows = json.loads(json_file.read_text(encoding="utf-8"))
+                count = load_siconfi_rgf(engine, rows, schema=schema)
+                logger.info("Loaded siconfi_rgf (%s) → %d rows into %s.siconfi_rgf", json_file.name, count, schema)
+                continue
             if table == "pncp":
                 from elt.load.pncp import (
                     ensure_pncp_tables,
