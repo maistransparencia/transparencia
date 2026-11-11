@@ -4041,6 +4041,7 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 - **26.2 Inventário e plano de migração do legado.** Listar as 22 tabelas por portal, agrupar por fonte, definir ordem, paridade e reversão.
 - **26.3 Migração das tabelas do portal municipal (Fiorilli) para schema por fonte**, uma tabela ou grupo por story.
 - **26.4 Remoção dos schemas por município e dos modelos de consolidação.**
+- **26.5 Migração do RGF (`siconfi_rgf`, criado na Story TD.2) para `raw_siconfi`.** A TD.2 grava a tabela no schema por município, seguindo o padrão atual, para não depender desta epic. Mover junto com `siconfi_msc_patrimonial` (26.1), com `portal_slug` na chave e teste de paridade.
 
 **Dependências:** a 26.1 pode rodar a qualquer momento, de preferência depois da 24.9; o restante depois da 26.2.
 
@@ -4300,9 +4301,10 @@ So that the comparison with the LRF limits (teto, prudencial e alerta) is the sa
 - **Given** o RGF do Poder Executivo publicado no SICONFI (Anexo 1, Demonstrativo da Despesa com Pessoal)
 - **When** o pipeline roda
 - **Then** a despesa total com pessoal e a RCL ajustada de 12 meses de cada período publicado (quadrimestre ou semestre) ficam num mart com `portal_slug`, ano e período, sem literal de município, UF ou ano (CLAUDE.md §23), seguindo o desenho de schema por fonte da Epic 26.
-- **And** `/pessoal` mostra o percentual oficial do último período publicado do ano selecionado, com o período e a data de publicação, e só ele recebe veredito contra os limites, que continuam vindo de `seed_constantes_fiscais`.
+- **And** `/pessoal` mostra o percentual oficial do último período publicado do ano selecionado, com o período (a API do SICONFI não devolve a data de publicação; decisão de 2026-11-11), e só ele recebe veredito contra os limites, que continuam vindo de `seed_constantes_fiscais`.
 - **And** quando o RGF do período ainda não saiu, a página mostra a estimativa atual com o aviso de estimativa, sem veredito.
 - **And** a troca de `despesa_total_pessoal_lrf` por `total_folha` ou deixa de existir ou aparece na tela como estimativa; `rclProxy` e `receitaCorrenteLiquida` viram um campo só, com nome que diga se é oficial ou estimado (regras 9 e 18).
+- **And** o bloco oficial é autocontido: despesa com pessoal de 12 meses, RCL, percentual, período e data de publicação vêm todos do RGF; o total pago em folha do portal fica em bloco separado, com nota de que não é o número do RGF (competência, 12 meses, encargos); a diferença entre os dois só aparece em "Ver detalhes" e nunca se mistura numerador de uma fonte com denominador de outra.
 - **And** a comparação com o ano anterior usa o mesmo período do RGF dos dois anos (por exemplo, 2º quadrimestre contra 2º quadrimestre).
 - **And** os textos passam pelo `editor-cidadao` e a citação da LRF pelo `jurista-fiscal`, com link oficial (regra 20); `llms.txt` e `llms-full.txt` são atualizados.
 
