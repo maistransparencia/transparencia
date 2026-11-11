@@ -80,20 +80,29 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     },
   ];
 
-  const variationText = (() => {
-    if (rec.totalPctChange === null) {
-      return "Orçamento aprovado";
+  // Ano em andamento acumula só parte dos meses; contra o ano anterior inteiro a variação sairia falsa.
+  const comparacaoArrecadacao = ((): {
+    direcao: "alta" | "queda" | null;
+    texto: string;
+  } | null => {
+    if (raw.context.isCurrentYear) {
+      return { direcao: null, texto: "Ano em andamento, sem comparação." };
     }
-
+    if (rec.totalPctChange === null) return null;
+    const percentual = Math.abs(rec.totalPctChange)
+      .toFixed(1)
+      .replace(".", ",");
+    const anoAnterior = raw.context.selectedYear - 1;
     if (rec.totalPctChange >= 0) {
-      return `▲ ${rec.totalPctChange.toFixed(1).replace(".", ",")}% vs. ${raw.context.selectedYear - 1}`;
+      return {
+        direcao: "alta",
+        texto: `Arrecadou ${percentual}% a mais que em ${anoAnterior}.`,
+      };
     }
-
-    if (rec.totalPctChange < 0) {
-      return `▼ ${Math.abs(rec.totalPctChange).toFixed(1).replace(".", ",")}% vs. ${raw.context.selectedYear - 1}`;
-    }
-
-    return "Orçamento aprovado";
+    return {
+      direcao: "queda",
+      texto: `Arrecadou ${percentual}% a menos que em ${anoAnterior}.`,
+    };
   })();
 
   const radarCards = buildRadarCivicoCards(raw.radarAlertas, raw.portalSlug, {
@@ -117,7 +126,7 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     pctArrecadadoAnual,
     origensData,
     totalExtraOrcamentario: rec.receitaExtraOrcamentariaArrecadado,
-    variationText,
+    comparacaoArrecadacao,
     cardDependencia,
   };
 }

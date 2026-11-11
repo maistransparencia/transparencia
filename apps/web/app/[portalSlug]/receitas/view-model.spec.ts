@@ -51,27 +51,48 @@ describe("buildReceitasViewModel", () => {
     expect(vm.rec.alertaDependencia).toBe(false);
   });
 
-  it("formata a variação como alta (▲) quando totalPctChange é positivo", () => {
+  it("compara a arrecadação com o ano anterior quando ela subiu", () => {
     const vm = buildReceitasViewModel(
       makeRaw({ fonte: makeFonte({ totalPctChange: 12.3 }) }),
     );
-    expect(vm.variationText).toContain("▲");
-    expect(vm.variationText).toContain("12,3%");
+    expect(vm.comparacaoArrecadacao).toEqual({
+      direcao: "alta",
+      texto: "Arrecadou 12,3% a mais que em 2023.",
+    });
   });
 
-  it("formata a variação como queda (▼) quando totalPctChange é negativo", () => {
+  it("compara a arrecadação com o ano anterior quando ela caiu", () => {
     const vm = buildReceitasViewModel(
       makeRaw({ fonte: makeFonte({ totalPctChange: -8 }) }),
     );
-    expect(vm.variationText).toContain("▼");
-    expect(vm.variationText).toContain("8,0%");
+    expect(vm.comparacaoArrecadacao).toEqual({
+      direcao: "queda",
+      texto: "Arrecadou 8,0% a menos que em 2023.",
+    });
   });
 
-  it("mostra 'Orçamento aprovado' quando não há ano anterior para comparar", () => {
+  it("não compara quando não há ano anterior", () => {
     const vm = buildReceitasViewModel(
       makeRaw({ fonte: makeFonte({ totalPctChange: null }) }),
     );
-    expect(vm.variationText).toBe("Orçamento aprovado");
+    expect(vm.comparacaoArrecadacao).toBeNull();
+  });
+
+  it("não compara ano em andamento com ano fechado", () => {
+    const vm = buildReceitasViewModel(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        fonte: makeFonte({ totalPctChange: -14.9 }),
+      }),
+    );
+    expect(vm.comparacaoArrecadacao).toEqual({
+      direcao: null,
+      texto: "Ano em andamento, sem comparação.",
+    });
   });
 
   it("calcula pctRealizado como 0 quando o previsto é 0 (evita divisão por zero)", () => {
