@@ -255,18 +255,37 @@ describe("RootPage (Landing Page Cívica Dinâmica e Redirecionamento)", () => {
     ).toBeInTheDocument();
   });
 
-  it("deve redirecionar para porciuncula quando usuário legado tem last_seen_extraction", () => {
+  it("deve redirecionar para o unico portal quando usuario legado tem last_seen_extraction", () => {
+    window.localStorage.setItem("last_seen_extraction", "2026-03-01");
+
+    render(<MunicipalLandingClient portais={mockPortais.slice(0, 1)} />);
+
+    const slugUnico = mockPortais[0].portalSlug;
+    expect(mockLocationReplace).toHaveBeenCalledWith(`/${slugUnico}`);
+    expect(document.cookie).toContain(`preferred_portal=${slugUnico}`);
+    expect(window.localStorage.getItem("preferred_portal")).toBe(slugUnico);
+  });
+
+  it("nao deve redirecionar usuario legado quando ha mais de um portal", () => {
     window.localStorage.setItem("last_seen_extraction", "2026-03-01");
 
     render(<MunicipalLandingClient portais={mockPortais} />);
 
-    expect(mockLocationReplace).toHaveBeenCalledWith("/porciuncula_prefeitura");
-    expect(document.cookie).toContain(
-      "preferred_portal=porciuncula_prefeitura",
+    expect(mockLocationReplace).not.toHaveBeenCalled();
+  });
+
+  it("renderiza icone civico neutro quando o portal nao tem brasao", () => {
+    const { container } = render(
+      <MunicipalLandingClient
+        portais={mockPortais.map((portal) => ({
+          ...portal,
+          brasaoAsset: "",
+        }))}
+      />,
     );
-    expect(window.localStorage.getItem("preferred_portal")).toBe(
-      "porciuncula_prefeitura",
-    );
+
+    expect(container.querySelector('img[src*="brasao"]')).toBeNull();
+    expect(container.querySelector("svg.lucide-landmark")).not.toBeNull();
   });
 
   it("não deve redirecionar no cliente se o usuário passar ?select=true mesmo com preferred_portal no localStorage", () => {

@@ -9,7 +9,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
-import { IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 import { GlobalFooter } from "@/components/global-footer";
@@ -26,8 +26,8 @@ import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 import { PwaInstaller } from "@/components/pwa-installer";
 import { env } from "@/env";
 import { formatBaseUrl } from "@/lib/metadata";
+import { scriptAntiFlashTema } from "@/lib/tema-script";
 import { ExtractionNotificationBanner } from "../components/extraction-notification-banner";
-import { RibbonWrapper } from "./components/ribbon-wrapper";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
 import "./globals.css";
 
@@ -140,6 +140,12 @@ const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-ibm-plex",
 });
 
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-ibm-plex-mono",
+});
+
 const sourceSerif4 = Source_Serif_4({
   subsets: ["latin"],
   weight: ["400", "600", "700"],
@@ -174,17 +180,16 @@ export default async function RootLayout({
     entidadesByPortal[slug] = entidadesList[idx] || [];
   });
 
-  const portalSlug = portalConfig?.portalSlug ?? "porciuncula_prefeitura";
-  const radarAlertsCountByYear =
-    radarAlertsByPortal[portalSlug] ??
-    (await getCachedRadarAlertsCountByYear(portalSlug));
+  const radarAlertsCountByYear = portalConfig
+    ? (radarAlertsByPortal[portalConfig.portalSlug] ??
+      (await getCachedRadarAlertsCountByYear(portalConfig.portalSlug)))
+    : {};
 
   const portalOptions: PortalOption[] = portais.map((p) => ({
     portalSlug: p.portalSlug,
     displayName: p.displayName,
     uf: p.uf,
     portalUrl: p.portalUrl,
-    brasaoAsset: p.brasaoAsset,
     anoInicial: p.anoInicial,
     dataExtracao: p.dataExtracao,
     previdencia: p.previdencia,
@@ -204,20 +209,29 @@ export default async function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${ibmPlexSans.variable} ${sourceSerif4.variable}`}
+      suppressHydrationWarning
+      className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} ${sourceSerif4.variable}`}
     >
       <head>
+        {/* Inline e síncrono: next/script beforeInteractive só executa depois do bootstrap do Next, o que causa flash do tema claro. */}
+        {/* React 19 avisa de <script> renderizado no cliente: o HTML do servidor já traz o script, então o cliente não o renderiza de novo. */}
+        {typeof window === "undefined" ? (
+          <script
+            suppressHydrationWarning
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: script estático anti-flash do tema
+            dangerouslySetInnerHTML={{ __html: scriptAntiFlashTema }}
+          />
+        ) : null}
         <JsonLd schema={governmentOrganizationSchema} />
         <JsonLd schema={dataCatalogSchema} />
       </head>
-      <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink antialiased md:flex-row">
+      <body className="flex min-h-screen flex-col bg-page font-sans text-ink antialiased md:flex-row">
         <ProgressProvider>
           <NuqsAdapter>
             <MobileNavProvider>
               <Suspense fallback={null}>
                 <SidebarWrapper
                   portalName={portalConfig?.displayName}
-                  stateUF={portalConfig?.uf}
                   portalTitle={
                     portalConfig
                       ? `Contas da ${portalConfig.displayName}`
@@ -236,10 +250,6 @@ export default async function RootLayout({
                 />
               </Suspense>
               <div className="flex min-w-0 flex-1 flex-col">
-                <RibbonWrapper
-                  portais={portalOptions}
-                  portalName={portalConfig?.displayName}
-                />
                 <Suspense fallback={null}>
                   <NewsletterFeedbackBanner />
                 </Suspense>
@@ -249,7 +259,7 @@ export default async function RootLayout({
                   portalSlug={portalConfig?.portalSlug}
                   portais={portalOptions}
                 />
-                <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-hidden px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
+                <main className="mx-auto w-full max-w-[1120px] flex-1 overflow-x-clip px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
                   {children}
                 </main>
                 <GlobalFooter

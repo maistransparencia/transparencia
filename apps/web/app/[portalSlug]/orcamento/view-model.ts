@@ -11,34 +11,33 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
   const totalLiquidado = summary.totalLiquidado;
   const totalPago = summary.totalPago;
 
-  const empPct = totalDotacao > 0 ? (totalEmpenhado / totalDotacao) * 100 : 0;
-  const liqPct = totalDotacao > 0 ? (totalLiquidado / totalDotacao) * 100 : 0;
-  const pagPct = totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
+  const percentualPago =
+    totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : 0;
 
   const funnelStages = [
     {
-      name: "Dotação",
+      name: "Orçamento autorizado",
+      description: "o que a prefeitura pode gastar este ano, já com os ajustes",
       value: totalDotacao,
       formattedValue: fmtCompact(totalDotacao),
-      colorClass: "bg-blue-600",
     },
     {
-      name: "Empenhado",
+      name: "Reservado (empenhado)",
+      description: "separado para pagar contratos e compras",
       value: totalEmpenhado,
       formattedValue: fmtCompact(totalEmpenhado),
-      colorClass: "bg-blue-500",
     },
     {
-      name: "Liquidado",
+      name: "Serviço entregue (liquidado)",
+      description: "já recebido e conferido",
       value: totalLiquidado,
       formattedValue: fmtCompact(totalLiquidado),
-      colorClass: "bg-sky-500",
     },
     {
       name: "Pago",
+      description: "dinheiro que já saiu do caixa",
       value: totalPago,
       formattedValue: fmtCompact(totalPago),
-      colorClass: "bg-cyan-500",
     },
   ];
 
@@ -52,37 +51,6 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
     .map(([funcao, valor]) => ({ funcao, valor }))
     .sort((a, b) => b.valor - a.valor);
 
-  const orgaosCols = [
-    {
-      header: "Órgão / Unidade",
-      accessorKey: "descricao" as const,
-    },
-    {
-      header: "Dotação",
-      accessorKey: "dotacaoAtualizada" as const,
-      align: "right" as const,
-      format: "currency" as const,
-    },
-    {
-      header: "Empenhado",
-      accessorKey: "empenhado" as const,
-      align: "right" as const,
-      format: "currency" as const,
-    },
-    {
-      header: "Pago",
-      accessorKey: "pago" as const,
-      align: "right" as const,
-      format: "currency" as const,
-    },
-    {
-      header: "Execução",
-      accessorKey: "alerta" as const,
-      align: "center" as const,
-      format: "statusBadge" as const,
-    },
-  ];
-
   return {
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
@@ -94,12 +62,10 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
     totalEmpenhado,
     totalLiquidado,
     totalPago,
-    empPct,
-    liqPct,
-    pagPct,
+    percentualPago,
     funnelStages,
     funcItems,
-    orgaosCols,
+    execucaoAnoAnterior: raw.execucaoAnoAnterior,
     posicaoFinanceira: raw.posicaoFinanceira,
     evolucaoMensal: raw.evolucaoMensal,
     hasEntityFilter: Boolean(

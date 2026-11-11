@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { CardsSecundariosVisaoGeral } from "@/components/cards-secundarios-visao-geral";
-import { EducacaoResumoCard } from "@/components/educacao-resumo-card";
-import { HeroFiscalCard } from "@/components/hero-fiscal-card";
-import { ObrasResumoCard } from "@/components/obras-resumo-card";
-import { PipelineExecucao } from "@/components/pipeline-execucao";
-import { RadarCivicoFeed } from "@/components/radar-civico-feed";
-import { SaldoCaixaResumoCard } from "@/components/saldo-caixa-resumo-card";
+import { AberturaHome } from "@/components/abertura-home";
+import { DinheiroPublicoSection } from "@/components/dinheiro-publico-section";
+import { DinheiroQueEntraSection } from "@/components/dinheiro-que-entra-section";
+import { MaisDetalhesSection } from "@/components/mais-detalhes-section";
+import { SituacaoCidadeSection } from "@/components/situacao-cidade-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadVisaoGeralData } from "./loader";
 import { buildVisaoGeralViewModel } from "./view-model";
@@ -45,67 +43,50 @@ export default async function VisaoGeralPage({
   const viewModel = buildVisaoGeralViewModel(rawData);
 
   return (
-    <div className="space-y-9">
-      <HeroFiscalCard
-        portalName={viewModel.portalName}
-        periodText={viewModel.periodText}
-        headline={viewModel.heroHeadline}
-        summary={viewModel.heroSummary}
+    <div className="space-y-12 bg-page md:space-y-16">
+      {/* A abertura fica colada à primeira seção (32px), que é a resposta à pergunta do título. */}
+      <div className="space-y-8">
+        <AberturaHome
+          title={viewModel.openingTitle}
+          periodLabel={viewModel.periodLabel}
+        />
+
+        <SituacaoCidadeSection
+          situacao={viewModel.situacaoHome}
+          ano={viewModel.selectedYear}
+          farmaciaStatus={viewModel.farmaciaStatus}
+          minimoSaude={viewModel.minimoSaude}
+          resumoObras={viewModel.resumoObras}
+          educacaoResumo={viewModel.educacaoResumo}
+          minimoEducacao={viewModel.minimoEducacao}
+          saudeDetailUrl={viewModel.saudeDetailUrl}
+          obrasDetailUrl={viewModel.obrasDetailUrl}
+          educacaoDetailUrl={viewModel.educacaoDetailUrl}
+          farmaciaDetailUrl={viewModel.farmaciaDetailUrl}
+          farmaciaRequerimento={viewModel.farmaciaRequerimento}
+          farmaciaTextoWhatsApp={viewModel.farmaciaTextoWhatsApp}
+          farmaciaExemplos={viewModel.farmaciaExemplos}
+          obrasMarkers={viewModel.obrasMiniMapMarkers}
+          obrasCenter={viewModel.obrasMapCenter}
+        />
+      </div>
+
+      {viewModel.decimoTerceiroHome ? (
+        <DinheiroQueEntraSection {...viewModel.decimoTerceiroHome} />
+      ) : null}
+
+      <DinheiroPublicoSection
         arrecadadoTitle={viewModel.arrecadadoTitle}
         totalArrecadado={viewModel.totalArrecadado}
         previstoTotal={viewModel.previstoTotal}
-        realizationPercent={viewModel.realizationPercent}
-        originBreakdown={viewModel.originBreakdown}
-      />
-
-      <section className="space-y-4" aria-labelledby="indicadores-sociais">
-        <div className="border-[#1a1d21] border-t-2 pt-3">
-          <h2
-            id="indicadores-sociais"
-            className="font-bold font-serif text-ink text-xl"
-          >
-            Indicadores Sociais
-          </h2>
-          <p className="text-mutedText text-sm">
-            Educação e investimentos que chegam à população
-          </p>
-        </div>
-        <EducacaoResumoCard
-          resumo={viewModel.educacaoResumo}
-          detailUrl={viewModel.educacaoDetailUrl}
-        />
-        <ObrasResumoCard
-          resumo={viewModel.resumoObras}
-          detailUrl={viewModel.obrasDetailUrl}
-          markers={viewModel.obrasMiniMapMarkers}
-          center={viewModel.obrasMapCenter}
-        />
-      </section>
-
-      <PipelineExecucao
-        stages={viewModel.pipelineStages}
-        detailUrl={viewModel.orcamentoDetailUrl}
-      />
-
-      <SaldoCaixaResumoCard
+        percentualPrevisto={viewModel.realizationPercent}
         posicaoFinanceira={viewModel.posicaoFinanceira}
         ano={viewModel.selectedYear}
-        detailUrl={`${viewModel.orcamentoDetailUrl}#disponibilidade-caixa`}
+        orcamentoDetailUrl={viewModel.orcamentoDetailUrl}
         hasEntityFilter={viewModel.hasEntityFilter}
       />
 
-      <CardsSecundariosVisaoGeral
-        despesas={viewModel.despesasCardData}
-        licitacoes={viewModel.licitacoesCardData}
-        pessoal={viewModel.pessoalCardData}
-      />
-
-      <RadarCivicoFeed
-        items={viewModel.radarCivicoFeedData}
-        portalName={viewModel.portalName}
-        portalSlug={portalSlug}
-        ano={viewModel.selectedYear}
-      />
+      <MaisDetalhesSection shortcuts={viewModel.detailShortcuts} />
     </div>
   );
 }

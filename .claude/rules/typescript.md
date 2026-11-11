@@ -20,3 +20,12 @@ paths:
 - **Padrão Obrigatório (`camelCase`):** Todas as propriedades e campos de DTOs, queries Kysely, loaders e View Models devem utilizar exclusivamente a convenção **`camelCase`** (ex: `valorAutorizado`, `esferaOrigem`, `numero`, `destinacao`, `periodo`, `tipoEmenda`, `atoNormativo`).
 - **Apresentação e Rótulos na UI:** Rótulos humanos, cabeçalhos de colunas ou títulos amigáveis para o cidadão pertencem exclusivamente à camada de visualização (`packages/ui` e `apps/web/components`), via mapeamento explícito de colunas (ex: `header: "Valor Autorizado"`, `accessorKey: "valorAutorizado"`).
 
+## 26. IDIOMA DOS IDENTIFICADORES (DOMÍNIO EM PORTUGUÊS, INFRAESTRUTURA EM INGLÊS)
+
+- **Domínio em Português:** termos de administração pública, contabilidade e jurídico permanecem em português (`empenhado`, `liquidado`, `restosAPagar`, `licitacao`, `valorAutorizado`, `portalSlug`). Vale para DTOs, queries, métricas e view models, em conjunto com as regras 9, 10 e 18.
+- **Infraestrutura em Inglês:** nomes de funções utilitárias, helpers, constantes técnicas, variáveis locais, props de componentes de UI, tipos genéricos e specs de arquitetura usam inglês (`listFiles`, `nextImportPattern`, `linkComponent`, `currentPathname`, `DefaultLink`). Proibido português para verbos e substantivos técnicos como `listar`, `obter`, `caminho`, `arquivo`, `referencia`.
+- **Teste de Fronteira:** "um contador ou advogado reconheceria este termo?" Se sim, português; se não, inglês.
+- **Texto Humano em Português:** rótulos da UI, comentários, descrições de `it(...)`/`describe(...)` e mensagens ao cidadão continuam em português. Códigos de dados seguem a regra 10.
+- **Nomes de Arquivo:** arquivos de domínio podem usar português; arquivos de infraestrutura usam inglês em kebab-case.
+- **Escopo Incremental:** a regra vale para código novo e para código tocado; renomeação em massa do legado é feita em story própria.
+

@@ -21,7 +21,7 @@ describe("FeedbackModal", () => {
     render(<FeedbackModal isOpen={false} onClose={vi.fn()} />);
     expect(
       screen.queryByRole("dialog", {
-        name: /reportar inconsistência ou erro/i,
+        name: /sugestão ou erro/i,
       }),
     ).not.toBeInTheDocument();
   });
@@ -37,7 +37,7 @@ describe("FeedbackModal", () => {
     );
 
     expect(
-      screen.getByRole("dialog", { name: /reportar inconsistência ou erro/i }),
+      screen.getByRole("dialog", { name: /sugestão ou erro/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText(/descrição do problema ou sugestão/i),

@@ -48,25 +48,38 @@ describe("PushNotificationPrompt", () => {
 
   it("não renderiza quando Web Push não é suportado", () => {
     mockHookState.isSupported = false;
+    const { container } = render(
+      <PushNotificationPrompt portalSlug="slug_teste" />,
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("não renderiza sem portalSlug (sem tenant padrão)", () => {
     const { container } = render(<PushNotificationPrompt />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it("não renderiza quando o hook está em estado de carregamento", () => {
     mockHookState.isLoading = true;
-    const { container } = render(<PushNotificationPrompt />);
+    const { container } = render(
+      <PushNotificationPrompt portalSlug="slug_teste" />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
   it("não renderiza quando o usuário já está inscrito", () => {
     mockHookState.isSubscribed = true;
-    const { container } = render(<PushNotificationPrompt />);
+    const { container } = render(
+      <PushNotificationPrompt portalSlug="slug_teste" />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
   it("não renderiza quando a permissão foi negada no navegador", () => {
     mockHookState.permission = "denied";
-    const { container } = render(<PushNotificationPrompt />);
+    const { container } = render(
+      <PushNotificationPrompt portalSlug="slug_teste" />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
@@ -118,7 +131,9 @@ describe("PushNotificationPrompt", () => {
     const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
     localStorage.setItem("push_prompt_dismissed_at", String(fiveDaysAgo));
 
-    const { container } = render(<PushNotificationPrompt cooldownDays={30} />);
+    const { container } = render(
+      <PushNotificationPrompt portalSlug="slug_teste" cooldownDays={30} />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
@@ -126,7 +141,9 @@ describe("PushNotificationPrompt", () => {
     const thirtyFiveDaysAgo = Date.now() - 35 * 24 * 60 * 60 * 1000;
     localStorage.setItem("push_prompt_dismissed_at", String(thirtyFiveDaysAgo));
 
-    render(<PushNotificationPrompt cooldownDays={30} />);
+    render(
+      <PushNotificationPrompt portalSlug="slug_teste" cooldownDays={30} />,
+    );
     expect(
       screen.getByText(/Notificações de Contas Públicas/i),
     ).toBeInTheDocument();

@@ -108,13 +108,22 @@ seeds:
         url_base_legal: text
 
   - name: seed_fontes_recursos_stn
-    description: "Catálogo oficial de fontes de recursos padronizadas nacionalmente (Portaria STN nº 710/2021 e códigos legados)"
+    description: "Catálogo oficial de fontes de recursos padronizadas nacionalmente (Portaria STN nº 710/2021 e códigos legados). Origem: Anexo I da Portaria STN nº 710/2021 consolidada pelo Tesouro Nacional até a Portaria STN/MF nº 1.701 de 04/08/2025 (códigos de 4 dígitos: 1 dígito do exercício mais a fonte padronizada de 3 dígitos), conferida em 23/10/2026; códigos de 8 dígitos legados (padrão anterior a 2021, 4 dígitos de fonte mais 4 de detalhamento) foram conferidos em 23/10/2026 contra as naturezas de receita lançadas em cada fonte pelos portais, e os que nenhum portal usa não foram revisados. Coerência com os portais verificada por seed_fontes_recursos_stn_referencia_portais."
     config:
       column_types:
         codigo_fonte: text
         descricao: text
         grupo_destinacao: text
         recurso_vinculado_flag: boolean
+
+  - name: seed_fontes_recursos_stn_referencia_portais
+    description: "Pares fonte e descrição observados nos portais, usados pelos testes de coerência com seed_fontes_recursos_stn. conferido indica se o par foi confirmado (códigos de 4 dígitos contra a Portaria STN; legados de 8 dígitos contra a natureza de receita que o portal lança na fonte); os demais geram aviso, não falha."
+    config:
+      column_types:
+        codigo_fonte_stn: text
+        descricao_portal: text
+        palavra_chave: text
+        conferido: boolean
 
   - name: seed_pncp_licitacoes_mapeamento
     description: "Mapeamento determinístico auditado entre licitações municipais e compras do PNCP"
@@ -152,35 +161,87 @@ seeds:
         etapa_ensino: text
         nota_ideb: numeric
 
-  - name: seed_censo_escolar_matriculas
-    description: "Série histórica de matrículas ativas da rede municipal de ensino apuradas pelo Censo Escolar (INEP/MEC)"
+  - name: seed_inep_ideb_brasil
+    description: "Média nacional do IDEB da rede pública por etapa de ensino (INEP, republicado pela API do IBGE). Atualizada por elt/scripts/sync_ibge_ideb_brasil.py"
     config:
       column_types:
-        portal_slug: text
-        cod_ibge: integer
         ano: integer
-        total_matriculas_rede_municipal: integer
+        rede: text
+        etapa_ensino: text
+        nota_ideb: numeric
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - portal_slug
             - ano
+            - rede
+            - etapa_ensino
+
+  - name: seed_farmacia_medicamentos_sentinela
+    description: "Lista editorial de medicamentos-sentinela da Farmácia SUS (RENAME 2024, Anexo I, e PNAUM). Revisar a cada nova RENAME. Um código pode ter mais de um prefixo de nome. `tipo_correspondencia` = `principal` (conta como o sentinela) ou `relacionado` (substância distinta que não conta, mas gera aviso quando tem lote válido)."
+    config:
+      column_types:
+        codigo_principio_ativo: text
+        nome_principio_ativo: text
+        prefixo_nome_normalizado: text
+        grupo_terapeutico: text
+        ordem_exibicao: text
+        destaque_card_inicial: text
+        tipo_correspondencia: text
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - codigo_principio_ativo
+            - prefixo_nome_normalizado
     columns:
-      - name: portal_slug
-        description: "Slug identificador do portal municipal"
+      - name: codigo_principio_ativo
         tests:
           - not_null
-      - name: cod_ibge
-        description: "Código IBGE de 7 dígitos do município"
+      - name: nome_principio_ativo
         tests:
           - not_null
-      - name: ano
-        description: "Exercício do Censo Escolar"
+      - name: prefixo_nome_normalizado
+        description: "Prefixo do nome do medicamento sem acento e em minúsculas, casado por regex de início de nome"
         tests:
           - not_null
-      - name: total_matriculas_rede_municipal
-        description: "Total oficial de matrículas ativas da rede municipal"
+      - name: grupo_terapeutico
         tests:
           - not_null
+          - accepted_values:
+              values: [cardiovascular, diabetes, dor_febre, antibiotico, gastrointestinal, respiratorio, endocrino, saude_mental]
+      - name: ordem_exibicao
+        tests:
+          - not_null
+      - name: destaque_card_inicial
+        description: "Escolha editorial: 'true' para os remédios mais comuns exibidos como exemplos no card da Farmácia SUS na Visão Geral"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['true', 'false']
+      - name: tipo_correspondencia
+        description: "'principal' conta como o sentinela; 'relacionado' é outra substância (ex.: levanlodipino, insulina glargina) que não conta, mas gera aviso quando há lote válido"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [principal, relacionado]
 
-
+  - name: seed_saude_minimo_base_calculo
+    description: "Base do cálculo próprio do mínimo de saúde (conferência do SIOPS): prefixos de código de receita e palavra-chave da fonte de recurso da despesa, por vigência. A base de receita inclui só linhas que existem nos portais; códigos sem ocorrência verificada (por exemplo IOF-ouro) e a inclusão do IBS pela LC 227/2026 ficam de fora (em 2026 o IBS não é repartido aos Municípios; de 2027 em diante NÃO VERIFICADO). As cotas extraordinárias do FPM ficam fora e a compensação do ICMS (LC 194/2022) entra: com essa base a receita bate ao centavo com a do SIOPS em 5 de 8 combinações de portal e ano testadas (2024 e 2025 nos dois portais, 2023 em Natividade). A fonte de recurso da despesa é texto livre do portal, pois a despesa não traz o código de fonte STN."
+    config:
+      column_types:
+        componente: text
+        tipo_correspondencia: text
+        padrao: text
+        descricao: text
+        ano_inicio: integer
+        ano_fim: integer
+        base_legal: text
+        url_base_legal: text
+    columns:
+      - name: padrao
+        tests:
+          - not_null
+      - name: componente
+        tests:
+          - accepted_values:
+              arguments:
+                values: [receita, despesa]

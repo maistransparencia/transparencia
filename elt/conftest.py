@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 
 import pytest
 import testing.postgresql
-import yaml
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
 from sqlmodel import create_engine
@@ -15,53 +14,12 @@ from sqlmodel import create_engine
 sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
+from scripts.build_test_db import create_raw_schema  # noqa: E402
+
 os.environ.setdefault("PORTAL_SLUG", "porciuncula_prefeitura")
 
 
 _PROFILES_DIR = str(Path(__file__).parent / "transform")
-_STAGING_DIR = Path(__file__).parent / "transform" / "models" / "staging"
-
-
-def _create_raw_schema(eng) -> None:
-    """Cria schema raw e tabelas a partir de todos os _sources.yml em staging/ (fonte única de verdade)."""
-    sources_files = sorted(_STAGING_DIR.glob("**/_sources.yml"))
-
-    def _sql_type(col: dict) -> str:
-        if "data_type" in col:
-            return col["data_type"]
-        return "integer" if col["name"] == "ano" else "text"
-
-    with eng.connect() as conn:
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS analytics"))
-        conn.execute(
-            text(
-                "CREATE OR REPLACE FUNCTION analytics.unaccent(text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1); $$"
-            )
-        )
-        conn.execute(
-            text(
-                "CREATE OR REPLACE FUNCTION analytics.unaccent(regdictionary, text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1, $2); $$"
-            )
-        )
-        for sources_file in sources_files:
-            sources = yaml.safe_load(sources_file.read_text())
-            for source in (sources or {}).get("sources", []):
-                schema_name = source.get("schema", source["name"])
-                conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"'))
-                tables = source.get("tables", [])
-                for table_def in tables:
-                    name = table_def["name"]
-                    col_defs_list = table_def.get("columns", [])
-                    if not col_defs_list:
-                        continue
-                    pk_cols = table_def.get("meta", {}).get("primary_key", [])
-                    col_sql = ", ".join(f'"{c["name"]}" {_sql_type(c)}' for c in col_defs_list)
-                    pk_clause = f", PRIMARY KEY ({', '.join(pk_cols)})" if pk_cols else ""
-                    ddl = f'CREATE TABLE IF NOT EXISTS "{schema_name}"."{name}" ({col_sql}{pk_clause})'
-                    conn.execute(text(ddl))
-        conn.commit()
 
 
 @pytest.fixture
@@ -227,7 +185,7 @@ def engine(pg):
     )
     eng = create_engine(eng_url)
     # Raw schema e tabelas derivadas de _sources.yml
-    _create_raw_schema(eng)
+    create_raw_schema(eng)
     # dbt cria staging/intermediate (views) em public e marts (views em test_mode) em analytics
     _run_dbt(pg_url, "deps")
     _run_dbt(pg_url, "seed")

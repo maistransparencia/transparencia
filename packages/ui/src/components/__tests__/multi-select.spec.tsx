@@ -9,10 +9,10 @@ describe("MultiSelect Component", () => {
     { id: "3", nome: "CÂMARA MUNICIPAL" },
   ];
 
-  it("renderiza o texto padrão 'Todas as entidades' quando vazio", () => {
+  it("renderiza o texto padrão 'Todos os órgãos' quando vazio", () => {
     render(<MultiSelect options={mockOptions} selectedIds={[]} />);
 
-    expect(screen.getByText("Todas as entidades")).toBeInTheDocument();
+    expect(screen.getByText("Todos os órgãos")).toBeInTheDocument();
   });
 
   it("renderiza o nome da entidade quando apenas 1 estiver selecionada", () => {
@@ -27,12 +27,12 @@ describe("MultiSelect Component", () => {
     expect(screen.getByText("2 selecionadas")).toBeInTheDocument();
   });
 
-  it("renderiza 'Nenhuma entidade cadastrada' e desabilita quando sem opções", () => {
+  it("renderiza 'Nenhum órgão cadastrado' e desabilita quando sem opções", () => {
     render(<MultiSelect options={[]} selectedIds={[]} />);
 
     const trigger = screen.getByRole("button");
     expect(trigger).toBeDisabled();
-    expect(screen.getByText("Nenhuma entidade cadastrada")).toBeInTheDocument();
+    expect(screen.getByText("Nenhum órgão cadastrado")).toBeInTheDocument();
   });
 
   it("abre o dropdown ao clicar no gatilho", () => {
@@ -78,12 +78,12 @@ describe("MultiSelect Component", () => {
     // Valida anéis de foco visível (focus-visible) e acessibilidade
     expect(checkboxBtn).toHaveClass(
       "focus-visible:ring-1",
-      "focus-visible:ring-[#1d64d8]",
+      "focus-visible:ring-ink",
       "rounded-sm",
     );
     expect(labelBtn).toHaveClass(
       "focus-visible:ring-1",
-      "focus-visible:ring-[#1d64d8]",
+      "focus-visible:ring-ink",
       "rounded-sm",
     );
 
@@ -243,7 +243,7 @@ describe("MultiSelect Component", () => {
     expect(handleChange).toHaveBeenCalledWith(["3"]);
   });
 
-  it("dispara onChange([]) ao clicar na opção 'Todas as entidades'", () => {
+  it("dispara onChange([]) ao clicar na opção 'Todos os órgãos'", () => {
     const handleChange = vi.fn();
     render(
       <MultiSelect
@@ -256,7 +256,7 @@ describe("MultiSelect Component", () => {
     fireEvent.click(screen.getByRole("button"));
 
     const allBtn = screen.getByRole("button", {
-      name: "Todas as entidades",
+      name: "Todos os órgãos",
     });
     fireEvent.click(allBtn);
 

@@ -15,7 +15,7 @@ export function TabelaTotaisRow({ itens, className }: TabelaTotaisRowProps) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-900 text-sm shadow-sm sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-2 border-line border-b py-3 font-bold text-ink text-sm sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >
@@ -24,7 +24,7 @@ export function TabelaTotaisRow({ itens, className }: TabelaTotaisRowProps) {
         {itens.map((item) => (
           <span
             key={item.rotulo}
-            className={item.isAlerta ? "text-amber-700" : "text-slate-900"}
+            className={item.isAlerta ? "text-warn-text" : "text-ink"}
           >
             {fmtCurrency(item.valor)} ({item.rotulo})
           </span>

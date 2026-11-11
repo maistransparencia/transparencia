@@ -3,6 +3,8 @@ import {
   fmtCompact,
   fmtCpfCnpj,
   fmtLicitacaoModalidade,
+  fmtLicitacaoSituacaoCodigo,
+  fmtPercent,
   getPartialYearPeriod,
   maskCpfCnpj,
 } from "../formatters";
@@ -187,5 +189,39 @@ describe("fmtCompact", () => {
 
   it("usa moeda completa abaixo de mil", () => {
     expect(fmtCompact(999).replace(/\s/g, " ")).toBe("R$ 999");
+  });
+});
+
+describe("fmtLicitacaoSituacaoCodigo", () => {
+  it.each([
+    ["homologada", "Homologada"],
+    ["em_andamento", "Em andamento"],
+    ["encerrada", "Encerrada"],
+    ["deserta", "Deserta"],
+    ["fracassada", "Fracassada"],
+    ["cancelada", "Cancelada"],
+    ["classificada", "Classificada"],
+    ["nao_informada", "Não informada"],
+  ])("rotula o código %s como %s", (codigo, rotulo) => {
+    expect(fmtLicitacaoSituacaoCodigo(codigo, "texto ignorado")).toBe(rotulo);
+  });
+
+  it("recorre ao texto da situação quando o código é ausente ou desconhecido", () => {
+    expect(fmtLicitacaoSituacaoCodigo(null, "Aberta")).toBe("Aberta");
+    expect(fmtLicitacaoSituacaoCodigo("outro", "suspensa")).toBe("Suspensa");
+    expect(fmtLicitacaoSituacaoCodigo(undefined, null)).toBe("Em andamento");
+  });
+});
+
+describe("fmtPercent", () => {
+  it("usa duas casas decimais por padrão, com vírgula", () => {
+    expect(fmtPercent(54.2234)).toBe("54,22%");
+    expect(fmtPercent(null)).toBe("0,00%");
+  });
+
+  it("aceita a quantidade de casas decimais", () => {
+    expect(fmtPercent(54.2234, 0)).toBe("54%");
+    expect(fmtPercent(54.5, 1)).toBe("54,5%");
+    expect(fmtPercent(undefined, 0)).toBe("0%");
   });
 });

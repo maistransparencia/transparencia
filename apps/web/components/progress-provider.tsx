@@ -141,7 +141,7 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
   return (
     <BProgressProvider
       height="3px"
-      color="oklch(0.55 0.11 250)"
+      color="var(--brand-fill)"
       options={{ showSpinner: false }}
       shallowRouting
     >

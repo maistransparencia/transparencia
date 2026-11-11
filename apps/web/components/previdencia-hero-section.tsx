@@ -31,153 +31,132 @@ export function PrevidenciaHeroSection({
   previdenciaSigla = "RPPS",
   previdenciaNome,
 }: PrevidenciaHeroSectionProps) {
-  const liquidadoRatio =
+  const percentualDoReservado = (valor: number) =>
     totalEmpenhado > 0
-      ? Math.min(100, Math.max(0, (totalLiquidado / totalEmpenhado) * 100))
+      ? Math.min(100, Math.max(0, (valor / totalEmpenhado) * 100))
       : 0;
-  const pagoRatio =
-    totalEmpenhado > 0
-      ? Math.min(100, Math.max(0, (totalPago / totalEmpenhado) * 100))
-      : 0;
+
+  const indicadores = [
+    {
+      rotulo: "Valor reservado (empenhado)",
+      valor: fmtCompact(totalEmpenhado),
+      nota: "Compromissos com a previdência no ano",
+    },
+    {
+      rotulo: "Pago com previdência",
+      valor: fmtCompact(totalPago),
+      nota: `${fmtPercent(Math.min(100, taxaExecucao * 100))} do reservado${
+        totalDividaResgatada > 0
+          ? `, incluindo ${fmtCompact(totalDividaResgatada)} de dívidas antigas (elemento 71)`
+          : ""
+      }`,
+    },
+    {
+      rotulo: "Repasse extra para equilibrar o fundo",
+      valor: fmtCompact(totalAporteAtuarial),
+      nota: "Aporte para cobrir o rombo previsto (elemento 97)",
+    },
+    {
+      rotulo: "Quanto do reservado já foi pago",
+      valor: fmtPercent(Math.min(100, taxaExecucao * 100)),
+      nota: "Pago dividido pelo reservado no ano",
+    },
+  ];
+
+  const etapas = [
+    {
+      rotulo: "Reservado (empenhado)",
+      valor: totalEmpenhado,
+      percentual: percentualDoReservado(totalEmpenhado),
+      classeCor: "bg-mute",
+    },
+    {
+      rotulo: "Entregue e conferido (liquidado)",
+      valor: totalLiquidado,
+      percentual: percentualDoReservado(totalLiquidado),
+      classeCor: "bg-brand-fill",
+    },
+    {
+      rotulo: "Dinheiro que saiu (pago)",
+      valor: totalPago,
+      percentual: percentualDoReservado(totalPago),
+      classeCor: "bg-ok-fill",
+    },
+  ];
 
   const partialPeriod = getPartialYearPeriod(dataExtracao);
 
-  return (
-    <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
-      {/* Coluna Esquerda: Narrativa Institucional do RPPS */}
-      <div className="space-y-4 lg:col-span-7">
-        <div className="space-y-1">
-          <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
-            TEMAS · PREVIDÊNCIA MUNICIPAL ({previdenciaSigla}) · {ano}
-            {isCurrentYear && partialPeriod
-              ? ` (PARCIAL, ${partialPeriod})`
-              : ""}
-          </span>
-          {previdenciaNome ? (
-            <p className="font-medium text-slate-500 text-xs sm:text-sm">
-              {previdenciaNome}
-            </p>
-          ) : null}
-        </div>
+  const temEmpenho = totalEmpenhado > 0;
+  const temDados = temEmpenho || totalPago > 0;
 
-        <h1 className="font-bold font-serif text-3xl text-slate-900 leading-tight tracking-tight sm:text-4xl">
-          Garantia do futuro dos servidores:{" "}
-          <span className="text-accent">saúde financeira e regularidade</span>{" "}
-          nos repasses do RPPS.
+  return (
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h1>
+          O dinheiro da aposentadoria dos servidores está sendo guardado e
+          repassado em dia?
         </h1>
 
-        <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
-          {isCurrentYear ? (
-            <>
-              A Prefeitura e os Fundos Municipais já empenharam{" "}
-              <strong className="font-bold text-slate-900">
-                {fmtCompact(totalEmpenhado)}
-              </strong>{" "}
-              em obrigações previdenciárias e aportes ao {previdenciaSigla} em{" "}
-              {ano}. O cumprimento rigoroso dos repasses patronais e
-              amortizações assegura o pagamento de aposentadorias e pensões aos
-              servidores públicos.
-            </>
+        <p className="caption">
+          Fundo de aposentadoria dos servidores:{" "}
+          {previdenciaNome
+            ? `${previdenciaNome} (${previdenciaSigla})`
+            : previdenciaSigla}
+        </p>
+        <p className="eyebrow">
+          Dados de {ano}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </p>
+        <p className="lead max-w-none">
+          {!temDados ? (
+            `O portal não tem repasses para o ${previdenciaSigla} registrados em ${ano}.`
+          ) : !temEmpenho ? (
+            `O portal não tem empenho para o ${previdenciaSigla} em ${ano}, mas registra ${fmtCompact(totalPago)} pagos.`
           ) : (
             <>
-              No exercício de {ano}, a Prefeitura e os Fundos Municipais
-              empenharam{" "}
-              <strong className="font-bold text-slate-900">
-                {fmtCompact(totalEmpenhado)}
+              Em {ano}, a Prefeitura e os Fundos Municipais já pagaram{" "}
+              <strong className="text-ink">
+                {fmtPercent(Math.min(100, taxaExecucao * 100))}
               </strong>{" "}
-              em repasses previdenciários ao {previdenciaSigla}, quitando{" "}
-              {fmtPercent(taxaExecucao * 100)} dos compromissos pactuados.
+              do que reservaram para o {previdenciaSigla}.
             </>
           )}
         </p>
-
-        {totalAporteAtuarial > 0 && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 text-xs sm:text-sm">
-            <span className="font-semibold">
-              Aporte de Equilíbrio Atuarial:
-            </span>{" "}
-            Foram alocados {fmtCompact(totalAporteAtuarial)} especificamente
-            para a cobertura do déficit atuarial (Elemento 97) visando a
-            sustentabilidade do fundo a longo prazo.
-          </div>
-        )}
       </div>
 
-      {/* Coluna Direita: Card do Fluxo Financeiro (Empenho ao Pagamento) */}
-      <div className="rounded-[14px] border border-[#e7e9ee] bg-white p-6 shadow-sm lg:col-span-5">
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <span className="font-medium text-slate-500 text-xs">
-            Total Empenhado para o {previdenciaSigla}
-          </span>
-          <span className="inline-flex shrink-0 items-center rounded-md border border-emerald-200/80 bg-emerald-50 px-2.5 py-0.5 font-medium text-[11px] text-emerald-800">
-            Adimplência {fmtPercent(taxaExecucao * 100)}
-          </span>
-        </div>
-
-        <div className="mb-2 font-bold font-serif text-3xl text-slate-900 tracking-tight sm:text-4xl">
-          {fmtCompact(totalEmpenhado)}
-        </div>
-
-        <div className="mb-6 space-y-1.5">
-          <div className="flex items-center justify-between font-medium text-slate-500 text-xs">
-            <span>{fmtCompact(totalPago)} repassados / pagos efetivamente</span>
-          </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-md bg-[#f4f5f7]">
-            <div
-              className="h-full rounded-md bg-accent transition-all duration-500 ease-out"
-              style={{ width: `${pagoRatio}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="border-[#e7e9ee] border-t pt-4">
-          <h4 className="mb-3 font-semibold text-slate-500 text-xs uppercase tracking-wider">
-            ESTÁGIOS DO REPASSE PREVIDENCIÁRIO
-          </h4>
-          <div className="space-y-3">
-            {/* Liquidado */}
-            <div className="space-y-1 text-xs">
-              <div className="flex items-center justify-between text-slate-600">
-                <span className="font-medium text-slate-900">Liquidado</span>
-                <span className="font-semibold text-slate-900">
-                  {fmtCompact(totalLiquidado)}
-                </span>
+      {temDados && (
+        <div className="panel panel-brand space-y-6">
+          <dl className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {indicadores.map((indicador) => (
+              <div key={indicador.rotulo} className="space-y-1">
+                <dt className="eyebrow">{indicador.rotulo}</dt>
+                <dd className="stat-value">{indicador.valor}</dd>
+                <dd className="caption">{indicador.nota}</dd>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-md bg-[#f4f5f7]">
-                <div
-                  className="h-full rounded-md bg-sky-500 transition-all duration-500"
-                  style={{ width: `${liquidadoRatio}%` }}
-                />
-              </div>
-            </div>
+            ))}
+          </dl>
 
-            {/* Pago */}
-            <div className="space-y-1 text-xs">
-              <div className="flex items-center justify-between text-slate-600">
-                <span className="font-medium text-slate-900">
-                  Pago / Transferido
-                </span>
-                <span className="font-semibold text-slate-900">
-                  {fmtCompact(totalPago)}
-                </span>
+          <div className="space-y-3 border-line border-t pt-4">
+            <p className="eyebrow">Etapas do repasse</p>
+            {etapas.map((etapa) => (
+              <div key={etapa.rotulo} className="space-y-1">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="font-medium text-ink">{etapa.rotulo}</span>
+                  <span className="font-semibold text-ink tabular-nums">
+                    {fmtCompact(etapa.valor)}
+                  </span>
+                </div>
+                <div className="h-3 w-full bg-track">
+                  <div
+                    className={`h-full ${etapa.classeCor} transition-all duration-500`}
+                    style={{ width: `${etapa.percentual}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-md bg-[#f4f5f7]">
-                <div
-                  className="h-full rounded-md bg-emerald-500 transition-all duration-500"
-                  style={{ width: `${pagoRatio}%` }}
-                />
-              </div>
-            </div>
-
-            {totalDividaResgatada > 0 && (
-              <div className="pt-2 text-[11px] text-slate-500">
-                Inclui {fmtCompact(totalDividaResgatada)} em amortização de
-                parcelamentos (Elem. 71).
-              </div>
-            )}
+            ))}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

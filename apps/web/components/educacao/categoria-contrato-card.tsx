@@ -2,6 +2,7 @@ import type { EducacaoCategoriaContrato } from "@transparencia/db";
 import { cn, fmtCompact } from "@transparencia/ui";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { formatCategoriaLabel } from "./educacao-contratos-utils";
+import { VerDetalhesLink } from "./ver-detalhes-link";
 
 export interface CategoriaContratoCardProps {
   categoria: EducacaoCategoriaContrato;
@@ -27,29 +28,16 @@ export function CategoriaContratoCard({
       : null;
 
   return (
-    <button
-      type="button"
-      aria-disabled={vazia}
-      aria-label={`${rotuloCategoria}, ${valorExibido}, ${rotuloContratos}`}
-      onClick={vazia ? undefined : () => onOpen(categoria)}
+    <div
       data-testid={`categoria-card-${categoria}`}
       className={cn(
-        "flex min-h-11 w-full flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 text-left shadow-2xs transition-colors",
-        vazia
-          ? "cursor-default opacity-60"
-          : "cursor-pointer hover:border-accent/40 focus-visible:border-accent/40 focus-visible:outline-2 focus-visible:outline-accent",
+        "panel panel-top flex w-full flex-col gap-2 text-left",
+        vazia && "opacity-60",
         className,
       )}
     >
-      <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
-        {rotuloCategoria}
-      </span>
-      <span
-        className={cn(
-          "font-serif text-xl sm:text-2xl",
-          vazia ? "text-slate-400" : "text-slate-900",
-        )}
-      >
+      <span className="eyebrow">{rotuloCategoria}</span>
+      <span className={cn("stat-value", vazia && "text-mute")}>
         {valorExibido}
       </span>
       {percentualPago !== null && !vazia && (
@@ -60,26 +48,25 @@ export function CategoriaContratoCard({
             aria-valuenow={percentualPago}
             aria-valuemin={0}
             aria-valuemax={100}
-            className="block h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
+            className="block h-3 w-full overflow-hidden bg-track"
           >
             <span
-              className="block h-full rounded-full bg-accent"
+              className="block h-full bg-brand-fill"
               style={{ width: `${percentualPago}%` }}
             />
           </span>
-          <span className="block text-[11px] text-slate-500">
+          <span className="caption block">
             {percentualPago}% pago do empenhado
           </span>
         </span>
       )}
-      <span
-        className={cn(
-          "font-medium text-xs",
-          vazia ? "text-slate-400" : "text-accent",
-        )}
-      >
-        {vazia ? rotuloContratos : `${rotuloContratos} ›`}
-      </span>
-    </button>
+      <span className="caption block">{rotuloContratos}</span>
+      {!vazia && (
+        <VerDetalhesLink
+          context={rotuloCategoria}
+          onClick={() => onOpen(categoria)}
+        />
+      )}
+    </div>
   );
 }

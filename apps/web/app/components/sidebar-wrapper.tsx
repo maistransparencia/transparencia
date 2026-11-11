@@ -8,22 +8,20 @@ import {
   resolvePortalSlug,
   Sidebar,
 } from "@transparencia/ui";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
 import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
 import { useMobileNav } from "@/components/mobile-nav-context";
-import { PushNotificationSettings } from "@/components/push-notification-settings";
-import { PwaInstallButton } from "@/components/pwa-installer";
+import { env } from "@/env";
 
 interface SidebarWrapperProps {
   portalName?: string;
-  stateUF?: string;
   portalTitle?: string;
   anoInicial?: number;
   lastExtractionDate?: string;
   officialPortalUrl?: string;
-  brasaoAsset?: string;
   entidades?: MultiSelectOption[];
   portais?: PortalOption[];
   portalSlug?: string;
@@ -36,12 +34,10 @@ interface SidebarWrapperProps {
 
 export function SidebarWrapper({
   portalName,
-  stateUF,
   portalTitle,
   anoInicial,
   lastExtractionDate: _lastExtractionDate,
   officialPortalUrl: _officialPortalUrl,
-  brasaoAsset,
   entidades,
   portalSlug,
   portais,
@@ -86,9 +82,7 @@ export function SidebarWrapper({
 
   const activePortal = portais?.find((p) => p.portalSlug === activePortalSlug);
   const effectivePortalName = activePortal?.displayName || portalName;
-  const effectiveStateUF = activePortal?.uf || stateUF;
   const effectiveAnoInicial = activePortal?.anoInicial ?? anoInicial;
-  const effectiveBrasaoAsset = activePortal?.brasaoAsset || brasaoAsset;
   const effectivePrevidencia = activePortal?.previdencia ?? previdencia;
   const effectivePortalTitle = effectivePortalName
     ? `Contas da ${effectivePortalName}`
@@ -213,11 +207,12 @@ export function SidebarWrapper({
 
   return (
     <Sidebar
+      linkComponent={Link}
+      currentPathname={pathname}
+      brandName={env.NEXT_PUBLIC_PROJECT_NAME}
       portalName={effectivePortalName}
-      stateUF={effectiveStateUF}
       portalTitle={effectivePortalTitle}
       anoInicial={effectiveAnoInicial}
-      brasaoAsset={effectiveBrasaoAsset}
       entidades={effectiveEntidades}
       portalSlug={activePortalSlug}
       portais={portais}
@@ -226,10 +221,6 @@ export function SidebarWrapper({
       onExerciceChange={handleExerciceChange}
       selectedEntidades={selectedEntidades}
       onEntidadesChange={handleEntidadesChange}
-      pushNotificationSlot={
-        <PushNotificationSettings portalSlug={activePortalSlug} />
-      }
-      pwaInstallSlot={<PwaInstallButton variant="sidebar" />}
       mobileHeaderRightSlot={
         effectiveEntidades && effectiveEntidades.length > 0 ? (
           <EntidadeSelectCompact

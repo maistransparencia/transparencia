@@ -22,10 +22,20 @@ Este repositório possui limites estritos de consumo de tokens (Spend Cap). Todo
 
 ---
 
-## 3. USO INTELIGENTE DE SUBAGENTES (CONTEXT TRUNCATION)
+## 3. USO CRITERIOSO DE SUBAGENTES (CONTEXT TRUNCATION)
 
-- **Minimização de histórico acumulado:** Quando enfrentar um problema complexo que exija múltiplos passos, não tente resolver tudo em um único chat de longos turnos.
-- **Delegar para Subagentes (`Agent`):** Despache subagentes curtos e ultra-focados (via ferramenta `Agent`) com instruções exatas de pesquisa ou edição. Como cada subagente inicia com um contexto limpo e retorna apenas o resultado final para o agente pai, isso trunca o histórico do chat principal e poupa milhares de tokens em chamadas acumuladas subsequentes.
+- **Regra geral:** faça o trabalho no chat principal. Um subagente começa sem contexto, relê o que precisa e devolve só um resumo; isso poupa o histórico do chat principal, mas pode aumentar o gasto total. Delegue apenas quando o ganho for claro.
+- **Delegue quando:**
+  - a tarefa exige **varrer muitos arquivos ou pastas** e só o resultado interessa (mapear usos de um padrão, levantar divergências entre páginas);
+  - a leitura é **pesada e descartável** (logs, saídas de teste longas, documentos grandes de planejamento);
+  - as partes são **independentes** e podem rodar em paralelo.
+- **Não delegue quando:**
+  - a busca é pontual e um `Grep`/`Glob` resolve;
+  - o trabalho já está no contexto do chat (o subagente teria que reler tudo);
+  - a tarefa é uma **edição pequena** ou depende de decisões que o usuário está tomando na conversa;
+  - o subagente teria que reler a maior parte dos mesmos arquivos que o chat principal já leu (por exemplo, uma revisão de documentos que acabaram de ser escritos nesta sessão).
+- **Como delegar:** instruções curtas e exatas (arquivos, o que verificar, formato do retorno compacto). Peça só o resultado, sem transcrição de arquivos. Um subagente por tarefa, nunca vários com o mesmo escopo.
+- **Custo declarado:** antes de disparar revisões multi-lente ou subagentes de mais de ~50 mil tokens, avise o usuário e use a lente mais barata que responda à pergunta.
 
 ---
 
@@ -33,7 +43,7 @@ Este repositório possui limites estritos de consumo de tokens (Spend Cap). Todo
 
 Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 1. **Backend & Modelos DBT (Python):** Sempre execute a suíte de testes de integração via `make test` e as validações estáticas/linters via `make check`.
-2. **Frontend & queries Kysely (TypeScript):** Sempre execute a suíte de testes de paridade via `make test/ts` (ou `pnpm test`) e verifique a tipagem executando `pnpm build` ou `tsc --noEmit` nos pacotes correspondentes.
+2. **Frontend & queries Kysely (TypeScript):** Sempre execute a suíte de testes de paridade via `make test/ts` (ou `pnpm test`) e verifique a tipagem executando `pnpm typecheck` (ou `tsc --noEmit` nos pacotes correspondentes). O build de produção fica a cargo da integração da Vercel na PR.
 
 ---
 
@@ -88,9 +98,25 @@ Não comprometa a estabilidade em nome da pressa. Após qualquer alteração:
 
 ---
 
+## 25. PADRÕES VISUAIS BASE (`DESIGN.md` E `EXPERIENCE.md`)
+
+- **Contrato Visual na Raiz:** `DESIGN.md` (aparência) e `EXPERIENCE.md` (comportamento) definem os estilos dos elementos base (`h1`–`h4`, `p`, `dl`, `table`, listas, links), os papéis visuais (`eyebrow`, `stat-value`, `panel`, `section`...) e o painel de indicador. Leia-os antes de criar ou alterar qualquer UI em `apps/web` ou `packages/ui`.
+- **Elemento nu primeiro:** use o elemento sem classe de tamanho; papéis são nomeados pelo papel, nunca pelo elemento; sem `h5`/`h6`, sem `slate-*`/`gray-*`, sem `font-mono` fora de `table` e `numeric`.
+
+---
+
+## 27. CONTEÚDO DE PÁGINA PARTE DA PERGUNTA DO CIDADÃO
+
+- **Público-alvo:** o objetivo principal do portal é informar o **cidadão**, não o contador, o advogado ou o auditor. A profundidade técnica existe, mas fica atrás de um "Ver detalhes".
+- **Pergunta primeiro:** todo bloco de página (seção, gráfico, indicador) responde a uma pergunta que o cidadão faria, escrita em linguagem comum (ex: "A Prefeitura aplica o mínimo exigido em saúde?"). Sem a pergunta, o bloco não entra. A pergunta é escolhida antes do dado, e a régua que a responde (limite legal, ano anterior, comparação) vem junto do número.
+- **Dado derivado diz que é derivado:** valor calculado por diferença ou estimado (ex: "receita própria = gasto menos repasses") nunca aparece como fato medido. A tela diz que é estimativa e como foi calculada.
+- **Ordem da página:** a tese do título é provada na sequência; seções para especialistas (auditoria, tabelas longas, modais) ficam no fim.
+
+---
+
 ## REGRAS POR ESCOPO
 
-As regras 5, 6, 11, 16, 21 e 22 (dbt/SQL), 13, 14 e 18 (TypeScript) e 12, 17, 20 e 24 (web/UI) vivem em `.claude/rules/` e carregam automaticamente ao editar os arquivos correspondentes.
+As regras 5, 6, 11, 16, 21 e 22 (dbt/SQL), 13, 14, 18 e 26 (TypeScript) e 12, 17, 20 e 24 (web/UI) vivem em `.claude/rules/` e carregam automaticamente ao editar os arquivos correspondentes.
 
 ---
 

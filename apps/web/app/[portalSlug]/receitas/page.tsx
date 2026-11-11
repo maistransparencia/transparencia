@@ -1,7 +1,14 @@
-import { DenseTable, fmtCompact, fmtPercent } from "@transparencia/ui";
+import {
+  fmtCompact,
+  fmtPercent,
+  SectionHeader,
+  ThresholdMeter,
+} from "@transparencia/ui";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import type { Metadata } from "next";
 import { CarrosChefeArrecadacao } from "@/components/carros-chefe-arrecadacao";
 import { EmendasCard } from "@/components/emendas-card";
+import { PageEyebrow } from "@/components/page-eyebrow";
 import { PrevistoVsArrecadadoOrigem } from "@/components/previsto-vs-arrecadado";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -52,101 +59,91 @@ export default async function ReceitasPage({
     totalPrev,
     pctArrecadadoAnual,
     origensData,
-    tableData,
-    variationText,
+    comparacaoArrecadacao,
     cardDependencia,
   } = viewModel;
 
-  const tableCols = [
-    { header: "Origem da Receita", accessorKey: "fonte" as const },
-    {
-      header: "Previsto",
-      accessorKey: "previsto" as const,
-      align: "right" as const,
-      format: "currency" as const,
-    },
-    {
-      header: "Arrecadado",
-      accessorKey: "arrecadado" as const,
-      align: "right" as const,
-      format: "currency" as const,
-    },
-    {
-      header: "Execução (%)",
-      accessorKey: "pct" as const,
-      align: "right" as const,
-      format: "percent" as const,
-    },
-  ];
+  const percentualArrecadadoLimitado = Math.min(
+    100,
+    Math.max(0, pctArrecadadoAnual),
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Eyebrow + Título + Subtítulo */}
-      <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
-          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
-        <h1 className="font-bold font-serif text-3xl text-slate-900">
-          Fontes de Receita
-        </h1>
-        <p className="mt-2 text-sm text-subtleText">
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <PageEyebrow>
+          Administrativo · Exercício {selectedYear}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </PageEyebrow>
+        <h1>Fontes de Receita</h1>
+        <p className="text-mute2 text-sm leading-relaxed">
           Compara o que a prefeitura{" "}
           <strong className="font-semibold text-ink">planejou arrecadar</strong>{" "}
-          (previsão da LOA) com o que{" "}
-          <strong className="font-semibold text-ink">
-            efetivamente entrou
-          </strong>{" "}
-          no caixa, por origem do recurso e movimentações extra-orçamentárias.
+          no ano (previsão da Lei Orçamentária Anual, a LOA) com o que{" "}
+          <strong className="font-semibold text-ink">de fato entrou</strong> no
+          caixa, por origem do dinheiro. Valores que a prefeitura apenas retém e
+          repassa a terceiros, como descontos em folha, aparecem à parte e não
+          entram no total.
         </p>
       </div>
 
-      {/* Grid de 2 Cards Principais (Previsão LOA vs Total Arrecadado) */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {/* Card 1: Previsão Orçamentária (LOA) */}
-        <div className="rounded-[14px] border border-[#e7e9ee] bg-white p-5 shadow-sm">
-          <div className="text-subtleText text-xs">
-            Previsão Orçamentária (LOA)
-          </div>
-          <div className="mt-2 font-bold font-serif text-3xl text-ink tracking-tight lg:text-4xl">
-            {fmtCompact(totalPrev)}
-          </div>
-          <div className="mt-2 font-medium text-subtleText text-xs">
-            {variationText}
-          </div>
-        </div>
-
-        {/* Card 2: Total Arrecadado Real */}
-        <div className="rounded-[14px] border border-[#e7e9ee] bg-white p-5 shadow-sm">
-          <div className="text-subtleText text-xs">Total Arrecadado Real</div>
-          <div className="mt-2 font-bold font-serif text-3xl text-emerald-700 tracking-tight lg:text-4xl">
+      <section className="space-y-4" data-testid="receitas-destaque">
+        <div className="space-y-2">
+          <p className="eyebrow">Total arrecadado</p>
+          <p className="stat-value-lg text-brand-text">
             {fmtCompact(totalArr)}
-          </div>
-          <div className="mt-2 font-medium text-subtleText text-xs">
-            {isCurrentYear
-              ? "arrecadado acumulado até a data"
-              : `exercício ${selectedYear}`}
-          </div>
+          </p>
+          <p className="caption space-y-0.5">
+            <span className="block">
+              {isCurrentYear
+                ? `arrecadado no período (${partialPeriod || "até agora"})`
+                : `exercício ${selectedYear}`}
+            </span>
+            {comparacaoArrecadacao && (
+              <span className="flex items-center gap-1">
+                {comparacaoArrecadacao.direcao === "alta" && (
+                  <ArrowUp
+                    className="h-3.5 w-3.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                )}
+                {comparacaoArrecadacao.direcao === "queda" && (
+                  <ArrowDown
+                    className="h-3.5 w-3.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                )}
+                {comparacaoArrecadacao.texto}
+              </span>
+            )}
+          </p>
         </div>
-      </div>
 
-      {/* Card de Progresso de Arrecadação Anual */}
-      <div className="space-y-2 rounded-[14px] border border-[#e7e9ee] bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between font-semibold text-ink text-sm">
-          <span>Progresso de arrecadação anual</span>
-          <span className="font-bold">{fmtPercent(pctArrecadadoAnual)}</span>
-        </div>
-        <div className="h-3.5 w-full overflow-hidden rounded-md bg-[#eef0f4]">
-          <div
-            className="h-full rounded-md bg-accent transition-all duration-500"
-            style={{
-              width: `${Math.min(100, Math.max(0, pctArrecadadoAnual))}%`,
-            }}
-          />
-        </div>
-      </div>
+        {totalPrev > 0 ? (
+          <div className="space-y-2">
+            <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
+              <span>
+                Já arrecadado: {fmtPercent(pctArrecadadoAnual)} do previsto
+              </span>
+              <span>Previsto para o ano: {fmtCompact(totalPrev)}</span>
+            </p>
+            <ThresholdMeter
+              value={percentualArrecadadoLimitado}
+              label="Quanto da previsão já foi arrecadado"
+              valueText={`${fmtPercent(pctArrecadadoAnual)} da previsão arrecadados`}
+            />
+            <p className="caption">
+              {fmtCompact(totalArr)}{" "}
+              {totalArr > totalPrev ? "arrecadados, acima dos" : "dos"}{" "}
+              {fmtCompact(totalPrev)} previstos na Lei Orçamentária Anual (LOA)
+              de {selectedYear}.
+            </p>
+          </div>
+        ) : (
+          <p className="caption">Previsão do ano não informada.</p>
+        )}
+      </section>
 
-      {/* Destaque de Emendas Parlamentares */}
       <EmendasCard
         totalEmendas={rec.emendasTotalArrecadado || 0}
         pctDoArrecadado={
@@ -157,32 +154,26 @@ export default async function ReceitasPage({
         emendasTotalEmpenhado={rec.emendasTotalEmpenhado || 0}
       />
 
-      {/* Previsto vs. Arrecadado por Origem */}
-      <div className="space-y-3 border-[#1a1d21] border-t-2 pt-3">
-        <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
-          <h2 className="font-bold font-serif text-ink text-xl">
-            Previsto vs. arrecadado por origem
-          </h2>
-          <div className="flex items-center gap-4 font-medium text-subtleText text-xs">
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-sm bg-[#3775b3]" /> Arrecadado
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-sm border border-[#c4cbd8] bg-[#eef0f4]" />{" "}
-              Previsto (meta LOA)
-            </span>
-          </div>
-        </div>
-        <p className="text-subtleText text-xs">
-          O comprimento da barra é o valor previsto — mesma régua de R$ para
-          todas as origens, então os tamanhos são comparáveis. A parte cheia é o
-          que já entrou no caixa.
-        </p>
+      <section className="space-y-3">
+        <SectionHeader
+          title="Previsto e arrecadado, por origem do dinheiro"
+          action={
+            <div className="caption flex items-center gap-4 font-medium">
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 bg-brand-fill" /> Arrecadado
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 border border-line bg-track" />{" "}
+                Previsto (meta LOA)
+              </span>
+            </div>
+          }
+          description="A barra inteira é o valor previsto. A parte colorida é o que já entrou. Todas usam a mesma escala, então dá para comparar."
+        />
 
         <PrevistoVsArrecadadoOrigem items={origensData} />
-      </div>
+      </section>
 
-      {/* Os 3 carros-chefe da arrecadação */}
       <CarrosChefeArrecadacao
         fpm={rec.fpmArrecadado || 0}
         icms={rec.icmsArrecadado || 0}
@@ -190,12 +181,6 @@ export default async function ReceitasPage({
         totalArrecadado={totalArr}
       />
 
-      {/* Tabela Detalhada de Previsão vs Arrecadação */}
-      <div className="pt-4">
-        <DenseTable data={tableData} columns={tableCols} />
-      </div>
-
-      {/* Alerta de Vulnerabilidade Fiscal caso exista */}
       {cardDependencia && (
         <RadarAnomaliaCard
           card={cardDependencia}

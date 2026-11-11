@@ -1,0 +1,92 @@
+version: 2
+
+models:
+  - name: fct_educacao_siope_metricas
+    description: "Indicadores do SIOPE (declarados pelo município ao FNDE) por portal e ano. Valor ausente é nulo, nunca zero"
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, ano]
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Slug identificador do portal municipal"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Exercício de referência"
+        tests:
+          - not_null
+      - name: periodo
+        data_type: integer
+        description: "Período mais avançado disponível no ano (6 = 6º bimestre, fechamento)"
+      - name: situacao
+        data_type: text
+        description: "encerrado quando o período é o fechamento do ano; parcial caso contrário"
+        tests:
+          - accepted_values:
+              arguments:
+                values: [encerrado, parcial]
+      - name: investimento_por_aluno
+        data_type: numeric
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 200000
+        description: "Investimento educacional por aluno, indicador 4.9 (R$, moeda da época)"
+      - name: investimento_por_aluno_basica
+        data_type: numeric
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 200000
+        description: "Investimento educacional por aluno da educação básica, indicador 4.8 (R$)"
+      - name: investimento_por_aluno_infantil
+        data_type: numeric
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 200000
+        description: "Investimento educacional por aluno da educação infantil, indicador 4.1 (R$)"
+      - name: investimento_por_aluno_fundamental
+        data_type: numeric
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 200000
+        description: "Investimento educacional por aluno do ensino fundamental, indicador 4.2 (R$)"
+      - name: percentual_aplicado_mde
+        data_type: numeric
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 100
+        description: "Percentual de aplicação em manutenção e desenvolvimento do ensino, indicador 1.1"
+      - name: percentual_aplicado_fundeb_profissionais
+        data_type: numeric
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 150
+        description: "Percentual de aplicação do FUNDEB na remuneração dos profissionais da educação, indicador 1.2"
+      - name: coletado_em
+        data_type: timestamp with time zone
+        description: "Momento da coleta mais recente do ano no SIOPE"

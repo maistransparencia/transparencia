@@ -1,0 +1,250 @@
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("leaflet/dist/leaflet.css", () => ({}));
+
+const leaflet = vi.hoisted(() => {
+  const marcadores: {
+    handlers: Record<string, () => void>;
+    tooltip: string;
+    setIcon: ReturnType<typeof vi.fn>;
+  }[] = [];
+  const icones: { html: string }[] = [];
+  const camada = () => ({ addTo: vi.fn().mockReturnThis() });
+  const mapa = {
+    remove: vi.fn(),
+    invalidateSize: vi.fn(),
+    fitBounds: vi.fn(),
+    getZoom: vi.fn(() => 13),
+    getMinZoom: vi.fn(() => 1),
+    getMaxZoom: vi.fn(() => 18),
+    mouseEventToContainerPoint: vi.fn(() => ({ x: 10, y: 20 })),
+    setZoomAround: vi.fn(),
+    dragging: { enable: vi.fn(), disable: vi.fn(), enabled: vi.fn() },
+  };
+  const L = {
+    map: vi.fn(() => mapa),
+    control: { zoom: vi.fn(camada) },
+    tileLayer: vi.fn(camada),
+    layerGroup: vi.fn(() => ({ ...camada(), clearLayers: vi.fn() })),
+    divIcon: vi.fn((opcoes: { html: string }) => {
+      icones.push(opcoes);
+      return opcoes;
+    }),
+    latLngBounds: vi.fn(() => ({})),
+    marker: vi.fn(() => {
+      const marcador = {
+        handlers: {} as Record<string, () => void>,
+        tooltip: "",
+        setIcon: vi.fn(),
+        bindTooltip(texto: string) {
+          marcador.tooltip = texto;
+        },
+        on(evento: string, fn: () => void) {
+          marcador.handlers[evento] = fn;
+        },
+        addTo: vi.fn(),
+      };
+      marcadores.push(marcador);
+      return marcador;
+    }),
+  };
+  return { L, mapa, marcadores, icones };
+});
+
+vi.mock("leaflet", () => ({ default: leaflet.L }));
+
+const { FarmaciaMapa } = await import("./farmacia-mapa");
+
+const marcadores = [
+  {
+    id: "u1",
+    numero: 1,
+    nome: "Farmácia <b>Central</b>",
+    latitude: -20.9,
+    longitude: -42,
+  },
+  {
+    id: "u2",
+    numero: 2,
+    nome: "Módulo Norte",
+    latitude: -20.8,
+    longitude: -42.1,
+  },
+];
+
+describe("FarmaciaMapa", () => {
+  it("cria um divIcon numerado por marcador e liga os eventos", async () => {
+    const onDestacar = vi.fn();
+    const onSelecionar = vi.fn();
+    render(
+      <FarmaciaMapa
+        marcadores={marcadores}
+        idDestacado={null}
+        onDestacar={onDestacar}
+        onSelecionar={onSelecionar}
+      />,
+    );
+    await waitFor(() =>
+      expect(leaflet.marcadores.length).toBeGreaterThanOrEqual(2),
+    );
+    const [primeiro, segundo] = leaflet.marcadores.slice(-2);
+    const htmls = leaflet.icones.slice(-2).map((i) => i.html);
+    expect(htmls[0]).toContain(">1</div>");
+    expect(htmls[1]).toContain(">2</div>");
+
+    primeiro.handlers.click();
+    expect(onSelecionar).toHaveBeenCalledWith("u1");
+    segundo.handlers.mouseover();
+    expect(onDestacar).toHaveBeenCalledWith("u2");
+    segundo.handlers.mouseout();
+    expect(onDestacar).toHaveBeenLastCalledWith(null);
+  });
+
+  it("escapa o nome da unidade no tooltip", async () => {
+    render(
+      <FarmaciaMapa
+        marcadores={marcadores}
+        idDestacado={null}
+        onDestacar={vi.fn()}
+        onSelecionar={vi.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(
+        leaflet.marcadores.some((m) => m.tooltip.includes("&lt;b&gt;")),
+      ).toBe(true),
+    );
+    expect(leaflet.marcadores.some((m) => m.tooltip.includes("<b>"))).toBe(
+      false,
+    );
+  });
+
+  it("mudar o destaque apenas troca o icone, sem recriar marcadores", async () => {
+    const props = { onDestacar: vi.fn(), onSelecionar: vi.fn() };
+    const { rerender } = render(
+      <FarmaciaMapa marcadores={marcadores} idDestacado={null} {...props} />,
+    );
+    await waitFor(() =>
+      expect(leaflet.marcadores.length).toBeGreaterThanOrEqual(2),
+    );
+    const criados = leaflet.L.marker.mock.calls.length;
+    rerender(
+      <FarmaciaMapa marcadores={marcadores} idDestacado="u1" {...props} />,
+    );
+    await waitFor(() =>
+      expect(
+        leaflet.marcadores.some((m) => m.setIcon.mock.calls.length > 0),
+      ).toBe(true),
+    );
+    expect(leaflet.L.marker.mock.calls.length).toBe(criados);
+  });
+
+  it("avisa que o zoom exige Cmd/Ctrl quando a roda é usada sem modificador", async () => {
+    render(
+      <FarmaciaMapa
+        marcadores={marcadores}
+        idDestacado={null}
+        onDestacar={vi.fn()}
+        onSelecionar={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(leaflet.L.map).toHaveBeenCalled());
+
+    fireEvent.wheel(screen.getByTestId("farmacia-mapa"), { deltaY: 100 });
+
+    expect(
+      await screen.findByTestId("farmacia-mapa-zoom-hint"),
+    ).toHaveTextContent(/scroll para aplicar zoom no mapa/i);
+  });
+
+  it("avisa para usar dois dedos quando o toque com 1 dedo se move", async () => {
+    render(
+      <FarmaciaMapa
+        marcadores={marcadores}
+        idDestacado={null}
+        onDestacar={vi.fn()}
+        onSelecionar={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(leaflet.L.map).toHaveBeenCalled());
+
+    const mapa = screen.getByTestId("farmacia-mapa");
+    const tocar = (tipo: string, clientY: number) => {
+      const evento = new Event(tipo, { bubbles: true, cancelable: true });
+      Object.defineProperty(evento, "touches", {
+        value: [{ clientX: 100, clientY }],
+      });
+      mapa.dispatchEvent(evento);
+    };
+    tocar("touchstart", 100);
+    tocar("touchmove", 130);
+
+    expect(
+      await screen.findByTestId("farmacia-mapa-zoom-hint"),
+    ).toHaveTextContent(/use dois dedos para mover o mapa/i);
+  });
+
+  it("aplica zoom com Ctrl+roda e não mostra o aviso", async () => {
+    leaflet.mapa.setZoomAround.mockClear();
+    render(
+      <FarmaciaMapa
+        marcadores={marcadores}
+        idDestacado={null}
+        onDestacar={vi.fn()}
+        onSelecionar={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(leaflet.L.map).toHaveBeenCalled());
+
+    fireEvent.wheel(screen.getByTestId("farmacia-mapa"), {
+      deltaY: -100,
+      ctrlKey: true,
+    });
+
+    expect(leaflet.mapa.setZoomAround).toHaveBeenCalledWith(
+      { x: 10, y: 20 },
+      14,
+      { animate: true },
+    );
+    expect(
+      screen.queryByTestId("farmacia-mapa-zoom-hint"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("desliga o arraste com 1 dedo e religa com 2 dedos em elementos diferentes", async () => {
+    leaflet.mapa.dragging.enable.mockClear();
+    leaflet.mapa.dragging.disable.mockClear();
+    render(
+      <FarmaciaMapa
+        marcadores={marcadores}
+        idDestacado={null}
+        onDestacar={vi.fn()}
+        onSelecionar={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(leaflet.L.map).toHaveBeenCalled());
+
+    const mapa = screen.getByTestId("farmacia-mapa");
+    const tocar = (tipo: string, dedos: number) => {
+      const evento = new Event(tipo, { bubbles: true, cancelable: true });
+      Object.defineProperty(evento, "touches", {
+        value: Array.from({ length: dedos }, () => ({
+          clientX: 100,
+          clientY: 100,
+        })),
+      });
+      // Cada dedo em um elemento diferente: targetTouches enxerga só 1
+      Object.defineProperty(evento, "targetTouches", {
+        value: [{ clientX: 100, clientY: 100 }],
+      });
+      mapa.dispatchEvent(evento);
+    };
+
+    tocar("touchstart", 1);
+    expect(leaflet.mapa.dragging.disable).toHaveBeenCalled();
+
+    tocar("touchstart", 2);
+    expect(leaflet.mapa.dragging.enable).toHaveBeenCalled();
+  });
+});

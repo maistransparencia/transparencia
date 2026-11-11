@@ -46,7 +46,7 @@ describe("PrevidenciaSaldoCaixaCard", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /disponibilidade em caixa e aplicações do rpps/i,
+        name: /quanto o fundo de aposentadoria (tem|tinha) em caixa e aplicado em/i,
       }),
     ).toBeInTheDocument();
     expect(
@@ -119,7 +119,7 @@ describe("PrevidenciaSaldoCaixaCard", () => {
 
     expect(
       screen.getByText(
-        /aguardando homologação da remessa msc pelo tesouro nacional para o fundo previdenciário no exercício 2024/i,
+        /aguardando homologação da remessa msc pelo tesouro nacional para o fundo previdenciário em 2024/i,
       ),
     ).toBeInTheDocument();
   });

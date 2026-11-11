@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: stg_emendas_estaduais__detalhamento
+    description: "Emendas estaduais por arquivo de detalhamento, no grão fonte + arquivo + identificador"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [codigo_fonte, nome_arquivo, identificador]
+    columns:
+      - name: codigo_fonte
+        data_type: text
+        tests:
+          - not_null
+      - name: identificador
+        data_type: text
+        tests:
+          - not_null
+      - name: numero_emenda
+        data_type: text
+        tests:
+          - not_null
+
+  - name: stg_emendas_estaduais__execucao
+    description: "Execução das emendas estaduais por relatório, no grão fonte + arquivo + identificador"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [codigo_fonte, nome_arquivo, identificador]
+    columns:
+      - name: codigo_fonte
+        data_type: text
+        tests:
+          - not_null
+      - name: identificador
+        data_type: text
+        tests:
+          - not_null
+      - name: posicao_ano
+        data_type: integer
+        tests:
+          - not_null
+      - name: posicao_mes
+        data_type: integer
+        tests:
+          - not_null

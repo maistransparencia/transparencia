@@ -188,22 +188,22 @@ export function ModalDialog({
         aria-label={ariaLabel}
         tabIndex={-1}
         className={cn(
-          "relative flex max-h-[85vh] w-full flex-col overflow-hidden bg-white shadow-2xl transition-all duration-200",
-          "self-end rounded-t-2xl",
-          "sm:self-center sm:rounded-xl",
+          "relative flex max-h-[85vh] w-full flex-col overflow-hidden border border-line bg-page transition-all duration-200",
+          "self-end rounded-md max-sm:rounded-b-none",
+          "sm:self-center",
           maxWidthClass,
           className,
         )}
       >
         {/* Header Estruturado */}
-        <div className="flex items-start justify-between border-slate-200/80 border-b bg-slate-50/90 px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex items-start justify-between border-line border-b bg-line2/40 px-4 py-3 sm:px-6 sm:py-4">
           <div className="min-w-0 flex-1 pr-3">
             {onBack && (
               <div className="mb-2">
                 <button
                   type="button"
                   onClick={onBack}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-medium text-slate-700 text-xs shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-line bg-page px-2.5 py-1 font-medium text-ink text-xs transition-colors hover:border-mute3 hover:bg-line2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand active:bg-line"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   <span>{backLabel ?? "Voltar"}</span>
@@ -211,18 +211,15 @@ export function ModalDialog({
               </div>
             )}
             <div className="flex flex-wrap items-center gap-2">
-              <h2
-                id={titleId}
-                className="break-words font-bold font-serif text-base text-slate-900 [overflow-wrap:anywhere] sm:text-lg"
-              >
+              <h2 id={titleId} className="break-words [overflow-wrap:anywhere]">
                 {title}
               </h2>
-              {badge && <div className="shrink-0">{badge}</div>}
+              {badge && <div className="max-w-full shrink-0">{badge}</div>}
             </div>
             {subtitle && (
               <p
                 className={cn(
-                  "mt-0.5 text-slate-500 text-xs sm:text-sm",
+                  "mt-0.5 text-mute2 text-xs sm:text-sm",
                   subtitleClassName ?? "line-clamp-1",
                 )}
               >
@@ -250,7 +247,7 @@ export function ModalDialog({
               type="button"
               onClick={onClose}
               aria-label="Fechar modal"
-              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-700 active:bg-slate-300"
+              className="rounded-md p-1.5 text-mute2 transition-colors hover:bg-line2 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand active:bg-line"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -264,7 +261,7 @@ export function ModalDialog({
 
         {/* Rodapé Opcional */}
         {footer && (
-          <div className="border-slate-200/80 border-t bg-slate-50/70 px-4 py-2.5 sm:px-6 sm:py-3.5">
+          <div className="border-line border-t bg-line2/40 px-4 py-2.5 sm:px-6 sm:py-3.5">
             {footer}
           </div>
         )}

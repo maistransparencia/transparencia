@@ -463,6 +463,13 @@ export interface DespesaRow {
   ano: number;
   fonte: string;
   categoriaGastoSensivel?: string;
+  fornecedorNome?: string;
+  fornecedorCpfCnpj?: string;
+  grupoNatureza?: string;
+  funcao?: string;
+  subfuncao?: string;
+  subfuncaoNome?: string;
+  descricao?: string;
   empenhado?: number;
   liquidado?: number;
   pago?: number;
@@ -479,6 +486,13 @@ export async function seedDespesa(row: DespesaRow): Promise<void> {
       ano: row.ano,
       fonte: row.fonte,
       categoria_gasto_sensivel: row.categoriaGastoSensivel ?? null,
+      fornecedor_nome: row.fornecedorNome ?? null,
+      fornecedor_cpf_cnpj: row.fornecedorCpfCnpj ?? null,
+      grupo_natureza: row.grupoNatureza ?? null,
+      funcao: row.funcao ?? null,
+      subfuncao: row.subfuncao ?? null,
+      subfuncao_nome: row.subfuncaoNome ?? null,
+      descricao: row.descricao ?? null,
       empenhado: row.empenhado ?? 0,
       liquidado: row.liquidado ?? 0,
       pago: row.pago ?? 0,
@@ -508,6 +522,32 @@ export interface PessoalFolhaRow {
   bin15k_175k?: number;
   bin175k_20k?: number;
   binAcima20k?: number;
+}
+
+export interface PessoalRgfRow {
+  portalSlug: string;
+  ano: number;
+  periodicidade?: "quadrimestral" | "semestral";
+  periodo: number;
+  despesaPessoal12Meses: number;
+  receitaCorrenteLiquidaAjustada: number;
+  percentualDespesaPessoal: number;
+}
+
+export async function seedPessoalRgf(row: PessoalRgfRow): Promise<void> {
+  await db
+    .insertInto("fct_pessoal_rgf_metricas")
+    .values({
+      pessoal_rgf_metricas_id: nextId("prgf"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      periodicidade: row.periodicidade ?? "quadrimestral",
+      periodo: row.periodo,
+      despesa_pessoal_12_meses: row.despesaPessoal12Meses,
+      receita_corrente_liquida_ajustada: row.receitaCorrenteLiquidaAjustada,
+      percentual_despesa_pessoal: row.percentualDespesaPessoal,
+    })
+    .execute();
 }
 
 export async function seedPessoalFolha(row: PessoalFolhaRow): Promise<void> {
@@ -788,6 +828,7 @@ export interface LicitacaoRow {
   valorEstimado?: number | null;
   valorHomologado?: number | null;
   situacao?: string;
+  situacaoCodigo?: string;
   dataAbertura?: string | null;
   carona?: string | null;
   fonteObjeto?: string | null;
@@ -813,6 +854,39 @@ export interface LicitacaoItemRow {
   situacaoItem?: string | null;
 }
 
+const SITUACOES_EM_ANDAMENTO = [
+  "em andamento",
+  "em_andamento",
+  "aberta",
+  "em aberto",
+  "publicada",
+  "publicado",
+  "divulgada no pncp",
+];
+
+// Espelha a regra de situacao_codigo de int_licitacoes_consolidadas (dbt).
+function derivarSituacaoCodigo(
+  situacao: string,
+  valorHomologado?: number | null,
+): string {
+  const normalizada = situacao
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (["homologada", "homologado"].includes(normalizada)) return "homologada";
+  if (SITUACOES_EM_ANDAMENTO.includes(normalizada)) {
+    return (valorHomologado ?? 0) > 0 ? "homologada" : "em_andamento";
+  }
+  if (["encerrada", "encerrado"].includes(normalizada)) return "encerrada";
+  if (["deserta", "deserto"].includes(normalizada)) return "deserta";
+  if (["fracassada", "fracassado"].includes(normalizada)) return "fracassada";
+  if (/revogad|anulad|cancelad/.test(normalizada)) return "cancelada";
+  if (["classificada", "classificado"].includes(normalizada))
+    return "classificada";
+  return "nao_informada";
+}
+
 export async function seedLicitacao(row: LicitacaoRow): Promise<void> {
   await db
     .insertInto("fct_licitacoes")
@@ -834,6 +908,12 @@ export async function seedLicitacao(row: LicitacaoRow): Promise<void> {
             : 100000,
       valor_homologado: row.valorHomologado ?? null,
       situacao: row.situacao ?? "em_andamento",
+      situacao_codigo:
+        row.situacaoCodigo ??
+        derivarSituacaoCodigo(
+          row.situacao ?? "em_andamento",
+          row.valorHomologado,
+        ),
       data_abertura: row.dataAbertura ? row.dataAbertura : null,
       carona: row.carona ?? null,
       fonte_objeto: row.fonteObjeto ?? "municipal",
@@ -1034,6 +1114,126 @@ export async function seedObra(row: ObraRow): Promise<void> {
     .execute();
 }
 
+export interface FarmaciaEstoqueRow {
+  portalSlug: string;
+  idRegistro: string;
+  statusConformidade?: string;
+  dataColeta?: string | null;
+  dataPosicaoMaisRecente?: string | null;
+  diasDesdePosicaoMaisRecente?: number | null;
+  codigoCnes?: string | null;
+  nomeUnidade?: string | null;
+  enderecoUnidade?: string | null;
+  telefoneUnidade?: string | null;
+  latitudeUnidade?: number | null;
+  longitudeUnidade?: number | null;
+  nomeMedicamento?: string | null;
+  quantidadeEstoque?: number | null;
+  dataValidade?: string | null;
+  dataPosicaoEstoque?: string | null;
+}
+
+export async function seedFarmacia(row: FarmaciaEstoqueRow): Promise<void> {
+  await db
+    .insertInto("fct_farmacia_estoque")
+    .values({
+      id_registro: row.idRegistro,
+      portal_slug: row.portalSlug,
+      status_conformidade: row.statusConformidade ?? "conforme",
+      data_coleta: row.dataColeta ?? null,
+      data_posicao_mais_recente: row.dataPosicaoMaisRecente ?? null,
+      dias_desde_posicao_mais_recente: row.diasDesdePosicaoMaisRecente ?? null,
+      codigo_cnes: row.codigoCnes ?? null,
+      nome_unidade: row.nomeUnidade ?? null,
+      endereco_unidade: row.enderecoUnidade ?? null,
+      telefone_unidade: row.telefoneUnidade ?? null,
+      latitude_unidade: row.latitudeUnidade ?? null,
+      longitude_unidade: row.longitudeUnidade ?? null,
+      nome_medicamento: row.nomeMedicamento ?? null,
+      quantidade_estoque: row.quantidadeEstoque ?? null,
+      data_validade: row.dataValidade ?? null,
+      data_posicao_estoque: row.dataPosicaoEstoque ?? null,
+    })
+    .execute();
+}
+
+export interface FarmaciaEstoqueHistoricoRow {
+  portalSlug: string;
+  idRegistro: string;
+  codigoCnes?: string | null;
+  nomeMedicamento: string;
+  numeroLote?: string | null;
+  dataPosicaoEstoque: string;
+  quantidadeEstoque?: number;
+  dataValidade?: string | null;
+}
+
+export async function seedFarmaciaHistorico(
+  row: FarmaciaEstoqueHistoricoRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_farmacia_estoque_historico")
+    .values({
+      id_registro: row.idRegistro,
+      portal_slug: row.portalSlug,
+      codigo_cnes: row.codigoCnes ?? null,
+      nome_medicamento: row.nomeMedicamento,
+      numero_lote: row.numeroLote ?? null,
+      data_posicao_estoque: row.dataPosicaoEstoque,
+      quantidade_estoque: row.quantidadeEstoque ?? 1,
+      data_validade: row.dataValidade ?? null,
+    })
+    .execute();
+}
+
+export interface FarmaciaSentinelaRow {
+  portalSlug: string;
+  codigoCnes: string;
+  codigoPrincipioAtivo: string;
+  nomePrincipioAtivo?: string;
+  grupoTerapeutico?: string;
+  ordemExibicao?: number;
+  destaqueCardInicial?: boolean;
+  statusDisponibilidade?: string;
+  quantidadeApresentacoesComEstoque?: number;
+  quantidadeApresentacoesCombinacaoComEstoque?: number;
+  /** Padrão: lote sem validade informada, que conta como utilizável. */
+  possuiLoteSemValidade?: boolean;
+  dataValidadeMaisTardia?: string | null;
+  possuiRelacionadoLoteSemValidade?: boolean;
+  dataValidadeRelacionadoMaisTardia?: string | null;
+}
+
+export async function seedFarmaciaSentinela(
+  row: FarmaciaSentinelaRow,
+): Promise<void> {
+  const status = row.statusDisponibilidade ?? "com_registro_estoque";
+  await db
+    .insertInto("fct_farmacia_sentinela_disponibilidade")
+    .values({
+      portal_slug: row.portalSlug,
+      codigo_cnes: row.codigoCnes,
+      codigo_principio_ativo: row.codigoPrincipioAtivo,
+      nome_principio_ativo: row.nomePrincipioAtivo ?? row.codigoPrincipioAtivo,
+      grupo_terapeutico: row.grupoTerapeutico ?? "cardiovascular",
+      ordem_exibicao: row.ordemExibicao ?? 1,
+      destaque_card_inicial: row.destaqueCardInicial ?? false,
+      status_disponibilidade: status,
+      quantidade_apresentacoes_com_estoque:
+        row.quantidadeApresentacoesComEstoque ??
+        (status === "com_registro_estoque" ? 1 : 0),
+      quantidade_apresentacoes_combinacao_com_estoque:
+        row.quantidadeApresentacoesCombinacaoComEstoque ?? 0,
+      possui_lote_sem_validade: row.possuiLoteSemValidade ?? true,
+      data_validade_mais_tardia: row.dataValidadeMaisTardia ?? null,
+      possui_relacionado_lote_sem_validade:
+        row.possuiRelacionadoLoteSemValidade ?? false,
+      data_validade_relacionado_mais_tardia:
+        row.dataValidadeRelacionadoMaisTardia ?? null,
+    })
+    .execute();
+}
+
 export interface ObraEmpenhoRow {
   portalSlug: string;
   idProjeto: string;
@@ -1088,9 +1288,6 @@ export interface EducacaoMetricaRow {
   crescimentoPontosIdeb?: number | null;
   variacaoSaebMatematica?: number | null;
   variacaoSaebPortugues?: number | null;
-  despesaLiquidadaEducacao?: number | null;
-  totalMatriculasRedeMunicipal?: number | null;
-  custoAnualPorAluno?: number | null;
 }
 
 export async function seedEducacaoMetricas(
@@ -1125,12 +1322,38 @@ export async function seedEducacaoMetricas(
           crescimento_pontos_ideb: r.crescimentoPontosIdeb ?? null,
           variacao_saeb_matematica: r.variacaoSaebMatematica ?? null,
           variacao_saeb_portugues: r.variacaoSaebPortugues ?? null,
-          despesa_liquidada_educacao: r.despesaLiquidadaEducacao ?? null,
-          total_matriculas_rede_municipal:
-            r.totalMatriculasRedeMunicipal ?? null,
-          custo_anual_por_aluno: r.custoAnualPorAluno ?? null,
         };
       }),
+    )
+    .execute();
+}
+
+export interface EducacaoExecucaoRow {
+  portalSlug: string;
+  ano: number;
+  empenhado?: number;
+  liquidado?: number;
+  pago?: number;
+  pagoSemPessoal?: number;
+}
+
+export async function seedEducacaoExecucao(
+  row: EducacaoExecucaoRow | EducacaoExecucaoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_educacao_execucao_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        empenhado_educacao: r.empenhado ?? 0,
+        liquidado_educacao: r.liquidado ?? 0,
+        pago_educacao: r.pago ?? 0,
+        pago_sem_pessoal_educacao: r.pagoSemPessoal ?? r.pago ?? 0,
+      })),
     )
     .execute();
 }
@@ -1169,6 +1392,149 @@ export async function seedEducacaoOrigemRecursos(
     .execute();
 }
 
+export interface SaudeOrigemRecursoRow {
+  portalSlug: string;
+  empresaId?: string;
+  ano: number;
+  orgaoNome?: string | null;
+  grupoFonte: string;
+  codigoNatureza: string;
+  descricaoNatureza?: string | null;
+  arrecadadoReceita: number;
+}
+
+export async function seedSaudeOrigemRecursos(
+  row: SaudeOrigemRecursoRow | SaudeOrigemRecursoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_origem_recursos_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        empresa_id: r.empresaId ?? "1",
+        orgao_nome: r.orgaoNome ?? null,
+        grupo_fonte: r.grupoFonte,
+        codigo_natureza: r.codigoNatureza,
+        descricao_natureza: r.descricaoNatureza ?? null,
+        arrecadado_receita: r.arrecadadoReceita,
+      })),
+    )
+    .execute();
+}
+
+export interface EducacaoMatriculasRow {
+  portalSlug: string;
+  ano: number;
+  matriculasEducacaoInfantil: number;
+  matriculasEnsinoFundamental: number;
+}
+
+export async function seedEducacaoMatriculas(
+  row: EducacaoMatriculasRow | EducacaoMatriculasRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_educacao_matriculas_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        matriculas_educacao_infantil: r.matriculasEducacaoInfantil,
+        matriculas_ensino_fundamental: r.matriculasEnsinoFundamental,
+        matriculas_educacao_basica:
+          r.matriculasEducacaoInfantil + r.matriculasEnsinoFundamental,
+      })),
+    )
+    .execute();
+}
+
+export interface EducacaoSiopeRow {
+  portalSlug: string;
+  ano: number;
+  periodo?: number;
+  situacao?: "encerrado" | "parcial";
+  investimentoPorAluno?: number | null;
+  investimentoPorAlunoBasica?: number | null;
+  investimentoPorAlunoInfantil?: number | null;
+  investimentoPorAlunoFundamental?: number | null;
+  percentualAplicadoMde?: number | null;
+  percentualAplicadoFundebProfissionais?: number | null;
+}
+
+export async function seedEducacaoSiope(
+  row: EducacaoSiopeRow | EducacaoSiopeRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_educacao_siope_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        periodo: r.periodo ?? 6,
+        situacao: r.situacao ?? "encerrado",
+        investimento_por_aluno: r.investimentoPorAluno ?? null,
+        investimento_por_aluno_basica: r.investimentoPorAlunoBasica ?? null,
+        investimento_por_aluno_infantil: r.investimentoPorAlunoInfantil ?? null,
+        investimento_por_aluno_fundamental:
+          r.investimentoPorAlunoFundamental ?? null,
+        percentual_aplicado_mde: r.percentualAplicadoMde ?? null,
+        percentual_aplicado_fundeb_profissionais:
+          r.percentualAplicadoFundebProfissionais ?? null,
+      })),
+    )
+    .execute();
+}
+
+export interface SaudeMinimoRow {
+  portalSlug: string;
+  ano: number;
+  periodo?: number;
+  situacao?: "encerrado" | "parcial" | "sem_dado";
+  percentualAplicadoSaude?: number | null;
+  minimoAplicacaoSaudePercentual?: number | null;
+  cumpreMinimo?: boolean | null;
+  despesaSaudePorHabitante?: number | null;
+  divergenciaEntreVias?: boolean;
+  indicadoresDivergentes?: string | null;
+  coletadoEm?: string | null;
+}
+
+export async function seedSaudeMinimo(
+  row: SaudeMinimoRow | SaudeMinimoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_minimo_constitucional")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        periodo: r.periodo ?? 6,
+        situacao: r.situacao ?? "encerrado",
+        percentual_aplicado_saude: r.percentualAplicadoSaude ?? null,
+        minimo_aplicacao_saude_percentual:
+          r.minimoAplicacaoSaudePercentual ?? null,
+        cumpre_minimo: r.cumpreMinimo ?? null,
+        despesa_saude_por_habitante: r.despesaSaudePorHabitante ?? null,
+        divergencia_entre_vias: r.divergenciaEntreVias ?? false,
+        indicadores_divergentes: r.indicadoresDivergentes ?? null,
+        coletado_em: r.coletadoEm ?? null,
+      })),
+    )
+    .execute();
+}
+
 export async function seedDimMetadata(row: {
   portalSlug: string;
   key: string;
@@ -1180,8 +1546,197 @@ export async function seedDimMetadata(row: {
     .execute();
 }
 
+export interface LicitacaoMetricaRow {
+  portalSlug: string;
+  ano: number;
+  empresaId: string;
+  tipoContratacao: string | null;
+  empenhadoContrato: number;
+}
+
+export async function seedLicitacaoMetrica(
+  row: LicitacaoMetricaRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_licitacoes_metricas")
+    .values({
+      licitacao_metricas_id: nextId("licm"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      empresa_id: row.empresaId,
+      tipo_contratacao: row.tipoContratacao,
+      empenhado_contrato: row.empenhadoContrato,
+    })
+    .execute();
+}
+
+export interface HistoriaSaudeMetricaRow {
+  portalSlug: string;
+  ano: number;
+  totalPago?: number;
+  receitaUniao?: number;
+  receitaEstado?: number;
+  repassesPrefeitura?: number;
+  receitaOutras?: number;
+  totalEntrada?: number;
+  percentualUniaoSus?: number;
+  percentualEstado?: number;
+  percentualPropria?: number;
+  percentualOutrasReceitas?: number;
+}
+
+export async function seedHistoriaSaudeMetrica(
+  row: HistoriaSaudeMetricaRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_historia_saude_metricas")
+    .values({
+      historia_saude_id: nextId("hsm"),
+      portal_slug: row.portalSlug,
+      ano: row.ano,
+      dotacao_total: 0,
+      total_empenhado: 0,
+      total_liquidado: 0,
+      total_pago: row.totalPago ?? 0,
+      medicamentos_insumos_empenhado: 0,
+      medicamentos_insumos_pago: 0,
+      judicializacao_empenhado: 0,
+      judicializacao_pago: 0,
+      emendas_saude_arrecadado: 0,
+      hhi_concentracao_fornecedores: 0,
+      receita_uniao_saude: row.receitaUniao ?? 0,
+      receita_estado_saude: row.receitaEstado ?? 0,
+      repasses_prefeitura_saude: row.repassesPrefeitura ?? 0,
+      receita_outras_saude: row.receitaOutras ?? 0,
+      total_entrada_saude: row.totalEntrada ?? 0,
+      percentual_uniao_sus: row.percentualUniaoSus ?? 0,
+      percentual_estado: row.percentualEstado ?? 0,
+      percentual_propria: row.percentualPropria ?? 0,
+      percentual_outras_receitas: row.percentualOutrasReceitas ?? 0,
+    })
+    .execute();
+}
+
+export interface SaudeRedeAnoRow {
+  portalSlug: string;
+  ano: number;
+  totalLeitosExistentes?: number | null;
+  totalLeitosSus?: number | null;
+  totalProfissionais?: number | null;
+  totalProfissionaisSus?: number | null;
+  populacaoResidente?: number | null;
+  anoPopulacaoReferencia?: number | null;
+  populacaoEstimada?: boolean;
+  leitosExistentesPorMilMoradores?: number | null;
+  leitosSusPorMilMoradores?: number | null;
+  profissionaisPorMilMoradores?: number | null;
+  profissionaisSusPorMilMoradores?: number | null;
+}
+
+export async function seedSaudeRede(
+  row: SaudeRedeAnoRow | SaudeRedeAnoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_rede_por_mil_moradores_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        competencia_leitos:
+          r.totalLeitosExistentes == null ? null : r.ano * 100 + 12,
+        competencia_profissionais:
+          r.totalProfissionais == null ? null : r.ano * 100 + 12,
+        total_leitos_existentes: r.totalLeitosExistentes ?? null,
+        total_leitos_sus: r.totalLeitosSus ?? null,
+        total_profissionais: r.totalProfissionais ?? null,
+        total_profissionais_sus: r.totalProfissionaisSus ?? null,
+        populacao_residente: r.populacaoResidente ?? null,
+        ano_populacao_referencia: r.anoPopulacaoReferencia ?? r.ano,
+        populacao_estimada: r.populacaoEstimada ?? false,
+        leitos_existentes_por_mil_moradores:
+          r.leitosExistentesPorMilMoradores ?? null,
+        leitos_sus_por_mil_moradores: r.leitosSusPorMilMoradores ?? null,
+        profissionais_por_mil_moradores: r.profissionaisPorMilMoradores ?? null,
+        profissionais_sus_por_mil_moradores:
+          r.profissionaisSusPorMilMoradores ?? null,
+        data_coleta: "2026-11-07",
+      })),
+    )
+    .execute();
+}
+
+export interface SaudeProducaoSusAnoRow {
+  portalSlug: string;
+  ano: number;
+  competenciasAmbulatoriais?: number | null;
+  competenciasInternacoes?: number | null;
+  totalProcedimentosAmbulatoriais?: number | null;
+  totalInternacoes?: number | null;
+  anoCompletoAmbulatorial?: boolean;
+  anoCompletoInternacoes?: boolean;
+  populacaoResidente?: number | null;
+  populacaoEstimada?: boolean;
+  anoPopulacaoReferencia?: number | null;
+  procedimentosAmbulatoriaisPorMilMoradores?: number | null;
+  internacoesPorMilMoradores?: number | null;
+}
+
+export async function seedSaudeProducaoSus(
+  row: SaudeProducaoSusAnoRow | SaudeProducaoSusAnoRow[],
+): Promise<void> {
+  const rows = Array.isArray(row) ? row : [row];
+  if (rows.length === 0) return;
+
+  await db
+    .insertInto("fct_saude_producao_sus_metricas")
+    .values(
+      rows.map((r) => ({
+        portal_slug: r.portalSlug,
+        ano: r.ano,
+        competencias_ambulatoriais: r.competenciasAmbulatoriais ?? null,
+        competencias_internacoes: r.competenciasInternacoes ?? null,
+        primeira_competencia_ambulatorial:
+          r.competenciasAmbulatoriais == null ? null : r.ano * 100 + 1,
+        ultima_competencia_ambulatorial:
+          r.competenciasAmbulatoriais == null
+            ? null
+            : r.ano * 100 + r.competenciasAmbulatoriais,
+        primeira_competencia_internacoes:
+          r.competenciasInternacoes == null ? null : r.ano * 100 + 1,
+        ultima_competencia_internacoes:
+          r.competenciasInternacoes == null
+            ? null
+            : r.ano * 100 + r.competenciasInternacoes,
+        total_procedimentos_ambulatoriais:
+          r.totalProcedimentosAmbulatoriais ?? null,
+        total_internacoes: r.totalInternacoes ?? null,
+        ano_completo_ambulatorial: r.anoCompletoAmbulatorial ?? false,
+        ano_completo_internacoes: r.anoCompletoInternacoes ?? false,
+        populacao_residente: r.populacaoResidente ?? null,
+        ano_populacao_referencia: r.anoPopulacaoReferencia ?? r.ano,
+        populacao_estimada: r.populacaoEstimada ?? false,
+        procedimentos_ambulatoriais_por_mil_moradores:
+          r.procedimentosAmbulatoriaisPorMilMoradores ?? null,
+        internacoes_por_mil_moradores: r.internacoesPorMilMoradores ?? null,
+        data_coleta: "2026-11-07",
+      })),
+    )
+    .execute();
+}
+
 /** Remove tudo que os `seed*` acima inseriram para o `portalSlug` dado. */
 export async function cleanupFixtures(portalSlug: string): Promise<void> {
+  await db
+    .deleteFrom("fct_licitacoes_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_historia_saude_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
   await db
     .deleteFrom("dim_metadata")
     .where("portal_slug", "=", portalSlug)
@@ -1191,7 +1746,47 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
+    .deleteFrom("fct_saude_origem_recursos_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_producao_sus_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_rede_por_mil_moradores_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_educacao_matriculas_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_educacao_siope_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_saude_minimo_constitucional")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
     .deleteFrom("fct_educacao_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_educacao_execucao_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_farmacia_estoque")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_farmacia_estoque_historico")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_farmacia_sentinela_disponibilidade")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
@@ -1264,6 +1859,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_pessoal_folha_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_pessoal_rgf_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

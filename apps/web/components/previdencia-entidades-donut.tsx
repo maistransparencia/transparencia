@@ -1,6 +1,14 @@
 "use client";
 
-import { fmtCompact, fmtCurrency, toTitleCase } from "@transparencia/ui";
+import {
+  corDoGrafico,
+  fmtCompact,
+  fmtCurrency,
+  fmtPercent,
+  SectionHeader,
+  type TokenCorGrafico,
+  toTitleCase,
+} from "@transparencia/ui";
 import { Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 export interface EntityPrevidenciaItem {
@@ -17,15 +25,36 @@ export interface PrevidenciaEntidadesDonutProps {
   previdenciaSigla?: string;
 }
 
-const COLOR_PALETTE = [
-  "#1976d2", // Blue - Prefeitura
-  "#2e7d32", // Green - Fundo de Saúde
-  "#b78103", // Gold/Yellow - Fundo de Assistência Social
-  "#6b21a8", // Purple - Câmara
-  "#0284c7", // Sky blue
-  "#059669", // Emerald
-  "#64748b", // Slate
+/** Tons distintos por entidade, só tokens do tema. */
+const TOKENS_ENTIDADES: readonly TokenCorGrafico[] = [
+  "brand",
+  "ok",
+  "warn",
+  "danger",
+  "ink",
+  "mute",
+  "mute3",
 ];
+
+interface TooltipEntidadeProps {
+  active?: boolean;
+  payload?: ReadonlyArray<{
+    payload?: { name: string; value: number; percentual: number };
+  }>;
+}
+
+function TooltipEntidade({ active, payload }: TooltipEntidadeProps) {
+  const ponto = payload?.[0]?.payload;
+  if (!active || !ponto) return null;
+  return (
+    <div className="pointer-events-none space-y-1 border border-line bg-page p-2.5 text-xs">
+      <p className="font-semibold text-ink">{toTitleCase(ponto.name)}</p>
+      <p className="text-mute tabular-nums">
+        {fmtCurrency(ponto.value)} ({fmtPercent(ponto.percentual)})
+      </p>
+    </div>
+  );
+}
 
 export function PrevidenciaEntidadesDonut({
   data,
@@ -37,39 +66,28 @@ export function PrevidenciaEntidadesDonut({
 
   const pieData = data
     .filter((d) => d.pago > 0)
-    .map((item, idx) => ({
-      name: item.entidade,
-      value: item.pago,
-      pct: totalPago > 0 ? (item.pago / totalPago) * 100 : 0,
-      color: COLOR_PALETTE[idx % COLOR_PALETTE.length],
-      fill: COLOR_PALETTE[idx % COLOR_PALETTE.length],
-    }));
+    .map((item, idx) => {
+      const cor = corDoGrafico(TOKENS_ENTIDADES[idx % TOKENS_ENTIDADES.length]);
+      return {
+        name: item.entidade,
+        value: item.pago,
+        percentual: totalPago > 0 ? (item.pago / totalPago) * 100 : 0,
+        color: cor,
+        fill: cor,
+      };
+    });
+
+  if (pieData.length === 0) return null;
 
   return (
-    <div
-      className={`rounded-xl border border-slate-200 bg-white p-6 shadow-xs ${className}`}
-    >
-      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="font-bold font-serif text-base text-slate-900">
-            Repasses por Entidade ao {previdenciaSigla}
-          </h3>
-          <p className="font-medium text-slate-500 text-xs">
-            Distribuição dos recursos repassados pelos órgãos municipais · {ano}
-          </p>
-        </div>
-        <div className="text-right">
-          <span className="block font-medium text-[11px] text-slate-400 uppercase tracking-wider">
-            Total Repassado
-          </span>
-          <span className="font-bold font-serif text-blue-900 text-sm">
-            {fmtCurrency(totalPago)}
-          </span>
-        </div>
-      </div>
+    <div className={className}>
+      <SectionHeader
+        eyebrow={`Total repassado: ${fmtCurrency(totalPago)}`}
+        title={`De quais órgãos veio o dinheiro repassado ao ${previdenciaSigla} em ${ano}?`}
+        description={`Valor pago ao fundo por cada órgão municipal · ${ano}`}
+      />
 
       <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-        {/* Donut Chart */}
         <div className="h-[200px] w-full min-w-[200px] sm:w-1/2">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -81,53 +99,38 @@ export function PrevidenciaEntidadesDonut({
                 outerRadius={78}
                 paddingAngle={3}
                 dataKey="value"
+                stroke={corDoGrafico("page")}
               />
-              <Tooltip
-                formatter={(val: unknown, name: unknown) => [
-                  `${fmtCurrency(Number(val ?? 0))} (${(
-                    (Number(val ?? 0) / (totalPago || 1)) * 100
-                  ).toFixed(1)}%)`,
-                  String(name ?? "Repasse"),
-                ]}
-                contentStyle={{
-                  backgroundColor: "#ffffff",
-                  borderColor: "#e2e8f0",
-                  borderRadius: "8px",
-                  fontSize: "12px",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                }}
-              />
+              <Tooltip content={<TooltipEntidade />} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Legend with R$ Values */}
-        <div className="flex w-full flex-col justify-center gap-3 sm:w-1/2">
+        <ul className="flex w-full flex-col justify-center gap-3 sm:w-1/2">
           {pieData.map((item) => (
-            <div key={item.name} className="flex items-center gap-3">
+            <li key={item.name} className="flex items-center gap-3">
               <span
-                className="h-3 w-3 shrink-0 rounded-full"
+                className="h-3 w-3 shrink-0"
                 style={{ backgroundColor: item.color }}
+                aria-hidden="true"
               />
               <div className="flex flex-1 items-center justify-between text-xs">
                 <span
-                  className="max-w-[400px] truncate font-medium text-slate-700"
+                  className="max-w-[400px] truncate font-medium text-mute"
                   title={toTitleCase(item.name)}
                 >
                   {toTitleCase(item.name)}
                 </span>
-                {/* desktop only */}
-                <span className="ml-2 hidden shrink-0 font-bold font-serif text-slate-900 lg:block">
+                <span className="ml-2 hidden shrink-0 font-bold font-serif text-ink lg:block">
                   {fmtCurrency(item.value)}
                 </span>
-                {/* mobile only */}
-                <span className="ml-2 shrink-0 font-bold font-serif text-slate-900 lg:hidden">
+                <span className="ml-2 shrink-0 font-bold font-serif text-ink lg:hidden">
                   {fmtCompact(item.value)}
                 </span>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </div>
   );

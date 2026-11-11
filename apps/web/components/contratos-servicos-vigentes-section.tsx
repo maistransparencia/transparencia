@@ -3,14 +3,17 @@
 import { BProgress } from "@bprogress/core";
 import type { ContratoServicoVigente } from "@transparencia/db";
 import {
+  Badge,
   type Column,
+  cn,
   DenseTable,
+  fmtCurrency,
   fmtDate,
+  fmtPercent,
   SegmentedButton,
 } from "@transparencia/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ContratoDetalhesModal } from "./contrato-detalhes-modal";
-import { ContratoServicoVigenteCard } from "./contrato-servico-vigente-card";
 
 interface ContratosServicosVigentesSectionProps {
   contratos: ContratoServicoVigente[];
@@ -19,6 +22,12 @@ interface ContratosServicosVigentesSectionProps {
 }
 
 type FilterStatus = "em_execucao" | "concluido" | "inexecutado" | "todos";
+
+function statusBadgeVariant(status?: string | null) {
+  if (status === "concluido") return "success";
+  if (status === "inexecutado") return "danger";
+  return "default";
+}
 
 export function ContratosServicosVigentesSection({
   contratos,
@@ -354,23 +363,30 @@ export function ContratosServicosVigentesSection({
     }));
   }, [filteredContratos]);
 
+  const revealRowId =
+    highlightedId === null
+      ? null
+      : (tableData.find(
+          (c) =>
+            c.contratoServicoId === highlightedId ||
+            c.contratoNumero === highlightedId,
+        )?.contratoServicoId ?? null);
+
   if ((!contratos || contratos.length === 0) && !selectedContrato) {
     return null;
   }
-
-  const top3 = filteredContratos.slice(0, 3);
 
   const columns: Column<(typeof tableData)[number]>[] = [
     {
       header: "Fornecedor",
       accessorKey: "fornecedorNome",
       sortable: true,
-      className: "min-w-[180px] max-w-[220px]",
+      className: "min-w-[180px] max-w-[240px] font-semibold text-ink",
       renderCell: (row) => (
         <button
           type="button"
           onClick={() => handleOpenContratoDetails(row)}
-          className="cursor-pointer text-left font-medium text-slate-900 hover:text-blue-600 hover:underline"
+          className="cursor-pointer text-left font-semibold text-ink hover:text-brand hover:underline"
           title="Ver detalhes do contrato"
         >
           {row.fornecedorNome}
@@ -381,105 +397,158 @@ export function ContratosServicosVigentesSection({
       header: "Objeto",
       accessorKey: "objetoDescricao",
       sortable: true,
-      className: "min-w-[220px] max-w-[320px]",
+      className: "min-w-[220px] max-w-[360px] text-ink",
       renderCell: (row) => (
-        <div className="space-y-1">
-          <p
-            className="line-clamp-2 font-normal text-slate-700 text-xs leading-relaxed"
-            title={row.objetoDescricao}
-          >
-            {row.objetoDescricao || "—"}
-          </p>
-          <button
-            type="button"
-            onClick={() => handleOpenContratoDetails(row)}
-            className="inline-flex cursor-pointer items-center gap-1 font-medium text-blue-600 text-xs hover:text-blue-800 hover:underline"
-            title="Abrir detalhes completos do contrato"
-          >
-            <span>Detalhes</span>
-          </button>
-        </div>
+        <p
+          className="line-clamp-2 font-normal text-ink text-xs leading-relaxed"
+          title={row.objetoDescricao}
+        >
+          {row.objetoDescricao || "—"}
+        </p>
       ),
-    },
-    {
-      header: "Status",
-      accessorKey: "statusLabel",
-      sortable: true,
-      align: "center",
-      className: "whitespace-nowrap font-medium text-slate-700 text-xs",
     },
     {
       header: "Vigência",
       accessorKey: "vigenciaFormatada",
       sortable: true,
-      align: "center",
-      className: "whitespace-nowrap font-medium text-slate-600",
+      className: "min-w-[120px] numeric text-left text-mute2 tabular-nums",
     },
     {
       header: "Empenhado",
       accessorKey: "totalEmpenhado",
-      format: "currency",
       align: "right",
       sortable: true,
-      isSerifNumeric: true,
+      className: "whitespace-nowrap font-bold numeric tabular-nums",
+      renderCell: (row) => fmtCurrency(row.totalEmpenhado),
+    },
+    {
+      header: "Status",
+      accessorKey: "statusLabel",
+      exportOnly: true,
     },
     {
       header: "Liquidado",
       accessorKey: "totalLiquidado",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
+      exportOnly: true,
     },
     {
       header: "Pago",
       accessorKey: "totalPago",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
+      exportOnly: true,
     },
     {
       header: "Saldo Pendente",
       accessorKey: "saldoPendente",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
+      exportOnly: true,
     },
     {
       header: "% Pago",
       accessorKey: "percentualPago",
-      format: "percent",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
+      exportOnly: true,
     },
   ];
+
+  const renderContratoExpandedRow = (row: (typeof tableData)[number]) => {
+    const percentualPago = Number.isFinite(row.percentualPago)
+      ? Math.min(100, Math.max(0, row.percentualPago))
+      : 0;
+    const inexecutado = row.statusExecucao === "inexecutado";
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={statusBadgeVariant(row.statusExecucao)}>
+            {row.statusLabel}
+          </Badge>
+          {(row.valorAditado ?? 0) > 0 && (
+            <Badge variant="accent">Com aditamento</Badge>
+          )}
+        </div>
+        <p className="text-ink">{row.objetoDescricao || "—"}</p>
+        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div>
+            <dt className="eyebrow">Contrato</dt>
+            <dd className="numeric mt-1 text-left text-ink tabular-nums">
+              {row.contratoNumero || "S/N"}
+            </dd>
+          </div>
+          <div>
+            <dt className="eyebrow">Vigência</dt>
+            <dd className="numeric mt-1 text-left text-ink tabular-nums">
+              {row.vigenciaFormatada || "—"}
+            </dd>
+          </div>
+          <div>
+            <dt className="eyebrow">Pago</dt>
+            <dd className="mt-1 font-bold text-ink tabular-nums">
+              {fmtCurrency(row.totalPago)}
+            </dd>
+          </div>
+          {!inexecutado && (
+            <div>
+              <dt className="eyebrow">Saldo</dt>
+              <dd className="mt-1 font-bold text-warn-text tabular-nums">
+                {fmtCurrency(row.saldoPendente)}
+              </dd>
+            </div>
+          )}
+        </dl>
+        {!inexecutado && (
+          <div className="space-y-1.5">
+            <div
+              className="h-1 w-full overflow-hidden rounded-full bg-line"
+              role="progressbar"
+              aria-label="Percentual do empenhado já pago"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={percentualPago}
+            >
+              <div
+                className="h-full bg-brand-fill"
+                style={{
+                  width: `${percentualPago > 0 ? Math.max(percentualPago, 1) : 0}%`,
+                }}
+              />
+            </div>
+            <p className="caption tabular-nums">
+              {fmtPercent(percentualPago)} do empenhado foi pago
+            </p>
+          </div>
+        )}
+        <div>
+          <button
+            type="button"
+            onClick={() => handleOpenContratoDetails(row)}
+            className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
+            title="Abrir detalhes completos do contrato"
+          >
+            Ver detalhes
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <section id="contratos-servicos-vigentes" className="scroll-mt-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col justify-between gap-1 border-ink border-t-2 pt-8 sm:flex-row sm:items-baseline">
         <div>
-          <h2 className="font-bold font-serif text-ink text-xl tracking-tight">
-            Contratos de Serviços Vigentes
-          </h2>
-          <p className="text-slate-600 text-xs leading-relaxed sm:text-sm">
+          <h2>Contratos de Serviços Vigentes</h2>
+          <p className="text-mute2 text-xs leading-relaxed sm:text-sm">
             Principais contratos de serviços de terceiros em execução, ordenados
             pelo menor valor pago e maior saldo pendente para evidenciar
             potenciais exposições fiscais.
           </p>
         </div>
-        <span className="shrink-0 rounded-full border border-borderLine bg-gray-100 px-2.5 py-1 font-medium text-subtleText text-xs">
+        <span className="shrink-0 rounded-full border border-line px-2.5 py-1 font-medium text-mute2 text-xs">
           {filteredContratos.length} de {contratos.length}{" "}
           {contratos.length === 1 ? "contrato" : "contratos"}
         </span>
       </div>
 
       {/* Segmented Filter Pills */}
-      <div className="flex flex-wrap items-center gap-2 border-slate-200/80 border-b pb-3">
-        <span className="font-semibold text-slate-700 text-xs">
+      <div className="flex flex-wrap items-center gap-2 border-line border-b pb-3">
+        <span className="font-semibold text-ink text-xs">
           Status de Execução:
         </span>
         <SegmentedButton
@@ -512,27 +581,8 @@ export function ContratosServicosVigentesSection({
         </SegmentedButton>
       </div>
 
-      {/* Top 3 Cards Grid */}
-      {top3.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {top3.map((c, idx) => (
-            <ContratoServicoVigenteCard
-              key={
-                c.contratoServicoId ||
-                `${c.fornecedorNome}-${c.fornecedorCnpj}-${idx}`
-              }
-              contrato={c}
-              onOpenDetails={() => handleOpenContratoDetails(c)}
-              isHighlighted={
-                Boolean(highlightedId) &&
-                (c.contratoServicoId === highlightedId ||
-                  c.contratoNumero === highlightedId)
-              }
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-xl border border-slate-300 border-dashed p-6 text-center text-slate-500 text-sm">
+      {filteredContratos.length === 0 && (
+        <div className="rounded-md border border-line border-dashed p-6 text-center text-mute2 text-sm">
           Nenhum contrato encontrado para a visão "{statusFilter}".
         </div>
       )}
@@ -541,24 +591,62 @@ export function ContratosServicosVigentesSection({
       <DenseTable
         data={tableData}
         columns={columns}
-        renderMobileCard={(row) => (
-          <ContratoServicoVigenteCard
-            contrato={row}
-            onOpenDetails={() => handleOpenContratoDetails(row)}
-            isHighlighted={
-              Boolean(highlightedId) &&
-              (row.contratoServicoId === highlightedId ||
-                row.contratoNumero === highlightedId)
-            }
-          />
-        )}
+        renderExpandedRow={renderContratoExpandedRow}
+        renderMobileRow={(row) => {
+          const isMatch =
+            Boolean(highlightedId) &&
+            (row.contratoServicoId === highlightedId ||
+              row.contratoNumero === highlightedId);
+          return {
+            resumo: (
+              <div
+                className={cn(
+                  "space-y-1",
+                  isMatch && "ring-2 ring-brand ring-offset-2",
+                )}
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenContratoDetails(row)}
+                    className="min-w-0 cursor-pointer truncate text-left font-bold text-ink text-sm hover:text-brand hover:underline"
+                    title="Ver detalhes do contrato"
+                  >
+                    {row.fornecedorNome}
+                  </button>
+                  <span className="shrink-0 text-right">
+                    <span className="eyebrow block">Empenhado</span>
+                    <span className="numeric text-left font-bold text-ink text-sm tabular-nums">
+                      {fmtCurrency(row.totalEmpenhado)}
+                    </span>
+                  </span>
+                </div>
+                <p className="line-clamp-2 text-ink text-xs leading-snug">
+                  {row.objetoDescricao || "—"}
+                </p>
+                <div className="flex items-center justify-between gap-3 text-[11px] text-mute2 tabular-nums">
+                  <Badge variant={statusBadgeVariant(row.statusExecucao)}>
+                    {row.statusLabel}
+                  </Badge>
+                  <span className="numeric text-left">
+                    {row.vigenciaFormatada}
+                  </span>
+                </div>
+              </div>
+            ),
+            detalhes: null,
+          };
+        }}
+        hideCsvOnMobile
+        revealRowId={revealRowId}
+        hideSearch
         rowClassName={(row) => {
           const isMatch =
             Boolean(highlightedId) &&
             (row.contratoServicoId === highlightedId ||
               row.contratoNumero === highlightedId);
           return isMatch
-            ? "bg-amber-50/70 border-l-4 border-l-amber-500 font-medium"
+            ? "bg-line2 border-l-4 border-l-warn font-medium"
             : undefined;
         }}
         searchPlaceholder="Buscar por fornecedor, CNPJ ou objeto..."

@@ -4,25 +4,21 @@ import type {
   EducacaoCategoriaContrato,
   EducacaoContratoDTO,
 } from "@transparencia/db";
-import {
-  Badge,
-  type Column,
-  cn,
-  DenseTable,
-  fmtCurrency,
-  fmtDate,
-} from "@transparencia/ui";
-import { ExternalLink } from "lucide-react";
+import { Badge, cn } from "@transparencia/ui";
+import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EducacaoContratosCategoriaTotais } from "@/app/[portalSlug]/educacao/view-model";
 import { ContratoDetalhesModal } from "@/components/contrato-detalhes-modal";
-import { SectionHeader } from "@/components/section-header";
+import { type LeiLinkProps, LinhaLeiEFonte } from "@/components/lei-e-fonte";
+import { SectionWithHeader } from "@/components/section-with-header";
+import { urlLegislacao } from "@/lib/constants/legislacao";
+import { pickTense, tituloDoExercicio } from "@/lib/escopo-bloco";
 import { CategoriaContratoCard } from "./categoria-contrato-card";
 import { ContratosCategoriaModal } from "./contratos-categoria-modal";
+import { ContratosTabela } from "./contratos-tabela";
 import {
   educacaoDtoToContratoServicoVigente,
   formatCategoriaLabel,
-  formatStatusExecucaoLabel,
 } from "./educacao-contratos-utils";
 
 export interface EducacaoContratosSectionProps {
@@ -32,8 +28,12 @@ export interface EducacaoContratosSectionProps {
     EducacaoContratosCategoriaTotais
   >;
   initialContratoNumero?: string;
+  /** Resumos das seções recolhidas (calculados em `@transparencia/db`). */
+  resumoCategorias?: React.ReactNode;
+  resumoContratos?: React.ReactNode;
   portalSlug: string;
   ano?: number;
+  isCurrentYear?: boolean;
 }
 
 const CATEGORIAS_ORDENADAS: EducacaoCategoriaContrato[] = [
@@ -44,12 +44,40 @@ const CATEGORIAS_ORDENADAS: EducacaoCategoriaContrato[] = [
   "outros",
 ];
 
+const LEI_MERENDA: LeiLinkProps = {
+  label: "Lei 11.947/2009 (merenda)",
+  url: urlLegislacao("lei11947"),
+  ariaLabel: "Texto oficial da Lei nº 11.947/2009 (PNAE) no Planalto",
+};
+const LEI_TRANSPORTE: LeiLinkProps = {
+  label: "Lei 10.880/2004 (transporte)",
+  url: urlLegislacao("lei10880"),
+  ariaLabel: "Texto oficial da Lei nº 10.880/2004 (PNATE) no Planalto",
+};
+const LEI_LOCACAO: LeiLinkProps = {
+  label: "Lei 14.133/2021, art. 74, V (locação)",
+  url: urlLegislacao("lei14133", "art74v"),
+  ariaLabel:
+    "Texto oficial da Lei nº 14.133/2021, Art. 74, V (Locação de Imóveis) no Planalto",
+};
+
+const LEIS_DA_CATEGORIA: Partial<
+  Record<EducacaoCategoriaContrato, LeiLinkProps[]>
+> = {
+  merenda_pnae: [LEI_MERENDA],
+  transporte_pnate: [LEI_TRANSPORTE],
+  locacao_imoveis: [LEI_LOCACAO],
+};
+
 export function EducacaoContratosSection({
   contratos,
   totaisPorCategoria,
   initialContratoNumero,
+  resumoCategorias,
+  resumoContratos,
   portalSlug,
   ano,
+  isCurrentYear = true,
 }: EducacaoContratosSectionProps) {
   const [categoriaAberta, setCategoriaAberta] =
     useState<EducacaoCategoriaContrato | null>(null);
@@ -124,161 +152,6 @@ export function EducacaoContratosSection({
     }
   }, []);
 
-  // Contratos após filtro de categoria e busca (independe da paginação)
-  const [contratosVisiveis, setContratosVisiveis] = useState<
-    EducacaoContratoDTO[] | null
-  >(null);
-  const handleFilteredDataChange = useCallback(
-    (rows: { rawDto: EducacaoContratoDTO }[]) => {
-      setContratosVisiveis(rows.map((row) => row.rawDto));
-    },
-    [],
-  );
-
-  const totaisContratos = useMemo(() => {
-    const base = contratosVisiveis ?? contratos;
-    return {
-      empenhado: base.reduce((acc, c) => acc + (c.totalEmpenhado || 0), 0),
-      liquidado: base.reduce((acc, c) => acc + (c.totalLiquidado || 0), 0),
-      pago: base.reduce((acc, c) => acc + (c.totalPago || 0), 0),
-      saldoPendente: base.reduce((acc, c) => acc + (c.saldoAPagar || 0), 0),
-    };
-  }, [contratosVisiveis, contratos]);
-
-  // Estrutura de dados enriquecida para a tabela idêntica à de Contratos de Serviços Vigentes
-  const tableData = useMemo(() => {
-    return contratos.map((c) => {
-      const contratoVigente = educacaoDtoToContratoServicoVigente(c);
-      const statusLabel = formatStatusExecucaoLabel(
-        contratoVigente.statusExecucao,
-      );
-
-      const vigenciaFormatada = (() => {
-        if (c.dataInicio && c.vencimentoAtual) {
-          return `${fmtDate(c.dataInicio)} – ${fmtDate(c.vencimentoAtual)}`;
-        }
-        if (c.vencimentoAtual) {
-          return `Até ${fmtDate(c.vencimentoAtual)}`;
-        }
-        if (c.dataInicio) {
-          return `A partir de ${fmtDate(c.dataInicio)}`;
-        }
-        return "—";
-      })();
-
-      return {
-        ...contratoVigente,
-        rawDto: c,
-        statusLabel,
-        vigenciaFormatada,
-      };
-    });
-  }, [contratos]);
-
-  // Colunas rigorosamente no mesmo formato e ordem da página canônica de Contratos
-  const columns: Column<(typeof tableData)[number]>[] = [
-    {
-      header: "Fornecedor",
-      accessorKey: "fornecedorNome",
-      sortable: true,
-      className: "min-w-[180px] max-w-[220px]",
-      renderCell: (row) => (
-        <div data-testid={`contrato-row-${row.contratoNumero}`}>
-          <button
-            type="button"
-            onClick={() => handleOpenContrato(row.rawDto)}
-            className="cursor-pointer text-left font-medium text-slate-900 hover:text-blue-600 hover:underline"
-            title="Ver detalhes do contrato"
-          >
-            {row.fornecedorNome}
-          </button>
-        </div>
-      ),
-    },
-    {
-      header: "Objeto",
-      accessorKey: "objetoDescricao",
-      sortable: true,
-      className: "min-w-[220px] max-w-[320px]",
-      renderCell: (row) => (
-        <div className="space-y-1">
-          <p
-            className="line-clamp-2 font-normal text-slate-700 text-xs leading-relaxed"
-            title={row.objetoDescricao}
-          >
-            {row.objetoDescricao || "—"}
-          </p>
-          <button
-            type="button"
-            onClick={() => handleOpenContrato(row.rawDto)}
-            className="inline-flex cursor-pointer items-center gap-1 font-medium text-blue-600 text-xs hover:text-blue-800 hover:underline"
-            title="Abrir detalhes completos do contrato"
-          >
-            <span>Detalhes</span>
-          </button>
-        </div>
-      ),
-    },
-    {
-      header: "Status",
-      accessorKey: "statusLabel",
-      sortable: true,
-      align: "center",
-      className: "whitespace-nowrap font-medium text-slate-700 text-xs",
-    },
-    {
-      header: "Vigência",
-      accessorKey: "vigenciaFormatada",
-      sortable: true,
-      align: "center",
-      className: "whitespace-nowrap font-medium text-slate-600",
-    },
-    {
-      header: "Empenhado",
-      footer: fmtCurrency(totaisContratos.empenhado),
-      accessorKey: "totalEmpenhado",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-    {
-      header: "Liquidado",
-      footer: fmtCurrency(totaisContratos.liquidado),
-      accessorKey: "totalLiquidado",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-    {
-      header: "Pago",
-      footer: fmtCurrency(totaisContratos.pago),
-      accessorKey: "totalPago",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-    {
-      header: "Saldo Pendente",
-      footer: fmtCurrency(totaisContratos.saldoPendente),
-      accessorKey: "saldoPendente",
-      format: "currency",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-    {
-      header: "% Pago",
-      accessorKey: "percentualPago",
-      format: "percent",
-      align: "right",
-      sortable: true,
-      isSerifNumeric: true,
-    },
-  ];
-
   const contratosDaCategoria = useMemo(
     () =>
       categoriaAberta
@@ -292,100 +165,65 @@ export function EducacaoContratosSection({
     return educacaoDtoToContratoServicoVigente(selectedContratoDto);
   }, [selectedContratoDto]);
 
+  /** Da maior para a menor categoria em valor de contrato. */
+  const categoriasPorValor = [...CATEGORIAS_ORDENADAS].sort(
+    (a, b) =>
+      totaisPorCategoria[b].valorContrato - totaisPorCategoria[a].valorContrato,
+  );
+
   return (
-    <section
-      id="contratos-educacao"
-      aria-label="Contratos e Compras da Educação"
-      className="space-y-6"
-    >
-      <SectionHeader
-        title={`Contratos e Compras da Educação${ano ? ` · Exercício ${ano}` : ""}`}
-        description={
-          <span>
-            Auditoria dos contratos da pasta de ensino vigentes no exercício:
-            merenda escolar (
-            <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l11947.htm"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
-              aria-label="Texto oficial da Lei nº 11.947/2009 (PNAE) no Planalto"
-            >
-              Lei nº 11.947/2009 (PNAE)
-              <ExternalLink className="inline h-3 w-3" />
-            </a>
-            ), transporte escolar (
-            <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l10.880.htm"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
-              aria-label="Texto oficial da Lei nº 10.880/2004 (PNATE) no Planalto"
-            >
-              Lei nº 10.880/2004 (PNATE)
-              <ExternalLink className="inline h-3 w-3" />
-            </a>
-            ), locação de imóveis (
-            <a
-              href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art74v"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-900"
-              aria-label="Texto oficial da Lei nº 14.133/2021, Art. 74, V (Locação de Imóveis) no Planalto"
-            >
-              Lei nº 14.133/2021, Art. 74, V
-              <ExternalLink className="inline h-3 w-3" />
-            </a>
-            ), manutenção das escolas e suprimentos operacionais.
-          </span>
-        }
-      />
-
-      {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
-        {CATEGORIAS_ORDENADAS.map((categoria, indice) => (
-          <CategoriaContratoCard
-            key={categoria}
-            categoria={categoria}
-            totais={totaisPorCategoria[categoria]}
-            onOpen={setCategoriaAberta}
-            className={cn(
-              "md:col-span-2",
-              indice === CATEGORIAS_ORDENADAS.length - 1 && "col-span-2",
-            )}
-          />
-        ))}
-      </div>
-      {contratos.length === 0 && (
-        <p className="text-slate-500 text-sm">
-          Nenhum contrato registrado no exercício.
-        </p>
-      )}
-
-      {/* Tabela completa: apenas em md+ */}
-      {contratos.length > 0 && (
-        <div className="hidden space-y-3 md:block">
-          <h3 className="font-semibold font-serif text-lg text-slate-900">
-            Ver todos os contratos
-          </h3>
-          <DenseTable
-            data={tableData}
-            columns={columns}
-            searchPlaceholder="Buscar por fornecedor, CNPJ ou objeto..."
-            searchableKeys={[
-              "contratoNumero",
-              "fornecedorNome",
-              "fornecedorCnpj",
-              "objetoDescricao",
-            ]}
-            pageSize={10}
-            sortable={true}
-            enableExportCsv={true}
-            exportFilename="contratos_educacao.csv"
-            rowKey="contratoServicoId"
-            onFilteredDataChange={handleFilteredDataChange}
-          />
+    <>
+      <SectionWithHeader
+        id="contratos-educacao"
+        ariaLabel="Como o Fundo contrata"
+        title={tituloDoExercicio(
+          pickTense(
+            isCurrentYear,
+            "Como o Fundo contrata",
+            "Como o Fundo contratou",
+          ),
+          ano,
+        )}
+        summary={resumoCategorias}
+        description={`Contratos vigentes em ${ano}: merenda, transporte escolar, locação de imóveis e manutenção das escolas.`}
+      >
+        {/* Grade de categorias: 2 colunas no mobile, 3 + 2 no desktop */}
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
+          {categoriasPorValor.map((categoria, indice) => (
+            <CategoriaContratoCard
+              key={categoria}
+              categoria={categoria}
+              totais={totaisPorCategoria[categoria]}
+              onOpen={setCategoriaAberta}
+              className={cn(
+                "md:col-span-2",
+                indice === categoriasPorValor.length - 1 && "col-span-2",
+              )}
+            />
+          ))}
         </div>
+        {contratos.length === 0 && (
+          <p className="text-mute text-sm">
+            Nenhum contrato registrado no exercício.
+          </p>
+        )}
+        <LinhaLeiEFonte laws={[LEI_MERENDA, LEI_TRANSPORTE, LEI_LOCACAO]} />
+      </SectionWithHeader>
+
+      {/* Tabela completa: linha compacta com detalhe expansível (padrão das licitações em aberto) */}
+      {contratos.length > 0 && (
+        <SectionWithHeader
+          id="todos-contratos-educacao"
+          title="Ver todos os contratos"
+          summary={resumoContratos}
+          defaultOpen={Boolean(initialContratoNumero)}
+        >
+          <ContratosTabela
+            contratos={contratos}
+            onOpenContrato={handleOpenContrato}
+            exportFilename="contratos_educacao.csv"
+          />
+        </SectionWithHeader>
       )}
 
       {/* Modal de lista da categoria (z-50); detalhes por cima (z-[60]) */}
@@ -399,13 +237,8 @@ export function EducacaoContratosSection({
           categoriaAberta ? formatCategoriaLabel(categoriaAberta) : ""
         }
         contratos={contratosDaCategoria}
-        valorTotal={
-          categoriaAberta
-            ? totaisPorCategoria[categoriaAberta].valorContrato
-            : 0
-        }
+        laws={categoriaAberta ? LEIS_DA_CATEGORIA[categoriaAberta] : undefined}
         onSelectContrato={handleOpenContrato}
-        detalheAberto={selectedContratoDto !== null}
       />
 
       {/* Modal Canônico de Detalhes 360° do Contrato Reutilizado */}
@@ -425,6 +258,6 @@ export function EducacaoContratosSection({
           ) : undefined
         }
       />
-    </section>
+    </>
   );
 }

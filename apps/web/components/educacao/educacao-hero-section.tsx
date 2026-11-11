@@ -1,170 +1,126 @@
-import { fmtCompact, KPICard } from "@transparencia/ui";
-import { Users } from "lucide-react";
-import type { TrofeuCivicoKPIs } from "@/app/[portalSlug]/educacao/view-model";
-import { KPIGrid } from "@/components/kpi-grid";
+import type {
+  AlunosRedeView,
+  AprendizadoEtapa,
+  EducacaoExecucaoAnoView,
+  MinimosLegaisView,
+  ValorPorAlunoView,
+} from "@/app/[portalSlug]/educacao/view-model";
+import {
+  LeiLink,
+  type LeiLinkProps,
+  LinhaLeiEFonte,
+} from "@/components/lei-e-fonte";
+import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
+import { DestaqueIdeb, DestaqueMinimo } from "./educacao-destaques";
+import {
+  EducacaoEmendasResumo,
+  type EducacaoEmendasResumoProps,
+} from "./educacao-emendas-resumo";
+import { EducacaoIndicadoresApoio } from "./educacao-indicadores-apoio";
+import { EducacaoMemoriaCalculo } from "./educacao-memoria-calculo";
+import { FONTE_SIOPE } from "./educacao-textos";
 
 export interface EducacaoHeroSectionProps {
-  selectedYear: number;
-  trofeuCivico: TrofeuCivicoKPIs;
+  ano: number;
+  isCurrentYear: boolean;
+  partialPeriod: string;
+  minimosLegais: MinimosLegaisView;
+  execucao: EducacaoExecucaoAnoView;
+  /** Portal de transparência oficial da Prefeitura (do banco); sem ele a fonte fica sem link. */
+  portalUrl: string | null;
+  valorPorAluno: ValorPorAlunoView;
+  alunosRede: AlunosRedeView | null;
+  aprendizado: { anosIniciais: AprendizadoEtapa; anosFinais: AprendizadoEtapa };
+  /** Resumo das emendas no topo; `null` quando o município não tem emendas na educação. */
+  emendasResumo?: EducacaoEmendasResumoProps["emendas"] | null;
 }
 
+const leiDoMinimo = (minimo: MinimosLegaisView["mde"]): LeiLinkProps[] =>
+  minimo.baseLegal && minimo.urlBaseLegal
+    ? [{ label: minimo.baseLegal, url: minimo.urlBaseLegal }]
+    : [];
+
+/** Topo: os dois mínimos constitucionais, valor por aluno e alunos, o IDEB das duas etapas e a lei com a fonte à vista. */
 export function EducacaoHeroSection({
-  selectedYear,
-  trofeuCivico,
+  ano,
+  isCurrentYear,
+  partialPeriod,
+  minimosLegais,
+  execucao,
+  portalUrl,
+  valorPorAluno,
+  alunosRede,
+  aprendizado,
+  emendasResumo = null,
 }: EducacaoHeroSectionProps) {
-  const notaAtualFmt = (() => {
-    if (trofeuCivico.notaAtual === null) return "—";
-    return trofeuCivico.notaAtual.toLocaleString("pt-BR", {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    });
-  })();
-
-  const notaAnteriorFmt = (() => {
-    if (trofeuCivico.notaAnterior === null) return "—";
-    return trofeuCivico.notaAnterior.toLocaleString("pt-BR", {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    });
-  })();
-
-  const crescimentoConfig = (() => {
-    if (trofeuCivico.crescimentoPontos === null) return null;
-    const pts = trofeuCivico.crescimentoPontos;
-    const ptsFmt = Math.abs(pts).toLocaleString("pt-BR", {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    });
-
-    if (pts > 0) {
-      return {
-        text: `+${ptsFmt} ponto`,
-        isPositive: true,
-      };
-    }
-    if (pts < 0) {
-      return {
-        text: `-${ptsFmt} ponto`,
-        isPositive: false,
-      };
-    }
-    return {
-      text: "0,0 ponto",
-      isPositive: true,
-    };
-  })();
+  const { mde, fundebProfissionais } = minimosLegais;
 
   return (
-    <section
-      aria-label="Destaque e Indicadores Gerais da Educação"
-      className="space-y-8"
-    >
-      {/* Grid Hero Canônico: Narrativa Editorial à esquerda + Destaque Cívico à direita */}
-      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
-        {/* Coluna Esquerda: Narrativa Editorial no Padrão de Temas */}
-        <div className="space-y-4 lg:col-span-7">
-          <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
-            {trofeuCivico.eyebrowLabel}
-          </span>
-
-          <h1 className="font-bold font-serif text-3xl text-slate-900 leading-tight tracking-tight sm:text-4xl">
-            Do aprendizado aos recursos:{" "}
-            <span className="text-accent">acompanhe a evolução do IDEB</span> e
-            o rigor fiscal da educação no município.
-          </h1>
-
-          <p className="text-slate-600 text-sm leading-relaxed sm:text-base">
-            Monitoramento auditável da evolução pedagógica (série histórica do
-            IDEB, proficiências SAEB e fluxo de aprovação apurados pelo
-            INEP/MEC) integrada aos recursos orçamentários da Educação e aos
-            contratos de fornecimento da merenda escolar (PNAE), transporte
-            (PNATE) e infraestrutura da rede municipal.
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h1>Educação: quanto a Prefeitura investe e se as crianças aprendem</h1>
+        {isCurrentYear && (
+          <p
+            role="note"
+            className="caption border-brand-fill border-l-[3px] pl-3"
+          >
+            <strong className="font-semibold text-ink">
+              Ano em andamento:
+            </strong>{" "}
+            os números são parciais e não dá para compará-los com anos já
+            fechados.
           </p>
-        </div>
-
-        {/* Coluna Direita: Card Visual de Destaque Cívico / Conquista Escolar */}
-        <div
-          className="rounded-[14px] border border-[#e7e9ee] bg-white p-6 shadow-xs lg:col-span-5"
-          data-testid="trofeu-civico-card"
-        >
-          <div className="flex items-center justify-between gap-2 border-slate-100 border-b pb-3">
-            <span className="inline-block rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-slate-700 text-xs">
-              Ciclo Oficial INEP/MEC {trofeuCivico.anoBaseIdeb}
-            </span>
-            <span className="font-semibold text-slate-500 text-xs uppercase tracking-wider">
-              Indicador Oficial
-            </span>
-          </div>
-
-          <h2 className="mt-4 font-bold font-serif text-slate-900 text-xl leading-snug sm:text-2xl">
-            {trofeuCivico.destaqueBadgeTexto}
-          </h2>
-
-          <p className="mt-3 text-slate-600 text-xs leading-relaxed">
-            Indicador oficial apurado pelo INEP/MEC que combina o rendimento
-            escolar (taxas de aprovação no Censo) com as médias de desempenho em
-            Língua Portuguesa e Matemática apuradas pelo Saeb.
-          </p>
-
-          {trofeuCivico.totalMatriculas !== null && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700 text-xs">
-              <Users
-                className="h-4 w-4 shrink-0 text-slate-500"
-                aria-hidden="true"
-              />
-              <span>
-                <strong className="font-semibold text-slate-900">
-                  {trofeuCivico.totalMatriculas.toLocaleString("pt-BR")} alunos
-                  matriculados
-                </strong>{" "}
-                na rede municipal (Censo Escolar {selectedYear})
-              </span>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* KPIs Canônicos em Grid de 4 Colunas */}
-      <KPIGrid columns={4}>
-        <KPICard
-          title={`Nota IDEB ${trofeuCivico.anoBaseIdeb}`}
-          value={notaAtualFmt}
-          subtext="Anos Iniciais da Rede Municipal"
-          trend={
-            crescimentoConfig
-              ? {
-                  value: crescimentoConfig.text,
-                  isPositive: crescimentoConfig.isPositive,
-                }
-              : undefined
-          }
+      <section
+        aria-label={`Mínimos constitucionais da educação em ${ano}`}
+        data-testid="educacao-resumo-destaque"
+        className="space-y-4"
+      >
+        <p className="eyebrow">
+          Dados de {ano}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </p>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <DestaqueMinimo view={minimosLegais} kind="mde" />
+          <DestaqueMinimo view={minimosLegais} kind="fundebProfissionais" />
+        </div>
+      </section>
+
+      <EducacaoIndicadoresApoio
+        valorPorAluno={valorPorAluno}
+        alunosRede={alunosRede}
+      />
+
+      <section
+        aria-label="Nota do IDEB"
+        className="grid grid-cols-1 gap-8 md:grid-cols-2"
+      >
+        <DestaqueIdeb etapa={aprendizado.anosIniciais} />
+        <DestaqueIdeb etapa={aprendizado.anosFinais} />
+      </section>
+
+      <LinhaLeiEFonte
+        laws={[...leiDoMinimo(mde), ...leiDoMinimo(fundebProfissionais)]}
+        source={<LeiLink label={FONTE_SIOPE} url={FONTES_OFICIAIS.siope.url} />}
+      />
+
+      <EducacaoMemoriaCalculo
+        ano={ano}
+        isCurrentYear={isCurrentYear}
+        partialPeriod={partialPeriod}
+        execucao={execucao}
+        portalUrl={portalUrl}
+      />
+
+      {emendasResumo && (
+        <EducacaoEmendasResumo
+          emendas={emendasResumo}
+          hrefSecaoCompleta="#emendas-educacao"
+          portalUrl={portalUrl}
         />
-        <KPICard
-          title="Ciclo Anterior"
-          value={notaAnteriorFmt}
-          subtext={
-            trofeuCivico.notaAnterior !== null
-              ? `Referência anterior (${trofeuCivico.anoBaseIdeb - 2})`
-              : "Primeiro ciclo apurado"
-          }
-        />
-        <KPICard
-          title="Classificação Estadual"
-          value={trofeuCivico.rankingPosicaoLabel}
-          subtext={trofeuCivico.rankingSubtext}
-          trend={trofeuCivico.rankingTrend}
-        />
-        <KPICard
-          title="Despesa na Educação"
-          value={
-            trofeuCivico.despesaTotalEducacao !== null
-              ? fmtCompact(trofeuCivico.despesaTotalEducacao)
-              : "—"
-          }
-          subtext={`Valor liquidado · Exercício ${selectedYear}`}
-          className="min-w-0"
-        />
-      </KPIGrid>
-    </section>
+      )}
+    </div>
   );
 }
