@@ -255,7 +255,7 @@ function ExtrasSaude({
         <FarmaciaBuscaForm {...propsBusca} />
         {(props.farmaciaExemplos ?? []).length > 0 && (
           <div className="caption flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-mute2">Mais procurados:</span>
+            <span className="text-mute2">Remédios comuns:</span>
             <ul className="contents">
               {(props.farmaciaExemplos ?? []).map((exemplo) => (
                 <li key={exemplo.codigoPrincipioAtivo}>

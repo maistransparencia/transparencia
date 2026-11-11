@@ -7,7 +7,7 @@ const exemplos = [
 ];
 
 describe("FarmaciaBuscaDestaque", () => {
-  it("formulario GET com campo q e chips de mais procurados", () => {
+  it("formulario GET com campo q e chips de remédios comuns", () => {
     render(<FarmaciaBuscaDestaque action="/p/farmacia" exemplos={exemplos} />);
     const form = screen.getByRole("form", { name: "Busca de remédios" });
     expect(form).toHaveAttribute("method", "get");
@@ -43,9 +43,9 @@ describe("FarmaciaBuscaDestaque", () => {
     ).toBeInTheDocument();
   });
 
-  it("sem exemplos nao mostra o rotulo de mais procurados", () => {
+  it("sem exemplos nao mostra o rotulo de remédios comuns", () => {
     render(<FarmaciaBuscaDestaque action="/p/farmacia" exemplos={[]} />);
-    expect(screen.queryByText("Mais procurados:")).toBeNull();
+    expect(screen.queryByText("Remédios comuns:")).toBeNull();
   });
 
   it("acompanha o termo quando o defaultValue muda (via key do pai)", () => {

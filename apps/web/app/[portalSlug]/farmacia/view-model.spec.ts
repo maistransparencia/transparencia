@@ -143,7 +143,7 @@ describe("buildFarmaciaViewModel", () => {
     expect(vazio.hasBuscaCurta).toBe(false);
   });
 
-  it("chips de mais procurados seguem o criterio das sentinelas de destaque", () => {
+  it("links de remédios comuns seguem o criterio das sentinelas de destaque", () => {
     const vm = buildFarmaciaViewModel(makeRaw({}));
     expect(vm.exemplos).toEqual([
       {
