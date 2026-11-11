@@ -212,6 +212,17 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     };
   })();
 
+  // Os limites valem para o Poder Executivo inteiro; com um órgão filtrado a barra induziria a comparar a parte com o todo.
+  const barraLimitesLrf =
+    isEntidadeFiltrada || !limites
+      ? null
+      : {
+          teto: limites.maximo,
+          prudencial: limites.prudencial,
+          tetoTexto: fmtLimite(limites.maximo),
+          prudencialTexto: fmtLimite(limites.prudencial),
+        };
+
   return {
     selectedYear,
     previousYear,
@@ -223,6 +234,7 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     servidoresTrend,
     folhaKpi,
     folhaTrend,
+    barraLimitesLrf,
     chefiasTrend,
     totalFolhaTrend,
     partialPeriod: getPartialYearPeriod(

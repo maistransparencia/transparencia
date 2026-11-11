@@ -133,6 +133,65 @@ describe("PessoalPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("promove o gasto com pessoal (LRF) ao lado do total pago, com barra do teto e do limite prudencial", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1000,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 47.16,
+            statusLrf: "normal",
+            limitesLrf: { maximo: 54, prudencial: 51.3, alerta: 48.6 },
+          },
+        ],
+      }),
+    );
+    render(await PessoalPage(props));
+
+    const destaque = screen.getByTestId("pessoal-lrf-destaque");
+    expect(destaque).toHaveTextContent("Gasto com Pessoal (LRF)");
+    expect(destaque.querySelector(".stat-value-lg")?.textContent).toBe(
+      "47,16%",
+    );
+    expect(destaque).toHaveTextContent("Gasto: 47,16%");
+    expect(destaque).toHaveTextContent("Teto da LRF: 54%");
+    expect(destaque).toHaveTextContent("Limite prudencial: 51,3%");
+    const barra = screen.getByRole("meter", {
+      name: "Gasto com pessoal sobre a receita corrente líquida",
+    });
+    expect(barra.getAttribute("aria-valuenow")).toBe("47.16");
+  });
+
+  it("com órgão filtrado não desenha a barra de limites", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: false,
+          entidadesIds: ["1"],
+        },
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1000,
+            totalPago: 900,
+            rclProxy: 2000,
+            percentualFolha: 20,
+            statusLrf: "normal",
+            limitesLrf: { maximo: 54, prudencial: 51.3, alerta: 48.6 },
+          },
+        ],
+      }),
+    );
+    render(await PessoalPage(props));
+
+    expect(screen.getByTestId("pessoal-lrf-destaque")).toBeInTheDocument();
+    expect(screen.queryByRole("meter")).not.toBeInTheDocument();
+  });
+
   it("renderiza indicadores de tendência YoY nos KPICards quando há histórico do ano anterior", async () => {
     loadPessoalDataMock.mockResolvedValue(
       makeRaw({
