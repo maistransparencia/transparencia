@@ -1,4 +1,10 @@
-import { fmtCompact, SectionHeader } from "@transparencia/ui";
+import {
+  fmtCompact,
+  fmtPercent,
+  SectionHeader,
+  ThresholdMeter,
+} from "@transparencia/ui";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import type { Metadata } from "next";
 import { CarrosChefeArrecadacao } from "@/components/carros-chefe-arrecadacao";
 import { EmendasCard } from "@/components/emendas-card";
@@ -53,7 +59,7 @@ export default async function ReceitasPage({
     totalPrev,
     pctArrecadadoAnual,
     origensData,
-    variationText,
+    comparacaoArrecadacao,
     cardDependencia,
   } = viewModel;
 
@@ -87,46 +93,55 @@ export default async function ReceitasPage({
           <p className="stat-value-lg text-brand-text">
             {fmtCompact(totalArr)}
           </p>
-          <p className="caption">
-            {isCurrentYear
-              ? `arrecadado no período (${partialPeriod || "até agora"})`
-              : `exercício ${selectedYear}`}
+          <p className="caption space-y-0.5">
+            <span className="block">
+              {isCurrentYear
+                ? `arrecadado no período (${partialPeriod || "até agora"})`
+                : `exercício ${selectedYear}`}
+            </span>
+            {comparacaoArrecadacao && (
+              <span className="flex items-center gap-1">
+                {comparacaoArrecadacao.direcao === "alta" && (
+                  <ArrowUp
+                    className="h-3.5 w-3.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                )}
+                {comparacaoArrecadacao.direcao === "queda" && (
+                  <ArrowDown
+                    className="h-3.5 w-3.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                )}
+                {comparacaoArrecadacao.texto}
+              </span>
+            )}
           </p>
         </div>
 
-        <div className="space-y-1.5">
-          <div
-            className="h-3.5 w-full overflow-hidden bg-track"
-            role="progressbar"
-            aria-valuenow={Math.round(percentualArrecadadoLimitado)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Quanto da previsão já foi arrecadado"
-          >
-            <div
-              className="h-full bg-brand-fill transition-all duration-500"
-              style={{ width: `${percentualArrecadadoLimitado}%` }}
+        {totalPrev > 0 ? (
+          <div className="space-y-2">
+            <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
+              <span>
+                Já arrecadado: {fmtPercent(pctArrecadadoAnual)} do previsto
+              </span>
+              <span>Previsto para o ano: {fmtCompact(totalPrev)}</span>
+            </p>
+            <ThresholdMeter
+              value={percentualArrecadadoLimitado}
+              label="Quanto da previsão já foi arrecadado"
+              valueText={`${fmtPercent(pctArrecadadoAnual)} da previsão arrecadados`}
             />
+            <p className="caption">
+              {fmtCompact(totalArr)}{" "}
+              {totalArr > totalPrev ? "arrecadados, acima dos" : "dos"}{" "}
+              {fmtCompact(totalPrev)} previstos na Lei Orçamentária Anual (LOA)
+              de {selectedYear}.
+            </p>
           </div>
-        </div>
-
-        <dl className="divide-y divide-line border-line border-y text-sm">
-          <div className="flex items-baseline justify-between gap-4 py-2">
-            <dt className="text-mute2">Já arrecadado da previsão</dt>
-            <dd className="numeric font-semibold text-ink">
-              {pctArrecadadoAnual.toFixed(1).replace(".", ",")}%
-            </dd>
-          </div>
-          <div className="flex items-baseline justify-between gap-4 py-2">
-            <div>
-              <dt className="text-mute2">Previsto para o ano (LOA)</dt>
-              <dd className="caption">{variationText}</dd>
-            </div>
-            <dd className="numeric font-semibold text-ink">
-              {fmtCompact(totalPrev)}
-            </dd>
-          </div>
-        </dl>
+        ) : (
+          <p className="caption">Previsão do ano não informada.</p>
+        )}
       </section>
 
       <EmendasCard

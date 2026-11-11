@@ -278,6 +278,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardComiss.tipoMetodologia).toBe("estoque");
     expect(cardComiss.grauSeveridade).toBe("critico");
     expect(cardComiss.badgeSeveridade?.label).toBe("Atenção Especial");
+    expect(cardComiss.badgeSeveridade?.badgeVariant).toBe("danger");
     expect(cardComiss.textoFactual).toContain(
       "165 cargos comissionados ativos",
     );
@@ -307,6 +308,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardSaude.titulo).toBe("Aporte Expressivo em Saúde");
     expect(cardSaude.metodologiaBadge).toBe("Histórico Jan a Ago");
     expect(cardSaude.badgeSeveridade?.label).toBe("Aporte Relevante");
+    expect(cardSaude.badgeSeveridade?.badgeVariant).toBe("accent");
     expect(cardSaude.tipoMetodologia).toBe("homologa");
     expect(cardSaude.textoFactual).toContain(
       "área de Saúde totalizaram R$ 15,2 mi",
@@ -321,6 +323,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardDispensa.titulo).toBe("Compras sem Licitação");
     expect(cardDispensa.metodologiaBadge).toBe("Histórico Jan a Ago");
     expect(cardDispensa.badgeSeveridade?.label).toBe("Acompanhamento");
+    expect(cardDispensa.badgeSeveridade?.badgeVariant).toBe("default");
     expect(cardDispensa.tipoMetodologia).toBe("homologa");
     expect(cardDispensa.textoFactual).toContain(
       "48.5% dos processos de contratação foram realizados por dispensa",

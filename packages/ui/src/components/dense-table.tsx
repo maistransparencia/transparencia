@@ -507,7 +507,7 @@ export function DenseTable<T extends Record<string, any>>({
                   : ""
               }
               onChange={(e) => handleMobileSortKeyChange(e.target.value)}
-              className="min-w-0 flex-1 rounded-md border border-line bg-page px-2 py-1.5 text-ink text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="min-w-0 flex-1 cursor-pointer rounded-md border border-line bg-page px-2 py-1.5 text-ink text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               <option value="">Ordem padrão</option>
               {mobileSortableColumns.map((col) => (

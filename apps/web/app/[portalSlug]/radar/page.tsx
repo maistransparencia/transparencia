@@ -1,7 +1,6 @@
-import { Indicator, IndicatorPanel, SectionHeader } from "@transparencia/ui";
+import { SectionHeader } from "@transparencia/ui";
 import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
-import { PageEyebrow } from "@/components/page-eyebrow";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadRadarData } from "./loader";
@@ -40,15 +39,12 @@ export default async function RadarPage({
   const resolvedSearchParams = await searchParams;
   const rawData = await loadRadarData(portalSlug, resolvedSearchParams);
   const viewModel = buildRadarHistoricoViewModel(rawData);
-  const { portalName, totalAlertasGeral, secoes, hasAlertas, emptyState } =
-    viewModel;
+  const { portalName, secoes, hasAlertas, emptyState } = viewModel;
 
   return (
     <div className="w-full space-y-6 pb-12">
       {/* Cabeçalho da Página */}
       <div className="flex flex-col gap-2">
-        <PageEyebrow>Controle Social e Auditoria Fiscal</PageEyebrow>
-
         <h1>Radar Cívico Municipal</h1>
         <p className="lead max-w-none">
           Há algum gasto ou situação em {portalName} que merece um olhar mais
@@ -57,18 +53,6 @@ export default async function RadarPage({
           município ao longo dos anos.
         </p>
       </div>
-
-      {hasAlertas && (
-        <IndicatorPanel tone="brand">
-          <Indicator
-            label={
-              totalAlertasGeral === 1 ? "Alerta apurado" : "Alertas apurados"
-            }
-            value={totalAlertasGeral}
-            note="em todo o histórico"
-          />
-        </IndicatorPanel>
-      )}
 
       {/* Navegação Rápida / Barra de Âncoras por Exercício */}
       {hasAlertas && secoes.length > 1 && (

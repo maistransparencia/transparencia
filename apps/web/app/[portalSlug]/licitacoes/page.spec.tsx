@@ -389,17 +389,20 @@ describe("LicitacoesPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza a barra de busca global de licitações e contratos no hero", async () => {
+  it("renderiza a barra de busca no topo, antes dos destaques", async () => {
     loadLicitacoesDataMock.mockResolvedValue(makeRaw());
 
     const element = await LicitacoesPage(props);
     render(element);
 
+    const busca = screen.getByRole("button", {
+      name: /abrir busca global de licitações e contratos/i,
+    });
+    const destaque = screen.getByTestId("licitacoes-destaque");
     expect(
-      screen.getByRole("button", {
-        name: /abrir busca global de licitações e contratos/i,
-      }),
-    ).toBeInTheDocument();
+      busca.compareDocumentPosition(destaque) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("renderiza a seção de contratos de serviços vigentes quando há contratos nos dados", async () => {

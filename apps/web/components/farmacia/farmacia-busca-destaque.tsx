@@ -10,7 +10,7 @@ export interface FarmaciaBuscaDestaqueProps {
   exemplos: { nomePrincipioAtivo: string; href: string }[];
 }
 
-/** Busca protagonista: formulário GET (`?q=`) com botão de limpar e atalhos "Mais procurados". */
+/** Busca protagonista: formulário GET (`?q=`) com botão de limpar e atalhos "Remédios comuns". */
 export function FarmaciaBuscaDestaque({
   action,
   defaultValue = "",
@@ -63,7 +63,7 @@ export function FarmaciaBuscaDestaque({
       </form>
       {exemplos.length > 0 && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <span className="text-[13px] text-mute2">Mais procurados:</span>
+          <span className="text-[13px] text-mute2">Remédios comuns:</span>
           {exemplos.map((exemplo) => (
             <Link
               key={exemplo.nomePrincipioAtivo}

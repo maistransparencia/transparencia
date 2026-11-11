@@ -145,6 +145,12 @@ describe("FarmaciaSentinelas", () => {
     );
     expect(screen.getByText("Como ler esta lista")).toBeInTheDocument();
     expect(
+      screen
+        .getByText("Como ler esta lista")
+        .closest("summary")
+        ?.querySelector("svg"),
+    ).not.toBeNull();
+    expect(
       screen.getByRole("link", { name: /RENAME, edição 2024/ }),
     ).toHaveAttribute("target", "_blank");
   });

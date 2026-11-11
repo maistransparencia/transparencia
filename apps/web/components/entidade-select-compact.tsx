@@ -103,18 +103,18 @@ export function EntidadeSelectCompact({
 
   const { label: triggerLabel, isFiltered } = (() => {
     if (!hasOptions) {
-      return { label: "Nenhuma entidade", isFiltered: false };
+      return { label: "Nenhum órgão", isFiltered: false };
     }
     if (isAllSelected) {
-      return { label: "Consolidado", isFiltered: false };
+      return { label: "Todos os órgãos", isFiltered: false };
     }
     if (validSelected.length === 1) {
       const found = entidades.find((opt) => opt.id === validSelected[0]);
-      const friendlyName = found ? toTitleCase(found.nome) : "1 entidade";
+      const friendlyName = found ? toTitleCase(found.nome) : "1 órgão";
       return { label: friendlyName, isFiltered: true };
     }
     return {
-      label: `${validSelected.length} entidades`,
+      label: `${validSelected.length} órgãos`,
       isFiltered: true,
     };
   })();
@@ -135,7 +135,7 @@ export function EntidadeSelectCompact({
         onClick={() => !isBtnDisabled && setIsOpen(!isOpen)}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-label={`${triggerLabel}, filtrar entidades públicas municipais`}
+        aria-label={`${triggerLabel}, escolher órgãos do município`}
         className={cn(
           "relative flex min-h-[24px] w-full cursor-pointer appearance-none items-center pr-5 pl-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5",
           isBtnDisabled && "cursor-not-allowed opacity-60",
@@ -163,19 +163,19 @@ export function EntidadeSelectCompact({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Perímetro Institucional"
+          aria-label="Órgãos do município"
           className="absolute top-full right-4 left-4 z-50 mt-1.5 rounded-lg border border-line bg-page p-2 shadow-lg sm:right-auto sm:-left-20 sm:w-80"
         >
           {/* Cabeçalho do Popover com Resumo do Escopo Atual */}
           <div className="mb-1.5 flex items-center justify-between gap-2 border-line border-b pb-1.5">
             <div>
               <span className="block font-semibold text-[10px] text-mute2 uppercase tracking-wider">
-                Perímetro Institucional
+                Órgãos do município
               </span>
               <span className="text-[11px] text-mute">
                 {isAllSelected
-                  ? "Consolidado"
-                  : `${validSelected.length} de ${entidades.length} selecionadas`}
+                  ? "Todos selecionados"
+                  : `${validSelected.length} de ${entidades.length} selecionados`}
               </span>
             </div>
             <button
@@ -188,7 +188,7 @@ export function EntidadeSelectCompact({
                   : "text-mute2 hover:text-ink",
               )}
             >
-              Todas (Consolidado)
+              Marcar todos
             </button>
           </div>
 

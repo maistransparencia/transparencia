@@ -1,7 +1,7 @@
 "use client";
 
 import type { ResumoObrasDTO } from "@transparencia/db";
-import { ShareButton, ThresholdMeter } from "@transparencia/ui";
+import { Badge, ShareButton, ThresholdMeter } from "@transparencia/ui";
 import {
   ArrowDown,
   ArrowRight,
@@ -254,18 +254,22 @@ function ExtrasSaude({
       <div className="space-y-2">
         <FarmaciaBuscaForm {...propsBusca} />
         {(props.farmaciaExemplos ?? []).length > 0 && (
-          <ul className="flex flex-wrap gap-2">
-            {(props.farmaciaExemplos ?? []).map((exemplo) => (
-              <li key={exemplo.codigoPrincipioAtivo}>
-                <Link
-                  href={exemplo.href}
-                  className="caption inline-flex min-h-8 items-center rounded-md border border-line px-3 text-brand hover:border-mute3 hover:underline"
-                >
-                  {exemplo.nomePrincipioAtivo}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="caption flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-mute2">Remédios comuns:</span>
+            {/* biome-ignore lint/a11y/noRedundantRoles: display: contents apaga a semântica de lista no Safari; o role explícito a devolve */}
+            <ul role="list" className="contents">
+              {(props.farmaciaExemplos ?? []).map((exemplo) => (
+                <li key={exemplo.codigoPrincipioAtivo}>
+                  <Link
+                    href={exemplo.href}
+                    className="inline-flex min-h-8 items-center text-brand-text underline underline-offset-2"
+                  >
+                    {exemplo.nomePrincipioAtivo}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     );
@@ -376,9 +380,7 @@ function SituacaoCard({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="eyebrow">{card.eyebrow}</p>
             {card.motivoAtencao && (
-              <span className="border border-warn-text/40 bg-warn-fill/10 px-2 py-0.5 font-semibold text-warn-text text-xs">
-                Merece atenção
-              </span>
+              <Badge variant="warning">Merece atenção</Badge>
             )}
           </div>
           <h3 className="mt-1">{card.pergunta}</h3>

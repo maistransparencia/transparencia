@@ -51,25 +51,25 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
         alert: false,
       };
     }
+    // A LRF mede 12 meses corridos; o acumulado de um ano parcial não serve para julgar o limite.
+    if (raw.context.isCurrentYear) {
+      return {
+        title: "Gasto com Pessoal (LRF)",
+        subtext: "",
+        alert: false,
+      };
+    }
     if (statusLrf === "excedido") {
       return {
         title: "Gasto com Pessoal (LRF)",
-        subtext: textoLimite(
-          (v) => `acima do teto de ${v}`,
-          "acima do teto da LRF",
-          limites?.maximo,
-        ),
+        subtext: "Acima do teto da lei.",
         alert: true,
       };
     }
     if (statusLrf === "prudencial") {
       return {
         title: "Gasto com Pessoal (LRF)",
-        subtext: textoLimite(
-          (v) => `acima do limite prudencial (${v})`,
-          "acima do limite prudencial",
-          limites?.prudencial,
-        ),
+        subtext: "Acima do limite prudencial.",
         alert: true,
       };
     }
@@ -77,8 +77,8 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
       return {
         title: "Gasto com Pessoal (LRF)",
         subtext: textoLimite(
-          (v) => `acima do limite de alerta (${v})`,
-          "acima do limite de alerta",
+          (v) => `Acima do limite de alerta (${v}).`,
+          "Acima do limite de alerta.",
           limites?.alerta,
         ),
         alert: true,
@@ -86,17 +86,17 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     }
     return {
       title: "Gasto com Pessoal (LRF)",
-      subtext: textoLimite(
-        (v) => `dentro dos limites da LRF (teto ${v})`,
-        "dentro dos limites da LRF",
-        limites?.maximo,
-      ),
+      subtext: "Dentro dos limites da lei.",
       alert: false,
     };
   })();
 
   const folhaTrend = (() => {
-    if (!previousYearRow || previousYearRow.totalFolha === 0) {
+    if (
+      raw.context.isCurrentYear ||
+      !previousYearRow ||
+      previousYearRow.totalFolha === 0
+    ) {
       return undefined;
     }
     const diff = Number(
@@ -181,16 +181,16 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
   });
 
   const headerDescription = isEntidadeFiltrada
-    ? "Quanto a folha de pagamento desta entidade pesa na receita do município, a receita corrente líquida (RCL), que soma o que o município arrecadou nos últimos 12 meses."
-    : "Quanto da receita do município vai para o pagamento de pessoal. A base é a receita corrente líquida (RCL), que soma o que o município arrecadou nos últimos 12 meses.";
+    ? "Quanto a folha de pagamento deste órgão pesa na receita do município."
+    : "Quanto a Prefeitura paga ao pessoal e quanto isso pesa na receita.";
 
   /** Continuação da frase "A Lei de Responsabilidade Fiscal ..." (a lei vira link na página). */
   const limitesLrfDescricao = (() => {
     if (!limites) return null;
     if (isEntidadeFiltrada) {
-      return `limita o gasto total com pessoal a ${fmtLimite(limites.maximo)} da RCL no Poder Executivo.`;
+      return `limita o gasto total com pessoal a ${fmtLimite(limites.maximo)} da receita do município.`;
     }
-    return `limita esse gasto a ${fmtLimite(limites.maximo)} da RCL no Poder Executivo; ${fmtLimite(limites.alerta)} é o limite de alerta e ${fmtLimite(limites.prudencial)}, o limite prudencial.`;
+    return `limita esse gasto a ${fmtLimite(limites.maximo)} da receita.`;
   })();
 
   const somaServidores = (itens: { totalProfissionais: number }[]) =>
@@ -212,6 +212,19 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     };
   })();
 
+  // Os limites valem para o Poder Executivo inteiro; com um órgão filtrado a barra induziria a comparar a parte com o todo.
+  const barraLimitesLrf =
+    isEntidadeFiltrada || !limites
+      ? null
+      : {
+          teto: limites.maximo,
+          prudencial: limites.prudencial,
+          tetoTexto: fmtLimite(limites.maximo),
+          prudencialTexto: fmtLimite(limites.prudencial),
+          // Sem veredito no ano parcial: os marcadores sugeririam comparar a estimativa com o limite.
+          exibirMarcadores: !raw.context.isCurrentYear,
+        };
+
   return {
     selectedYear,
     previousYear,
@@ -223,6 +236,10 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     servidoresTrend,
     folhaKpi,
     folhaTrend,
+    barraLimitesLrf,
+    notaEstimativaLrf: raw.context.isCurrentYear
+      ? "Conta parcial do portal; a lei mede 12 meses. O número oficial sai no Relatório de Gestão Fiscal."
+      : "Conta do portal. O número oficial sai no Relatório de Gestão Fiscal.",
     chefiasTrend,
     totalFolhaTrend,
     partialPeriod: getPartialYearPeriod(

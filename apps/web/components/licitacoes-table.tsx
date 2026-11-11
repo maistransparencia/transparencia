@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  Badge,
+  type BadgeVariant,
   type Column,
   cn,
   DenseTable,
@@ -41,18 +43,13 @@ export interface LicitacoesTableProps {
   className?: string;
 }
 
-function getModalidadeBadgeVariant(modalidadeStr?: string | null) {
+function getModalidadeBadgeVariant(
+  modalidadeStr?: string | null,
+): BadgeVariant {
   const mod = (modalidadeStr || "Dispensa").toLowerCase();
-  if (mod.includes("inexigibilidade")) {
-    return "border-brand text-brand";
-  }
-  if (mod.includes("dispensa")) {
-    return "border-warn-text text-warn-text";
-  }
-  if (mod.includes("pregã") || mod.includes("pregao")) {
-    return "border-ink text-ink";
-  }
-  return "border-line text-mute2";
+  if (mod.includes("inexigibilidade")) return "accent";
+  if (mod.includes("dispensa")) return "warning";
+  return "default";
 }
 
 export function LicitacoesTable({
@@ -123,14 +120,9 @@ export function LicitacoesTable({
         align: "center",
         exportValue: (row) => row.modalidade || "Dispensa",
         renderCell: (row) => (
-          <span
-            className={cn(
-              "inline-block rounded-md border px-2.5 py-0.5 font-semibold text-[11px]",
-              getModalidadeBadgeVariant(row.modalidade),
-            )}
-          >
+          <Badge variant={getModalidadeBadgeVariant(row.modalidade)}>
             {row.modalidade || "Dispensa"}
-          </span>
+          </Badge>
         ),
       },
       {

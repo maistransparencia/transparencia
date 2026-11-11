@@ -23,7 +23,7 @@ export function MultiSelect({
   options = [],
   selectedIds = [],
   onChange,
-  labelAll = "Todas as entidades",
+  labelAll = "Todos os órgãos",
   className,
   disabled = false,
 }: MultiSelectProps) {
@@ -95,7 +95,7 @@ export function MultiSelect({
 
   let displayText = labelAll;
   if (!hasOptions) {
-    displayText = "Nenhuma entidade cadastrada";
+    displayText = "Nenhum órgão cadastrado";
   } else if (!isAllSelected && selectedIds.length > 0) {
     if (selectedIds.length === 1) {
       const found = options.find((o) => o.id === selectedIds[0]);
@@ -119,7 +119,7 @@ export function MultiSelect({
           "flex min-h-[44px] w-full items-center justify-between rounded-md border border-line bg-page px-2.5 py-2 text-ink text-xs transition-colors sm:min-h-0",
           isBtnDisabled
             ? "cursor-not-allowed text-mute2 opacity-60"
-            : "hover:border-mute3 focus:border-ink focus:outline-none",
+            : "cursor-pointer hover:border-mute3 focus:border-ink focus:outline-none",
         )}
       >
         <span className="truncate pr-2 font-medium">{displayText}</span>

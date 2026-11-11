@@ -4,6 +4,7 @@ import {
   fmtPercent,
   Indicator,
   IndicatorPanel,
+  ThresholdMeter,
 } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
@@ -66,6 +67,8 @@ export default async function PessoalPage({
     servidoresTrend,
     folhaKpi,
     folhaTrend,
+    barraLimitesLrf,
+    notaEstimativaLrf,
     chefiasTrend,
     totalFolhaTrend,
   } = viewModel;
@@ -99,31 +102,85 @@ export default async function PessoalPage({
         </p>
       </div>
 
-      <section className="space-y-2" data-testid="pessoal-destaque">
-        <p className="eyebrow">Total pago em folha</p>
-        <p className="stat-value-lg text-brand-text">
-          {fmtCompact(currentYearRow.totalFolha)}
-        </p>
-        <p className="caption flex flex-wrap gap-x-3">
-          <span>
-            {isCurrentYear
-              ? `proventos brutos no período (${partialPeriod || "até agora"})`
-              : `proventos brutos, ${selectedYear}`}
-          </span>
-          {!isCurrentYear && totalFolhaTrend && (
-            <span>{totalFolhaTrend.value}</span>
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <section className="space-y-3" data-testid="pessoal-destaque">
+          <p className="eyebrow">Total pago em folha</p>
+          <p className="stat-value-lg text-brand-text">
+            {fmtCompact(currentYearRow.totalFolha)}
+          </p>
+          <p className="caption flex flex-wrap gap-x-3">
+            <span>
+              {isCurrentYear
+                ? `proventos brutos no período (${partialPeriod || "até agora"})`
+                : `proventos brutos, ${selectedYear}`}
+            </span>
+            {!isCurrentYear && totalFolhaTrend && (
+              <span>{totalFolhaTrend.value}</span>
+            )}
+          </p>
+        </section>
+
+        <section className="space-y-3" data-testid="pessoal-lrf-destaque">
+          <p className="eyebrow">{folhaKpi.title}</p>
+          <p
+            className={`stat-value-lg ${folhaKpi.alert ? "text-warn-text" : "text-brand-text"}`}
+          >
+            {fmtPercent(currentYearRow.percentualFolha)}
+          </p>
+          {barraLimitesLrf && (
+            <ThresholdMeter
+              value={currentYearRow.percentualFolha}
+              threshold={
+                barraLimitesLrf.exibirMarcadores
+                  ? barraLimitesLrf.teto
+                  : undefined
+              }
+              secondaryThreshold={
+                barraLimitesLrf.exibirMarcadores
+                  ? barraLimitesLrf.prudencial
+                  : undefined
+              }
+              label="Gasto com pessoal sobre a receita"
+              valueText={`${fmtPercent(currentYearRow.percentualFolha)} da receita${barraLimitesLrf.exibirMarcadores ? `; teto de ${barraLimitesLrf.tetoTexto}; limite prudencial de ${barraLimitesLrf.prudencialTexto}` : ""}`}
+            />
           )}
-        </p>
-      </section>
+          <p className="caption space-y-0.5">
+            {barraLimitesLrf?.exibirMarcadores && (
+              <span className="flex flex-wrap items-center gap-x-4">
+                <span className="flex items-center gap-x-2">
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-3 w-0.5 bg-ink"
+                  />
+                  Teto: {barraLimitesLrf.tetoTexto}
+                </span>
+                <span className="flex items-center gap-x-2">
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-3 w-0.5 bg-warn-fill"
+                  />
+                  Limite prudencial: {barraLimitesLrf.prudencialTexto}
+                </span>
+              </span>
+            )}
+            {(folhaKpi.subtext || folhaTrend) && (
+              <span className="flex flex-wrap gap-x-3">
+                {folhaKpi.subtext && <span>{folhaKpi.subtext}</span>}
+                {folhaTrend && (
+                  <span
+                    className={`font-semibold ${folhaTrend.isPositive ? "text-ok-text" : "text-danger-text"}`}
+                  >
+                    {folhaTrend.value}
+                  </span>
+                )}
+              </span>
+            )}
+            <span className="block">{notaEstimativaLrf}</span>
+          </p>
+        </section>
+      </div>
 
       <IndicatorPanel>
-        <Indicator
-          label={folhaKpi.title}
-          value={fmtPercent(currentYearRow.percentualFolha)}
-          note={folhaKpi.subtext}
-          trend={folhaTrend}
-          tone={folhaKpi.alert ? "warn" : "default"}
-        />
         <Indicator
           label="Chefias ocupadas por concursados"
           value={pctChefias !== null ? fmtPercent(pctChefias) : "N/D"}

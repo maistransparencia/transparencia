@@ -5,6 +5,7 @@ import type {
   SituacaoObra,
   SituacaoObraFiltro,
 } from "@transparencia/db";
+import type { BadgeVariant } from "@transparencia/ui";
 import {
   fmtCompact,
   fmtCurrency,
@@ -21,7 +22,7 @@ import type { RawObrasData } from "./loader";
 export interface SituacaoVisual {
   label: string;
   corPreenchimento: string;
-  badgeClass: string;
+  badgeVariant: BadgeVariant;
   bgClass: string;
   textClass: string;
 }
@@ -32,7 +33,7 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
       return {
         label: "Em Execução",
         corPreenchimento: "var(--brand-fill)",
-        badgeClass: "border-brand-fill bg-brand-fill/15 text-brand-text",
+        badgeVariant: "accent",
         bgClass: "bg-brand-fill",
         textClass: "text-brand-text",
       };
@@ -40,7 +41,7 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
       return {
         label: "Paralisada",
         corPreenchimento: "var(--danger-fill)",
-        badgeClass: "border-danger-fill bg-danger-fill/15 text-danger-text",
+        badgeVariant: "danger",
         bgClass: "bg-danger-fill",
         textClass: "text-danger-text",
       };
@@ -48,7 +49,7 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
       return {
         label: "Concluída",
         corPreenchimento: "var(--ok-fill)",
-        badgeClass: "border-ok-fill bg-ok-fill/15 text-ok-text",
+        badgeVariant: "success",
         bgClass: "bg-ok-fill",
         textClass: "text-ok-text",
       };
@@ -56,7 +57,7 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
       return {
         label: "Não iniciada",
         corPreenchimento: "var(--mute3)",
-        badgeClass: "border-line bg-line2 text-mute",
+        badgeVariant: "default",
         bgClass: "bg-mute3",
         textClass: "text-mute",
       };
@@ -64,7 +65,7 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
       return {
         label: "Cancelada",
         corPreenchimento: "var(--mute)",
-        badgeClass: "border-line bg-line2 text-mute",
+        badgeVariant: "default",
         bgClass: "bg-mute",
         textClass: "text-mute",
       };
@@ -72,7 +73,7 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
       return {
         label: "Não iniciada",
         corPreenchimento: "var(--mute3)",
-        badgeClass: "border-line bg-line2 text-mute",
+        badgeVariant: "default",
         bgClass: "bg-mute3",
         textClass: "text-mute",
       };
@@ -92,7 +93,7 @@ export interface ObraContratoViewModel {
   licitacaoNumero: string | null;
   status: "vigente" | "encerrado" | string;
   statusLabel: string;
-  statusBadgeClasses: string;
+  statusBadgeVariant: BadgeVariant;
   dataInicio: string | null;
   dataInicioFormatada: string;
   vencimentoAtual: string | null;
@@ -120,14 +121,12 @@ export function mapContratoToViewModel(
     return rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
   })();
 
-  const statusBadgeClasses = (() => {
-    if (isVigente) return "border-ok-fill bg-ok-fill/15 text-ok-text";
-    if (rawStatus === "encerrado") return "border-line bg-line2 text-mute";
-    if (rawStatus === "suspenso")
-      return "border-warn-fill bg-warn-fill/15 text-warn-text";
+  const statusBadgeVariant = ((): BadgeVariant => {
+    if (isVigente) return "success";
+    if (rawStatus === "suspenso") return "warning";
     if (rawStatus === "cancelado" || rawStatus === "rescindido")
-      return "border-danger-fill bg-danger-fill/15 text-danger-text";
-    return "border-line bg-line2 text-mute";
+      return "danger";
+    return "default";
   })();
 
   const fornecedorCpfCnpjMascarado = (() => {
@@ -159,7 +158,7 @@ export function mapContratoToViewModel(
     licitacaoNumero: contrato.licitacaoNumero ?? null,
     status: contrato.status,
     statusLabel,
-    statusBadgeClasses,
+    statusBadgeVariant,
     dataInicio: contrato.dataInicio ?? null,
     dataInicioFormatada: contrato.dataInicio
       ? fmtDate(contrato.dataInicio)
@@ -223,7 +222,7 @@ export interface ObraItemViewModel {
   situacao: SituacaoObra;
   situacaoLabel: string;
   situacaoCorPreenchimento: string;
-  situacaoBadgeClasses: string;
+  situacaoBadgeVariant: BadgeVariant;
   orgaoResponsavel: string;
   valorInvestimentoPrevisto: number;
   valorInvestimentoFormatado: string;
@@ -427,7 +426,7 @@ function mapObraToViewModel(
     situacao: obra.situacao,
     situacaoLabel: visual.label,
     situacaoCorPreenchimento: visual.corPreenchimento,
-    situacaoBadgeClasses: visual.badgeClass,
+    situacaoBadgeVariant: visual.badgeVariant,
     orgaoResponsavel: obra.orgaoResponsavel ?? "Órgão não informado",
     valorInvestimentoPrevisto: obra.valorInvestimentoPrevisto,
     valorInvestimentoFormatado: fmtCurrency(obra.valorInvestimentoPrevisto),

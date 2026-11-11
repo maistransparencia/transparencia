@@ -622,7 +622,7 @@ export function Sidebar({
               </div>
               <div>
                 <span className="mb-1 block font-medium text-[11px] text-mute">
-                  Entidade
+                  Órgão
                 </span>
                 <MultiSelect
                   options={entidades}

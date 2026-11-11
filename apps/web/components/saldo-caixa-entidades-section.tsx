@@ -5,6 +5,7 @@ import type {
 } from "@transparencia/db";
 import {
   AlertBox,
+  Badge,
   cn,
   fmtCompact,
   fmtPercent,
@@ -405,9 +406,9 @@ export function SaldoCaixaEntidadesSection({
                         )}
                       </h4>
                       {entidade.saldoDescobertoFlag && (
-                        <span className="shrink-0 rounded-sm border border-danger-text/40 bg-danger-fill/10 px-2 py-0.5 font-semibold text-[11px] text-danger-text">
+                        <Badge variant="danger" className="shrink-0">
                           Saldo negativo
-                        </span>
+                        </Badge>
                       )}
                     </div>
 

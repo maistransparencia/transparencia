@@ -33,7 +33,7 @@ export function ProventosDistributionChart({
       ) : (
         <div className="relative overflow-x-auto overflow-y-hidden pt-2 pb-2">
           <div
-            className="grid min-w-175 items-end gap-2.5 px-1 pt-2 pb-1 sm:min-w-0"
+            className="grid min-w-175 items-start gap-2.5 px-1 pt-2 pb-1 sm:min-w-0"
             style={{
               gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`,
             }}
@@ -61,7 +61,7 @@ export function ProventosDistributionChart({
                   </div>
 
                   <span
-                    className="caption mt-2 w-full truncate text-center"
+                    className="caption mt-2 w-full text-balance text-center leading-tight"
                     title={item.faixa}
                   >
                     {item.faixa}
