@@ -75,7 +75,9 @@ export default async function Image({
     const folhaData = folhaMetrics[0];
     const totalFolha = folhaData?.totalFolha ?? 0;
     const totalPago = folhaData?.totalPago ?? 0;
-    const percentualFolha = folhaData?.percentualFolha ?? 0;
+    const rgfPessoal = folhaData?.rgf ?? null;
+    const percentualFolha =
+      rgfPessoal?.percentualDespesaPessoal ?? folhaData?.percentualFolha ?? 0;
     const percentualEfetivos = percentualChefiasEfetivas ?? 0;
     const limiteTeto = limiteMaximoLrf ?? 60;
 
@@ -89,11 +91,14 @@ export default async function Image({
       {
         label: "Limite LRF Pessoal",
         value: fmtPercent(percentualFolha),
-        detail:
-          percentualFolha <= limiteTeto * 0.9
+        // Só o número oficial do RGF recebe veredito; a estimativa do portal fica neutra.
+        detail: rgfPessoal
+          ? percentualFolha <= limiteTeto * 0.9
             ? `Dentro do Limite Legal (${limiteTeto}%)`
-            : "Alerta de Limite LRF",
+            : "Alerta de Limite LRF"
+          : "Estimativa do portal",
         variant: (() => {
+          if (!rgfPessoal) return "default";
           if (percentualFolha <= limiteTeto * 0.9) return "success";
           if (percentualFolha <= limiteTeto) return "warning";
           return "danger";
