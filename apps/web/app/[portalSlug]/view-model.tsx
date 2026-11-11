@@ -1,5 +1,6 @@
 import type { GrauSeveridade, RadarCivicoAlertaDTO } from "@transparencia/db";
 import {
+  type BadgeVariant,
   buildNavUrl,
   fmtCompact,
   fmtCurrency,
@@ -614,7 +615,7 @@ export interface RadarCivicoCardItem {
   badgeSeveridade?: {
     label: string;
     variant: GrauSeveridade;
-    colorClass: string;
+    badgeVariant: BadgeVariant;
   };
   metodologiaBadge: string;
   badgeMetodologia?: string;
@@ -683,7 +684,7 @@ export function getBadgeSeveridade(
 ): {
   label: string;
   variant: GrauSeveridade;
-  colorClass: string;
+  badgeVariant: BadgeVariant;
 } {
   if (
     alerta?.tipoAnomalia === "pico_despesa_homologa" &&
@@ -692,7 +693,7 @@ export function getBadgeSeveridade(
     return {
       label: "Aporte Relevante",
       variant: "alto",
-      colorClass: "bg-brand/10 text-brand border-brand/40",
+      badgeVariant: "accent",
     };
   }
 
@@ -700,20 +701,20 @@ export function getBadgeSeveridade(
     return {
       label: "Atenção Especial",
       variant: "critico",
-      colorClass: "bg-danger-fill/10 text-danger-text border-danger-text/40",
+      badgeVariant: "danger",
     };
   }
   if (grau === "alto") {
     return {
       label: "Atenção",
       variant: "alto",
-      colorClass: "bg-warn-fill/10 text-warn-text border-warn-text/40",
+      badgeVariant: "warning",
     };
   }
   return {
     label: "Acompanhamento",
     variant: "moderado",
-    colorClass: "bg-line2/40 text-mute2 border-line",
+    badgeVariant: "default",
   };
 }
 

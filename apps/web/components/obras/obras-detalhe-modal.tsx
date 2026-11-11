@@ -1,7 +1,7 @@
 "use client";
 
 import type { ObraEmpenhoFederalDTO } from "@transparencia/db";
-import { cn, ModalDialog } from "@transparencia/ui";
+import { Badge, ModalDialog } from "@transparencia/ui";
 import {
   AlertTriangle,
   Building2,
@@ -125,23 +125,14 @@ export function ObrasDetalheModal({
       subtitle={viewModel.orgaoResponsavel}
       badge={
         <div className="flex flex-wrap items-center gap-1.5">
-          <span
-            className={cn(
-              "inline-flex items-center rounded-sm border px-2.5 py-0.5 font-semibold text-xs",
-              viewModel.situacaoVisual.badgeClass,
-            )}
-          >
+          <Badge variant={viewModel.situacaoVisual.badgeVariant}>
             {viewModel.situacaoVisual.label}
-          </span>
+          </Badge>
           {viewModel.naturezaIntervencao && (
-            <span className="inline-flex items-center rounded-sm border border-line bg-line2 px-2 py-0.5 font-medium text-mute text-xs">
-              {viewModel.naturezaIntervencao}
-            </span>
+            <Badge>{viewModel.naturezaIntervencao}</Badge>
           )}
           {viewModel.especieIntervencao && (
-            <span className="inline-flex items-center rounded-sm border border-brand-fill bg-brand-fill/15 px-2 py-0.5 font-medium text-brand-text text-xs">
-              {viewModel.especieIntervencao}
-            </span>
+            <Badge variant="accent">{viewModel.especieIntervencao}</Badge>
           )}
         </div>
       }

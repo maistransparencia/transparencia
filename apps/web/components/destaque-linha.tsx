@@ -1,14 +1,15 @@
+import { Badge, type BadgeVariant } from "@transparencia/ui";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import type { FonteOficial } from "@/lib/constants/fontes-oficiais";
 
 export type DestaqueTom = "positivo" | "atencao" | "alerta" | "neutro";
 
-const CLASSES_BADGE_POR_TOM: Record<DestaqueTom, string> = {
-  positivo: "border-ok-text/40 bg-ok-fill/10 text-ok-text",
-  atencao: "border-warn-text/40 bg-warn-fill/10 text-warn-text",
-  alerta: "border-danger-text/40 bg-danger-fill/10 text-danger-text",
-  neutro: "border-line bg-line2/40 text-mute2",
+const VARIANTE_BADGE_POR_TOM: Record<DestaqueTom, BadgeVariant> = {
+  positivo: "success",
+  atencao: "warning",
+  alerta: "danger",
+  neutro: "default",
 };
 
 const CLASSES_ICONE_POR_TOM: Record<DestaqueTom, string> = {
@@ -67,12 +68,12 @@ export function DestaqueLinha({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <h3>{titulo}</h3>
-            <span
+            <Badge
               data-testid="destaque-badge"
-              className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-xs ${CLASSES_BADGE_POR_TOM[tom]}`}
+              variant={VARIANTE_BADGE_POR_TOM[tom]}
             >
               {badgeTexto}
-            </span>
+            </Badge>
           </div>
           <p className="mt-0.5 text-mute2 text-xs leading-snug sm:text-sm">
             {contexto}

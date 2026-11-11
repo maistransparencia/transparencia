@@ -7,6 +7,7 @@ import type {
 import {
   AlertBox,
   Badge,
+  type BadgeVariant,
   type Column,
   cn,
   DenseTable,
@@ -41,7 +42,7 @@ export interface PessoalRegimeSectionProps {
 
 interface RegimeStyle {
   barBg: string;
-  badge: string;
+  badgeVariant: BadgeVariant;
   dot: string;
   description: string;
 }
@@ -51,49 +52,49 @@ function getRegimeStyle(categoria: string): RegimeStyle {
     case "efetivo_concurso":
       return {
         barBg: "bg-ok-fill",
-        badge: "border-ok-text/40 bg-ok-fill/10 text-ok-text",
+        badgeVariant: "success",
         dot: "bg-ok-fill",
         description: "Servidores estatutários concursados",
       };
     case "efetivo_comissao":
       return {
         barBg: "bg-brand-fill",
-        badge: "border-brand/40 bg-brand/10 text-brand",
+        badgeVariant: "accent",
         dot: "bg-brand-fill",
         description: "Concursados em liderança ou chefia",
       };
     case "comissionado":
       return {
         barBg: "bg-warn-fill",
-        badge: "border-warn-text/40 bg-warn-fill/10 text-warn-text",
+        badgeVariant: "warning",
         dot: "bg-warn-fill",
         description: "Livre nomeação externa (confiança)",
       };
     case "contrato_temporario":
       return {
         barBg: "bg-mute2",
-        badge: "border-line bg-line2/40 text-mute2",
+        badgeVariant: "default",
         dot: "bg-mute2",
         description: "Contratos temporários de interesse público",
       };
     case "agente_politico":
       return {
         barBg: "bg-ink",
-        badge: "border-line bg-line2/40 text-mute2",
+        badgeVariant: "default",
         dot: "bg-ink",
         description: "Prefeito, secretários e dirigentes eletivos",
       };
     case "rpps_inativos":
       return {
         barBg: "bg-faint",
-        badge: "border-line bg-line2/40 text-mute2",
+        badgeVariant: "default",
         dot: "bg-faint",
         description: "Aposentados e pensionistas do RPPS",
       };
     default:
       return {
         barBg: "bg-pill",
-        badge: "border-line bg-line2/40 text-mute2",
+        badgeVariant: "default",
         dot: "bg-pill",
         description:
           "Vínculos excepcionais e provimentos atípicos no portal de origem",
@@ -180,16 +181,7 @@ export function PessoalRegimeSection({
               CATEGORIA_REGIME_LABELS[
                 row.categoriaRegime as keyof typeof CATEGORIA_REGIME_LABELS
               ] ?? row.categoriaRegime;
-            return (
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-[11px]",
-                  style.badge,
-                )}
-              >
-                {rotulo}
-              </span>
-            );
+            return <Badge variant={style.badgeVariant}>{rotulo}</Badge>;
           },
         },
         {
@@ -229,14 +221,9 @@ export function PessoalRegimeSection({
             <span className="min-w-0">
               {row.orgaoNome || "Órgão não informado"}
             </span>
-            <span
-              className={cn(
-                "inline-flex shrink-0 items-center rounded-sm border px-2 py-0.5 font-medium text-[11px]",
-                style.badge,
-              )}
-            >
+            <Badge variant={style.badgeVariant} className="shrink-0">
               {rotulo}
-            </span>
+            </Badge>
           </div>
         </div>
       ),
@@ -404,11 +391,9 @@ export function PessoalRegimeSection({
                     />
                     <h3>{rotulo}</h3>
                   </div>
-                  <span
-                    className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-[11px] ${style.badge}`}
-                  >
+                  <Badge variant={style.badgeVariant}>
                     {fmtPercent(item.percentualProfissionais)}
-                  </span>
+                  </Badge>
                 </div>
 
                 <p className="caption mt-1">{style.description}</p>

@@ -3,7 +3,7 @@ import type {
   OpacidadeCredorDTO,
   OpacidadeMetricasExercicioDTO,
 } from "@transparencia/db";
-import { fmtCompact, fmtNumber, fmtPercent } from "@transparencia/ui";
+import { Badge, fmtCompact, fmtNumber, fmtPercent } from "@transparencia/ui";
 import { ChevronDown, ExternalLink, Lightbulb } from "lucide-react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { ShowYourWorkButton } from "./show-your-work-button";
@@ -20,7 +20,7 @@ function getRiscoConfig(
 ) {
   if (classificacao === "critico") {
     return {
-      badgeClass: "border-danger-text text-danger-text",
+      badgeVariant: "danger" as const,
       barClass: "bg-danger-fill",
       textColor: "text-danger-text",
       statusText: "Muito alto",
@@ -28,14 +28,14 @@ function getRiscoConfig(
   }
   if (classificacao === "atencao") {
     return {
-      badgeClass: "border-warn-text text-warn-text",
+      badgeVariant: "warning" as const,
       barClass: "bg-warn-fill",
       textColor: "text-warn-text",
       statusText: "Atenção",
     };
   }
   return {
-    badgeClass: "border-ok-text text-ok-text",
+    badgeVariant: "success" as const,
     textColor: "text-ok-text",
     statusText: "Normal",
   };
@@ -473,11 +473,9 @@ export function TermometroOpacidadeFiscal({
                       <span className="font-bold text-ink text-sm">
                         {h.ano}
                       </span>
-                      <span
-                        className={`rounded-md border px-2 py-0.5 font-semibold text-[11px] ${configAno.badgeClass}`}
-                      >
+                      <Badge variant={configAno.badgeVariant}>
                         {configAno.statusText}
-                      </span>
+                      </Badge>
                     </div>
                     <div className="mt-2">
                       <span

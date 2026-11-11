@@ -12,4 +12,13 @@ describe("Badge", () => {
     render(<Badge>Neutro</Badge>);
     expect(screen.getByText("Neutro")).toHaveClass("border-line");
   });
+
+  it("repassa atributos do span, como data-testid", () => {
+    render(
+      <Badge variant="danger" data-testid="selo">
+        Alerta
+      </Badge>,
+    );
+    expect(screen.getByTestId("selo")).toHaveClass("text-danger-text");
+  });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { BProgress } from "@bprogress/core";
-import { AlertBox, cn } from "@transparencia/ui";
+import { AlertBox, Badge } from "@transparencia/ui";
 import { ArrowRight, Calendar, FileText } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
@@ -63,14 +63,9 @@ export function ObrasContratosVinculados({
                     <span className="font-bold text-ink text-sm">
                       Contrato nº {contrato.contratoNumero}
                     </span>
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-sm border px-2 py-0.5 font-semibold text-xs",
-                        contrato.statusBadgeClasses,
-                      )}
-                    >
+                    <Badge variant={contrato.statusBadgeVariant}>
                       {contrato.statusLabel}
-                    </span>
+                    </Badge>
                   </div>
                   <p className="font-medium text-ink text-xs">
                     {contrato.fornecedorNome}

@@ -38,7 +38,7 @@ const mockItemAlto: RadarCivicoCardItem = {
   badgeSeveridade: {
     label: "Aporte Relevante",
     variant: "alto",
-    colorClass: "bg-blue-50 text-blue-900 border-blue-200",
+    badgeVariant: "accent",
   },
   metodologiaBadge: "Histórico Jan a Ago",
   tipoMetodologia: "homologa",

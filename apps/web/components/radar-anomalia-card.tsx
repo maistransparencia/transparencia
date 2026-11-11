@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@transparencia/ui";
+import { Badge, type BadgeVariant, cn } from "@transparencia/ui";
 import {
   AlertCircle,
   AlertTriangle,
@@ -22,22 +22,25 @@ export interface RadarAnomaliaCardProps {
   funnelSource?: string;
 }
 
-function getSeverityBadgeData(grau: string) {
+function getSeverityBadgeData(grau: string): {
+  label: string;
+  badgeVariant: BadgeVariant;
+} {
   if (grau === "critico") {
     return {
       label: "Atenção Especial",
-      colorClass: "bg-danger-fill/10 text-danger-text border-danger-text/40",
+      badgeVariant: "danger",
     };
   }
   if (grau === "alto") {
     return {
       label: "Atenção",
-      colorClass: "bg-warn-fill/10 text-warn-text border-warn-text/40",
+      badgeVariant: "warning",
     };
   }
   return {
     label: "Acompanhamento",
-    colorClass: "bg-line2/40 text-mute2 border-line",
+    badgeVariant: "default",
   };
 }
 
@@ -175,24 +178,18 @@ export function RadarAnomaliaCard({
       <div>
         {/* Badges superiores com alto contraste e elegância */}
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span
+          <Badge
             data-testid="radar-severidade-badge"
-            className={cn(
-              "inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 font-medium text-xs",
-              badgeSeveridade.colorClass,
-            )}
+            variant={badgeSeveridade.badgeVariant}
           >
             <SeverityIcon grau={card.grauSeveridade} />
             {badgeSeveridade.label}
-          </span>
+          </Badge>
 
-          <span
-            data-testid="radar-metodologia-badge"
-            className="inline-flex items-center gap-1 rounded-sm border border-line bg-line2/40 px-2 py-0.5 font-medium text-mute2 text-xs"
-          >
+          <Badge data-testid="radar-metodologia-badge">
             <MethodologyIcon tipo={card.tipoMetodologia} />
             {metodologiaLabel}
-          </span>
+          </Badge>
         </div>
 
         {/* Título do Card: tipografia serif elegante */}
