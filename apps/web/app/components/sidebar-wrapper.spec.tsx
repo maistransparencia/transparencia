@@ -452,7 +452,7 @@ describe("SidebarWrapper Component", () => {
     });
   });
 
-  it("recolhe a sidebar em faixa de ícones, sem filtros e sem rodapé, e expande de novo", () => {
+  it("recolhe a sidebar em faixa de ícones, sem filtros e sem rodapé, e expande de novo", async () => {
     mockUseQueryState.mockImplementation((() => [
       null,
       vi.fn(),
@@ -475,12 +475,18 @@ describe("SidebarWrapper Component", () => {
     );
 
     expect(aside.className).toContain("md:w-14");
+    // O layout só de ícones entra no fim da animação de largura; o nome vai para
+    // o aria-label e o tooltip do design system substitui o title nativo.
     const radar = screen.getByRole("link", { name: "Radar Cívico" });
-    expect(radar).toHaveAttribute("title", "Radar Cívico");
+    await waitFor(() =>
+      expect(radar).toHaveAttribute("aria-label", "Radar Cívico"),
+    );
+    expect(radar).not.toHaveAttribute("title");
     expect(radar.className).toContain("border-ink");
     for (const nome of ["Visão geral", "Farmácia SUS"]) {
       const link = screen.getByRole("link", { name: nome });
-      expect(link).toHaveAttribute("title", nome);
+      expect(link).toHaveAttribute("aria-label", nome);
+      expect(link).not.toHaveAttribute("title");
     }
     expect(screen.getByText("Filtros").closest("div")?.className).toContain(
       "md:hidden",
