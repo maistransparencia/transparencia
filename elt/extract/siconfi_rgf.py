@@ -104,12 +104,17 @@ class SiconfiRgfExtractor(SiconfiApiClient):
     ) -> list[dict[str, Any]]:
         """Consulta todos os períodos de ambas as periodicidades; o que a API devolver é o que o ente publicou."""
         rows: list[dict[str, Any]] = []
+        falhas: list[str] = []
         for periodicidade, quantidade in PERIODOS_POR_PERIODICIDADE.items():
             for periodo in range(1, quantidade + 1):
                 try:
                     rows.extend(self.extract_periodo(ibge, ano, periodicidade, periodo, session=session))
                 except Exception as err:
                     logger.error("Erro ao extrair RGF %s%s/%s: %s", periodicidade, periodo, ano, err)
+                    falhas.append(f"{periodicidade}{periodo}")
+        if falhas:
+            # Falha parcial não pode virar período ausente: o run.py registra o ano em failed e não carrega parcial.
+            raise RuntimeError(f"RGF IBGE {ibge}, ano {ano}: falha nos períodos {', '.join(falhas)}")
         deduplicated = {tuple(row[col] for col in KEY_COLS): row for row in rows}
         return list(deduplicated.values())
 

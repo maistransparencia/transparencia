@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+import requests
 from elt.extract.siconfi_rgf import KEY_COLS, SiconfiRgfExtractor
 
 IBGE = 1234567
@@ -91,3 +93,15 @@ def test_extract_ano_consulta_o_rgf_simplificado_quando_o_completo_vem_vazio():
         rows = extractor.extract_ano(IBGE, 2024)
 
     assert [(row["periodicidade"], row["periodo"], row["valor"]) for row in rows] == [("S", 2, 51.14)]
+
+
+def test_extract_ano_falha_em_vez_de_devolver_periodos_faltando():
+    extractor = SiconfiRgfExtractor(min_interval_seconds=0)
+
+    def fake_get(url, params, headers, timeout):
+        if params["in_periodicidade"] == "Q" and params["nr_periodo"] == 2:
+            raise requests.ConnectionError("falha transitória")
+        return _resp([_item("Q", 3, "DespesaComPessoalTotal", "Valor", 70.0)])
+
+    with patch("requests.get", side_effect=fake_get), pytest.raises(RuntimeError, match="Q2"):
+        extractor.extract_ano(IBGE, 2024)

@@ -14,6 +14,7 @@ por_periodo as (
         r.ano,
         r.periodicidade,
         r.periodo,
+        -- max() colapsa linhas repetidas do mesmo período (ex.: retificação com a mesma chave); o ente entrega só um tipo de RGF.
         max(r.valor) filter (where r.cod_conta = 'DespesaComPessoalTotal' and r.coluna = 'Valor') as despesa_pessoal_12_meses,
         max(r.valor) filter (where r.cod_conta = 'ReceitaCorrenteLiquidaAjustada' and r.coluna = 'Valor') as receita_corrente_liquida_ajustada,
         max(r.valor) filter (where r.cod_conta = 'DespesaComPessoalTotal' and r.coluna = '% sobre a RCL Ajustada') as percentual_despesa_pessoal

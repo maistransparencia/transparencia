@@ -231,6 +231,7 @@ export async function getFolhaVsServicosMetrics({
     };
   };
 
+  // O ente publica em uma só periodicidade por ano; Q3 e S2 empatariam em 1,0, então a ordem só importa se ele trocar no meio do ano.
   const ultimoRgfDoAno = (ano: number) =>
     rgfRows
       .filter((r) => Number(r.ano) === ano)
