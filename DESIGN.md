@@ -408,6 +408,13 @@ Aviso dentro de uma página, em `packages/ui` (`AlertBox`). Usa a mesma linguage
 - **Conteúdo curto:** título de poucas palavras e corpo de até duas frases. O que passar disso vira texto da seção, não do aviso.
 - **Não repetir:** o aviso não reescreve o que os indicadores logo abaixo já mostram.
 
+### `badge`
+
+Etiqueta de situação ou de atenção, em `packages/ui` (`Badge`). Toda etiqueta do portal usa este componente; não montar `<span>` com borda e fundo na mão.
+- **Forma:** borda de 1px, raio `rounded-sm`, `px-2 py-0.5`, texto de 11px. A borda é o `-text` a 40% e o fundo é o `-fill` a 10%.
+- **Variante e uso:** `default` (situação neutra: encerrada, não informada), `accent` (destaque informativo da marca), `warning` (pede o olhar do cidadão: em andamento, "Merece atenção"), `danger` (problema comprovado: limite descumprido, obra paralisada) e `success` (desfecho positivo ou exigência cumprida).
+- **Motivo junto:** `warning` e `danger` nunca aparecem sozinhos; o motivo fica escrito no bloco.
+
 ### `section-header`
 
 Cabeçalho de seção, em `packages/ui` (`SectionHeader`): filete de 2px `{colors.ink}` no topo, `eyebrow` opcional, título no nível `h2` (aceita `h1` e `h3`), ação à direita e descrição.

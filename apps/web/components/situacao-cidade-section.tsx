@@ -1,7 +1,7 @@
 "use client";
 
 import type { ResumoObrasDTO } from "@transparencia/db";
-import { ShareButton, ThresholdMeter } from "@transparencia/ui";
+import { Badge, ShareButton, ThresholdMeter } from "@transparencia/ui";
 import {
   ArrowDown,
   ArrowRight,
@@ -376,9 +376,7 @@ function SituacaoCard({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="eyebrow">{card.eyebrow}</p>
             {card.motivoAtencao && (
-              <span className="border border-warn-text/40 bg-warn-fill/10 px-2 py-0.5 font-semibold text-warn-text text-xs">
-                Merece atenção
-              </span>
+              <Badge variant="warning">Merece atenção</Badge>
             )}
           </div>
           <h3 className="mt-1">{card.pergunta}</h3>
