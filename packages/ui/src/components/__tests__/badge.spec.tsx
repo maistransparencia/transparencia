@@ -13,6 +13,16 @@ describe("Badge", () => {
     expect(screen.getByText("Neutro")).toHaveClass("border-line");
   });
 
+  it.each([
+    ["accent", "text-brand-text"],
+    ["warning", "text-warn-text"],
+    ["danger", "text-danger-text"],
+    ["success", "text-ok-text"],
+  ] as const)("variante %s usa o token de texto %s", (variant, classe) => {
+    render(<Badge variant={variant}>{variant}</Badge>);
+    expect(screen.getByText(variant)).toHaveClass(classe);
+  });
+
   it("repassa atributos do span, como data-testid", () => {
     render(
       <Badge variant="danger" data-testid="selo">

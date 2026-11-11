@@ -16,7 +16,8 @@ const variantes = [
   },
   {
     nome: "accent",
-    classe: "border-brand/40 bg-brand/10 font-semibold text-brand",
+    classe:
+      "border-brand-text/40 bg-brand-fill/10 font-semibold text-brand-text",
     exemplo: "Novo",
     uso: "Destaque informativo da marca, sem alerta.",
   },

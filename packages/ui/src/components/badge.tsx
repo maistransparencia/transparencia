@@ -16,7 +16,7 @@ export interface BadgeProps
 
 const styles: Record<BadgeVariant, string> = {
   default: "border-line bg-line2/40 text-mute2",
-  accent: "border-brand/40 bg-brand/10 font-semibold text-brand",
+  accent: "border-brand-text/40 bg-brand-fill/10 font-semibold text-brand-text",
   warning: "border-warn-text/40 bg-warn-fill/10 font-semibold text-warn-text",
   danger:
     "border-danger-text/40 bg-danger-fill/10 font-semibold text-danger-text",
