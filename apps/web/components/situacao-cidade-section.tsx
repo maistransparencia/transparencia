@@ -125,7 +125,7 @@ function MiniMapaObras({
           <span
             key={ponto.id}
             style={{ left: `${ponto.xPercent}%`, top: `${ponto.yPercent}%` }}
-            className="bg-brand-fill ring-page absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2"
+            className={`ring-page absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ${CLASSE_COR_SITUACAO_OBRA[ponto.situacao] ?? "bg-faint"}`}
           />
         ))}
       </div>
@@ -136,6 +136,15 @@ function MiniMapaObras({
     </Link>
   );
 }
+
+// Mesmas cores da barra de situação, para o ponto no mapa e a legenda dizerem a mesma coisa.
+const CLASSE_COR_SITUACAO_OBRA: Record<string, string> = {
+  concluida: "bg-ok-fill",
+  em_execucao: "bg-brand-fill",
+  paralisada: "bg-warn-fill",
+  cadastrada: "bg-faint",
+  cancelada: "bg-mute3",
+};
 
 function BarraSituacaoObras({ resumo }: { resumo: ResumoObrasDTO }) {
   // Ordem do ciclo da obra: pronta, andando, parada, sem começar.

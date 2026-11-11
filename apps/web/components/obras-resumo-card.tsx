@@ -205,7 +205,7 @@ export function ObrasResumoCard({
       case "concluida":
         return "bg-ok-fill ring-page";
       case "paralisada":
-        return "bg-danger-fill ring-page";
+        return "bg-warn-fill ring-page";
       default:
         return "bg-mute3 ring-page";
     }
@@ -313,7 +313,7 @@ export function ObrasResumoCard({
                 <div
                   className="transition-all duration-300"
                   style={{
-                    backgroundColor: corDoGrafico("danger"),
+                    backgroundColor: corDoGrafico("warn"),
                     width: `${pctParalisadas}%`,
                   }}
                 />
@@ -365,7 +365,7 @@ export function ObrasResumoCard({
                 <div className="flex items-center gap-1.5">
                   <span
                     className="h-2 w-2 shrink-0"
-                    style={{ backgroundColor: corDoGrafico("danger") }}
+                    style={{ backgroundColor: corDoGrafico("warn") }}
                   />
                   <span className="text-mute2">Paralisadas:</span>
                 </div>
