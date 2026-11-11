@@ -274,6 +274,12 @@ describe("educacao/view-model", () => {
 
     expect(vm.aprendizado.anosIniciais.notaIdeb).toBe(5.2);
     expect(vm.aprendizado.anosIniciais.anoApuracao).toBe(2021);
+    expect(vm.aprendizado.anosIniciais.pergunta).toBe(
+      "Como vai o ensino do 1º ao 5º ano?",
+    );
+    expect(vm.aprendizado.anosFinais.pergunta).toBe(
+      "Como vai o ensino do 6º ao 9º ano?",
+    );
   });
 
   it("agrega contratos por categoria", () => {

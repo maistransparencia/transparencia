@@ -345,16 +345,24 @@ describe("EducacaoPage (Server Component)", () => {
       name: /^Mínimos constitucionais da educação em \d{4}$/,
     });
     expect(
-      within(destaque).getByText("Aplicação mínima exigida em ensino"),
+      within(destaque).getByText(
+        /^A Prefeitura (aplica|aplicou) o mínimo em educação em \d{4}\?$/,
+      ),
     ).toBeInTheDocument();
     expect(
-      within(destaque).getByText("Fundeb para profissionais da educação"),
+      within(destaque).getByText(
+        /^Quanto do Fundeb (vai|foi) para o salário dos profissionais da educação em \d{4}\?$/,
+      ),
     ).toBeInTheDocument();
     expect(
       screen.getByText("Investimento anual por aluno"),
     ).toBeInTheDocument();
-    expect(screen.getByText(/^IDEB \d{4} · Anos Iniciais/)).toBeInTheDocument();
-    expect(screen.getByText(/^IDEB \d{4} · Anos Finais/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Como vai o ensino do 1º ao 5º ano?"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Como vai o ensino do 6º ao 9º ano?"),
+    ).toBeInTheDocument();
     const etapasDoGasto = within(screen.getByTestId("gasto-educacao"))
       .getAllByRole("term")
       .map((termo) => termo.textContent);

@@ -79,6 +79,8 @@ export interface EducacaoExecucaoAnoView {
 export interface AprendizadoEtapa {
   etapaEnsino: EtapaEnsino;
   titulo: string;
+  /** Pergunta do cidadão que abre o bloco do IDEB da etapa. */
+  pergunta: string;
   /** Última nota do IDEB até o ano selecionado, com o ano em que foi apurada. */
   notaIdeb: number | null;
   anoApuracao: number | null;
@@ -307,6 +309,11 @@ const variacaoEntre = (
     ? null
     : Math.round((atual - anterior) * 10) / 10;
 
+const PERGUNTA_IDEB_POR_ETAPA: Record<EtapaEnsino, string> = {
+  anosIniciais: "Como vai o ensino do 1º ao 5º ano?",
+  anosFinais: "Como vai o ensino do 6º ao 9º ano?",
+};
+
 function buildAprendizadoEtapa({
   historico,
   anoSelecionado,
@@ -331,6 +338,7 @@ function buildAprendizadoEtapa({
   return {
     etapaEnsino: historico.etapaEnsino,
     titulo,
+    pergunta: PERGUNTA_IDEB_POR_ETAPA[historico.etapaEnsino],
     notaIdeb: atual?.notaIdeb ?? null,
     anoApuracao: atual?.ano ?? null,
     mediaEstadual: atual?.mediaEstadual ?? null,
