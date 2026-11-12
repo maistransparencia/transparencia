@@ -1,6 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import type React from "react";
+import { describe, expect, it, vi } from "vitest";
 import { FarmaciaBuscaDestaque } from "./farmacia-busca-destaque";
+
+vi.mock("next/form", () => ({
+  default: (props: React.FormHTMLAttributes<HTMLFormElement>) => (
+    <form data-next-form="true" {...props} />
+  ),
+}));
 
 const exemplos = [
   { nomePrincipioAtivo: "Losartana", href: "/p/farmacia?q=Losartana" },
@@ -10,7 +17,7 @@ describe("FarmaciaBuscaDestaque", () => {
   it("formulario GET com campo q e chips de remédios comuns", () => {
     render(<FarmaciaBuscaDestaque action="/p/farmacia" exemplos={exemplos} />);
     const form = screen.getByRole("form", { name: "Busca de remédios" });
-    expect(form).toHaveAttribute("method", "get");
+    expect(form).toHaveAttribute("data-next-form", "true");
     expect(screen.getByRole("searchbox")).toHaveAttribute("name", "q");
     expect(screen.getByRole("link", { name: "Losartana" })).toHaveAttribute(
       "href",
