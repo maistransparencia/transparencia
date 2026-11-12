@@ -29,6 +29,10 @@ on-run-start:
       WHERE e.extname = 'unaccent';
       EXECUTE format('CREATE OR REPLACE FUNCTION analytics.unaccent(text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $f$ SELECT %I.unaccent($1) $f$', ext_schema);
       EXECUTE format('CREATE OR REPLACE FUNCTION analytics.unaccent(regdictionary, text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $f$ SELECT %I.unaccent($1, $2) $f$', ext_schema);
+      -- O wrapper roda com os privilégios de quem chama: read_only precisa enxergar o schema da extensão.
+      IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'read_only') THEN
+        EXECUTE format('GRANT USAGE ON SCHEMA %I TO read_only', ext_schema);
+      END IF;
     END $$;
 
 vars:
