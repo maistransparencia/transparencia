@@ -24,8 +24,8 @@ function LinhaEmenda({
 }: LinhaEmendaProps) {
   return (
     <div className="space-y-1.5">
-      <p className="font-medium text-ink text-sm">{rotulo}</p>
-      <div className="h-2 w-full overflow-hidden bg-track">
+      <p className="text-ink text-sm font-medium">{rotulo}</p>
+      <div className="bg-track h-2 w-full overflow-hidden">
         <div
           className={cn(
             "h-full transition-all duration-500 ease-out",
@@ -35,7 +35,7 @@ function LinhaEmenda({
         />
       </div>
       <p className="caption">
-        <span className="numeric font-semibold text-ink">
+        <span className="numeric text-ink font-semibold">
           {fmtCompact(valor)}
         </span>{" "}
         · {percentual.toFixed(1).replace(".", ",")}% do total de emendas
@@ -59,7 +59,7 @@ export function EmendasCard({
   return (
     <section
       className={cn(
-        "panel panel-brand border! grid grid-cols-1 items-start gap-6 rounded-md! p-6! lg:grid-cols-12 lg:gap-0",
+        "panel panel-brand grid grid-cols-1 items-start gap-6 rounded-md! border! p-6! lg:grid-cols-12 lg:gap-0",
         className,
       )}
     >
@@ -71,7 +71,7 @@ export function EmendasCard({
           <span className="caption font-medium">
             recebidos. Já reservados (empenhados) para gastos:
           </span>
-          <span className="font-semibold text-base text-mute2">
+          <span className="text-mute2 text-base font-semibold">
             {fmtCompact(emendasTotalEmpenhado)}
           </span>
         </div>
@@ -83,7 +83,7 @@ export function EmendasCard({
         </p>
       </div>
 
-      <div className="space-y-4 lg:col-span-6 lg:border-line lg:border-l lg:pl-6">
+      <div className="lg:border-line space-y-4 lg:col-span-6 lg:border-l lg:pl-6">
         <LinhaEmenda
           rotulo="Emendas individuais ou de bancada"
           valor={emendasIndividuais}

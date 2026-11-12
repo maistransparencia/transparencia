@@ -74,7 +74,7 @@ export function PrevistoVsArrecadadoOrigem({
         return (
           <div key={`previsto-vs-arrecadado-${item.fonte}`}>
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="font-semibold text-ink">{item.fonte}</span>
+              <span className="text-ink font-semibold">{item.fonte}</span>
               <span className="caption font-medium">
                 {fmtCompact(item.arrecadado)} / {fmtCompact(item.previsto)}
               </span>
@@ -82,7 +82,7 @@ export function PrevistoVsArrecadadoOrigem({
 
             <div className="w-full">
               <div
-                className="h-5 overflow-hidden bg-track"
+                className="bg-track h-5 overflow-hidden"
                 style={{ width: `${trackWidthPct}%` }}
               >
                 <div
@@ -103,7 +103,7 @@ export function PrevistoVsArrecadadoOrigem({
 
             {item.origem && item.origem.length > 0 ? (
               <details className="mt-2">
-                <summary className="cursor-pointer font-semibold text-brand-text text-sm">
+                <summary className="text-brand-text cursor-pointer text-sm font-semibold">
                   De onde vem este valor
                 </summary>
                 <p className="caption mt-2">
@@ -126,9 +126,9 @@ export function PrevistoVsArrecadadoOrigem({
                           %
                         </span>
                       </div>
-                      <div className="mt-1 h-2 w-full bg-track">
+                      <div className="bg-track mt-1 h-2 w-full">
                         <div
-                          className="h-full bg-brand-fill"
+                          className="bg-brand-fill h-full"
                           style={{
                             width: `${Math.max(0, Math.min(100, origem.percentualDoTotal))}%`,
                           }}

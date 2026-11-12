@@ -100,8 +100,10 @@ describe("RadarPage", () => {
 
     // Título e resumo geral
     expect(screen.getByText("Radar Cívico Municipal")).toBeInTheDocument();
-    expect(screen.getByText("Alertas apurados")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.queryByText("Alertas apurados")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Controle Social e Auditoria Fiscal"),
+    ).not.toBeInTheDocument();
 
     // Seções por ano
     expect(screen.getByTestId("radar-secao-ano-2026")).toBeInTheDocument();

@@ -49,7 +49,7 @@ export function ThemeToggle({
     <fieldset
       aria-label="Tema"
       className={cn(
-        "m-0 flex w-full rounded-md border border-mute3 p-0.5",
+        "border-mute3 m-0 flex w-full rounded-md border p-0.5",
         className,
       )}
     >
@@ -62,7 +62,7 @@ export function ThemeToggle({
             aria-pressed={ativo}
             onClick={() => escolher(valor)}
             className={cn(
-              "flex min-h-[32px] flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-sm px-2 py-1 font-medium text-xs transition-colors focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-1",
+              "focus-visible:outline-ink flex min-h-[32px] flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-sm px-2 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1",
               ativo ? "bg-ink text-onink" : "text-mute hover:text-ink",
             )}
           >

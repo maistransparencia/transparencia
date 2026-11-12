@@ -444,6 +444,43 @@ describe("getFarmaciaSentinelas", () => {
     expect((await getFarmaciaSentinelas("  ")).sentinelas).toEqual([]);
   });
 
+  it("conta unidades sem lote utilizavel do sentinela com relacionado valido", async () => {
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "insulina_nph",
+      possuiLoteSemValidade: false,
+      dataValidadeMaisTardia: dataRelativa(-3),
+      dataValidadeRelacionadoMaisTardia: dataRelativa(30),
+    });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1002",
+      codigoPrincipioAtivo: "insulina_nph",
+      statusDisponibilidade: "sem_registro_estoque",
+      possuiRelacionadoLoteSemValidade: true,
+    });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1003",
+      codigoPrincipioAtivo: "insulina_nph",
+      statusDisponibilidade: "sem_registro_estoque",
+      dataValidadeRelacionadoMaisTardia: dataRelativa(-5),
+    });
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1004",
+      codigoPrincipioAtivo: "insulina_nph",
+      dataValidadeRelacionadoMaisTardia: dataRelativa(30),
+    });
+    const [nph] = (await getFarmaciaSentinelas(PORTAL_A)).sentinelas;
+    expect(nph).toMatchObject({
+      unidadesComRegistro: 1,
+      unidadesSomenteLoteVencido: 1,
+      unidadesComRelacionadoValido: 2,
+    });
+  });
+
   it("calcula indicadores dos essenciais sem assumir numero de unidades", async () => {
     await seedFarmaciaSentinela({
       portalSlug: PORTAL_A,

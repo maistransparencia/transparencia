@@ -183,6 +183,9 @@ describe("FarmaciaPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Ubs Centro")).toBeInTheDocument();
     expect(screen.getByText("Dipirona")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Unidades que informaram estoque"),
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId("mapa-mock")).toBeInTheDocument();
     expect(screen.queryByText(/Filtrar por esta unidade/)).toBeNull();
     expect(screen.queryByText(/Ver mais unidades/)).toBeNull();

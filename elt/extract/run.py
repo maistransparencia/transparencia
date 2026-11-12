@@ -54,13 +54,14 @@ def main() -> None:
     years = args.years or list(range(portal.ano_inicial, date.today().year + 1))
 
     siconfi_keys = {"siconfi", "siconfi_msc", "siconfi_msc_patrimonial"}
+    siconfi_rgf_keys = {"siconfi", "siconfi_rgf"}
     pncp_keys = {"pncp", "pncp_compras", "pncp_itens"}
     obrasgov_keys = {"obrasgov"}
     farmacia_sus_keys = {"farmacia_sus"}
     if args.only:
         valid = (
             [e.listagem for e in endpoints]
-            + list(siconfi_keys)
+            + list(siconfi_keys | siconfi_rgf_keys)
             + list(pncp_keys)
             + list(obrasgov_keys)
             + list(farmacia_sus_keys)
@@ -137,6 +138,22 @@ def main() -> None:
             except Exception as exc:
                 logger.warning("Failed: siconfi_msc_patrimonial / %s / %d: %s", portal.slug, year, exc)
                 _log_failed(run_dir, "siconfi_msc_patrimonial", str(portal.cod_ibge), year, exc)
+
+    if not args.only or args.only in siconfi_rgf_keys:
+        from elt.extract.siconfi_rgf import SiconfiRgfExtractor
+
+        logger.info("Extracting SICONFI RGF Anexo 01 for IBGE %s...", portal.cod_ibge)
+        rgf_extractor = SiconfiRgfExtractor()
+        for year in years:
+            try:
+                rgf_rows = rgf_extractor.extract_ano(portal.cod_ibge, year)
+                out = run_dir / "siconfi_rgf" / f"{portal.cod_ibge}_{year}.json"
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(json.dumps(rgf_rows, ensure_ascii=False, indent=2))
+                logger.info("Extracted siconfi_rgf / %s / %d → %d rows", portal.slug, year, len(rgf_rows))
+            except Exception as exc:
+                logger.warning("Failed: siconfi_rgf / %s / %d: %s", portal.slug, year, exc)
+                _log_failed(run_dir, "siconfi_rgf", str(portal.cod_ibge), year, exc)
 
     if not args.only or args.only in pncp_keys:
         from elt.extract.pncp import extract_and_load_pncp

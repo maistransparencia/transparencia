@@ -23,7 +23,7 @@ export function MultiSelect({
   options = [],
   selectedIds = [],
   onChange,
-  labelAll = "Todas as entidades",
+  labelAll = "Todos os órgãos",
   className,
   disabled = false,
 }: MultiSelectProps) {
@@ -95,7 +95,7 @@ export function MultiSelect({
 
   let displayText = labelAll;
   if (!hasOptions) {
-    displayText = "Nenhuma entidade cadastrada";
+    displayText = "Nenhum órgão cadastrado";
   } else if (!isAllSelected && selectedIds.length > 0) {
     if (selectedIds.length === 1) {
       const found = options.find((o) => o.id === selectedIds[0]);
@@ -116,32 +116,32 @@ export function MultiSelect({
         disabled={isBtnDisabled}
         onClick={() => !isBtnDisabled && setIsOpen(!isOpen)}
         className={cn(
-          "flex min-h-[44px] w-full items-center justify-between rounded-md border border-line bg-page px-2.5 py-2 text-ink text-xs transition-colors sm:min-h-0",
+          "border-line bg-page text-ink flex min-h-[44px] w-full items-center justify-between rounded-md border px-2.5 py-2 text-xs transition-colors sm:min-h-0",
           isBtnDisabled
-            ? "cursor-not-allowed text-mute2 opacity-60"
-            : "hover:border-mute3 focus:border-ink focus:outline-none",
+            ? "text-mute2 cursor-not-allowed opacity-60"
+            : "hover:border-mute3 focus:border-ink cursor-pointer focus:outline-none",
         )}
       >
         <span className="truncate pr-2 font-medium">{displayText}</span>
         <ChevronDown
           strokeWidth={1.6}
           className={cn(
-            "h-3.5 w-3.5 shrink-0 text-mute2 transition-transform duration-200",
+            "text-mute2 h-3.5 w-3.5 shrink-0 transition-transform duration-200",
             isOpen && "rotate-180",
           )}
         />
       </button>
 
       {isOpen && hasOptions && (
-        <div className="absolute z-50 mt-1 max-h-80 w-full overflow-auto rounded-md border border-line bg-page py-1 text-xs shadow-lg">
+        <div className="border-line bg-page absolute z-50 mt-1 max-h-80 w-full overflow-auto rounded-md border py-1 text-xs shadow-lg">
           <button
             type="button"
             onClick={handleToggleAll}
-            className="flex min-h-[36px] w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left font-medium text-ink hover:bg-line2 sm:min-h-0 sm:py-1.5"
+            className="text-ink hover:bg-line2 flex min-h-[36px] w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left font-medium sm:min-h-0 sm:py-1.5"
           >
             <div
               className={cn(
-                "flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border border-line transition-colors",
+                "border-line flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border transition-colors",
                 isAllSelected ? "border-ink bg-ink text-onink" : "bg-page",
               )}
             >
@@ -152,7 +152,7 @@ export function MultiSelect({
             <span className="truncate">{labelAll}</span>
           </button>
 
-          <div className="my-1 border-line2 border-t" />
+          <div className="border-line2 my-1 border-t" />
 
           {options.map((opt) => {
             const isChecked = isAllSelected || selectedIds.includes(opt.id);
@@ -162,7 +162,7 @@ export function MultiSelect({
                 key={opt.id}
                 role="group"
                 aria-label={toTitleCase(opt.nome)}
-                className="group/row flex min-h-[34px] w-full items-center justify-between rounded-sm px-1.5 text-ink hover:bg-line2 sm:min-h-0 sm:py-0.5"
+                className="group/row text-ink hover:bg-line2 flex min-h-[34px] w-full items-center justify-between rounded-sm px-1.5 sm:min-h-0 sm:py-0.5"
               >
                 {/* biome-ignore lint/a11y/useSemanticElements: custom styled checkbox button */}
                 <button
@@ -171,11 +171,11 @@ export function MultiSelect({
                   aria-checked={isChecked}
                   aria-label={`Alternar seleção de ${toTitleCase(opt.nome)}`}
                   onClick={() => handleToggleOption(opt.id)}
-                  className="flex min-h-[32px] shrink-0 cursor-pointer items-center justify-center rounded-sm p-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-ink sm:min-h-0 sm:p-1"
+                  className="focus-visible:ring-ink flex min-h-[32px] shrink-0 cursor-pointer items-center justify-center rounded-sm p-1.5 focus:outline-none focus-visible:ring-1 sm:min-h-0 sm:p-1"
                 >
                   <div
                     className={cn(
-                      "flex h-3.5 w-3.5 items-center justify-center rounded border border-line transition-colors",
+                      "border-line flex h-3.5 w-3.5 items-center justify-center rounded border transition-colors",
                       isChecked ? "border-ink bg-ink text-onink" : "bg-page",
                     )}
                   >
@@ -190,14 +190,14 @@ export function MultiSelect({
                   onClick={() => handleSelectOnly(opt.id)}
                   aria-label={`Selecionar apenas ${toTitleCase(opt.nome)}`}
                   title={`Selecionar apenas ${toTitleCase(opt.nome)}`}
-                  className="group/label relative flex min-w-0 flex-1 cursor-pointer items-center overflow-hidden rounded-sm py-1 pr-1 pl-1.5 text-left text-xs focus:outline-none focus-visible:ring-1 focus-visible:ring-ink"
+                  className="group/label focus-visible:ring-ink relative flex min-w-0 flex-1 cursor-pointer items-center overflow-hidden rounded-sm py-1 pr-1 pl-1.5 text-left text-xs focus:outline-none focus-visible:ring-1"
                 >
                   <span className="truncate">{toTitleCase(opt.nome)}</span>
                   <span
-                    className="absolute inset-y-0 right-0 hidden items-center bg-gradient-to-l from-line2 via-line2 to-transparent pr-1 pl-6 group-hover/label:sm:flex"
+                    className="from-line2 via-line2 absolute inset-y-0 right-0 hidden items-center bg-gradient-to-l to-transparent pr-1 pl-6 group-hover/label:sm:flex"
                     aria-hidden="true"
                   >
-                    <span className="rounded border border-line bg-page px-1.5 py-0.5 font-medium text-[11px] text-ink">
+                    <span className="border-line bg-page text-ink rounded border px-1.5 py-0.5 text-[11px] font-medium">
                       apenas
                     </span>
                   </span>

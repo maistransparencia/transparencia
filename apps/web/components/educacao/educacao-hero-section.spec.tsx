@@ -20,6 +20,7 @@ const semMinimo = {
 const minimosBase: MinimosLegaisView = {
   ano: 2024,
   parcial: false,
+  anoEmAndamento: false,
   periodo: 6,
   semDadoSiope: false,
   mde: {
@@ -72,6 +73,7 @@ const alunosBase: AlunosRedeView = {
 const aprendizadoBase: AprendizadoEtapa = {
   etapaEnsino: "anosIniciais",
   titulo: "Anos Iniciais (1º ao 5º ano)",
+  pergunta: "Como vai o ensino do 1º ao 5º ano?",
   notaIdeb: 6.2,
   anoApuracao: 2023,
   mediaEstadual: 5.2,
@@ -89,6 +91,7 @@ const aprendizadoFinaisBase: AprendizadoEtapa = {
   ...aprendizadoBase,
   etapaEnsino: "anosFinais",
   titulo: "Anos Finais (6º ao 9º ano)",
+  pergunta: "Como vai o ensino do 6º ao 9º ano?",
   notaIdeb: 5.1,
   mediaEstadual: 4.8,
   notaAnterior: 5.1,
@@ -143,7 +146,9 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
     renderizar();
     const bloco = destaqueMinimo();
     expect(
-      within(bloco).getByText("Aplicação mínima exigida em ensino"),
+      within(bloco).getByText(
+        /^A Prefeitura (aplica|aplicou) o mínimo em educação em \d{4}\?$/,
+      ),
     ).toBeTruthy();
     expect(within(bloco).getByText("Aplicado: 27,50%")).toBeTruthy();
     expect(within(bloco).getByText("Exigido por lei: 25%")).toBeTruthy();
@@ -165,6 +170,26 @@ describe("EducacaoHeroSection: mínimo constitucional", () => {
       area.querySelector("[data-testid='destaque-minimo'] .panel"),
     ).toBeNull();
     expect(area.innerHTML).not.toMatch(/bg-line|bg-page|rounded/);
+  });
+
+  it("no ano em andamento sem dado a pergunta fica no presente", () => {
+    renderizar({
+      minimosLegais: {
+        ...minimosBase,
+        anoEmAndamento: true,
+        semDadoSiope: true,
+        mde: {
+          ...minimosBase.mde,
+          percentualAplicado: null,
+          resultado: "sem_dado",
+        },
+      },
+    });
+    expect(
+      within(destaqueMinimo()).getByText(
+        "A Prefeitura aplica o mínimo em educação em 2024?",
+      ),
+    ).toBeTruthy();
   });
 
   it("mostra a barra com o marcador vindo do limite, nunca literal", () => {
@@ -256,7 +281,10 @@ describe("EducacaoHeroSection: IDEB", () => {
     const bloco = destaqueIdeb();
     expect(bloco.querySelector(".stat-value-lg")?.textContent).toContain("6,2");
     expect(
-      within(bloco).getByText("IDEB 2023 · Anos Iniciais (1º ao 5º ano)"),
+      within(bloco).getByText("Como vai o ensino do 1º ao 5º ano?"),
+    ).toBeTruthy();
+    expect(
+      within(bloco).getByText("Nota do IDEB 2023, de 0 a 10."),
     ).toBeTruthy();
     expect(
       within(bloco).getByText(
@@ -344,7 +372,9 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     const { rerender } = renderizar();
     const indicador = screen.getByTestId("indicador-fundeb");
     expect(
-      within(indicador).getByText("Fundeb para profissionais da educação"),
+      within(indicador).getByText(
+        /^Quanto do Fundeb (vai|foi) para o salário dos profissionais da educação em \d{4}\?$/,
+      ),
     ).toBeTruthy();
     expect(within(indicador).getByText("Destinado: 65,00%")).toBeTruthy();
     expect(within(indicador).getByText("Mínimo legal: 70%")).toBeTruthy();
@@ -422,7 +452,7 @@ describe("EducacaoHeroSection: indicadores de apoio", () => {
     renderizar();
     const finais = screen.getByTestId("destaque-ideb-anosFinais");
     expect(
-      within(finais).getByText("IDEB 2023 · Anos Finais (6º ao 9º ano)"),
+      within(finais).getByText("Como vai o ensino do 6º ao 9º ano?"),
     ).toBeTruthy();
     expect(finais.querySelector(".stat-value-lg")?.textContent).toBe("5,1");
   });

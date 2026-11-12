@@ -68,6 +68,46 @@ describe("ReceitasPage", () => {
     expect(screen.getByText("Total arrecadado")).toBeInTheDocument();
   });
 
+  it("mostra a barra com o previsto na régua e a comparação com o ano anterior", async () => {
+    loadReceitasDataMock.mockResolvedValue(makeRaw());
+    render(await ReceitasPage(props));
+
+    const destaque = screen.getByTestId("receitas-destaque");
+    expect(destaque).toHaveTextContent("Previsto para o ano:");
+    expect(destaque).toHaveTextContent(
+      "A Prefeitura arrecadou 5,0% a mais que em 2023, sem descontar a inflação.",
+    );
+    expect(
+      screen.getByRole("meter", {
+        name: "Quanto da previsão já foi arrecadado",
+      }),
+    ).toBeInTheDocument();
+    expect(destaque.querySelector("dl")).toBeNull();
+  });
+
+  it("sem previsão informada mostra uma linha neutra no lugar da barra", async () => {
+    loadReceitasDataMock.mockResolvedValue(
+      makeRaw({ fonte: makeFonte({ totalPrevisto: 0 }) }),
+    );
+    render(await ReceitasPage(props));
+    expect(screen.getByTestId("receitas-destaque")).toHaveTextContent(
+      "Previsão do ano não informada.",
+    );
+    expect(screen.queryByRole("meter")).not.toBeInTheDocument();
+  });
+
+  it("quando arrecada mais que o previsto, diz que ficou acima da previsão", async () => {
+    loadReceitasDataMock.mockResolvedValue(
+      makeRaw({
+        fonte: makeFonte({ totalArrecadado: 2000, pctArrecadado: 1.11 }),
+      }),
+    );
+    render(await ReceitasPage(props));
+    expect(screen.getByTestId("receitas-destaque")).toHaveTextContent(
+      /arrecadados, acima dos .* previstos/,
+    );
+  });
+
   it("não exibe o card de anomalia de dependência quando não há alerta", async () => {
     loadReceitasDataMock.mockResolvedValue(makeRaw({ radarAlertas: [] }));
 

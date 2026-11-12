@@ -7,6 +7,7 @@ import type {
 import {
   AlertBox,
   Badge,
+  type BadgeVariant,
   type Column,
   cn,
   DenseTable,
@@ -41,7 +42,7 @@ export interface PessoalRegimeSectionProps {
 
 interface RegimeStyle {
   barBg: string;
-  badge: string;
+  badgeVariant: BadgeVariant;
   dot: string;
   description: string;
 }
@@ -51,49 +52,49 @@ function getRegimeStyle(categoria: string): RegimeStyle {
     case "efetivo_concurso":
       return {
         barBg: "bg-ok-fill",
-        badge: "border-ok-text/40 bg-ok-fill/10 text-ok-text",
+        badgeVariant: "success",
         dot: "bg-ok-fill",
         description: "Servidores estatutários concursados",
       };
     case "efetivo_comissao":
       return {
         barBg: "bg-brand-fill",
-        badge: "border-brand/40 bg-brand/10 text-brand",
+        badgeVariant: "accent",
         dot: "bg-brand-fill",
         description: "Concursados em liderança ou chefia",
       };
     case "comissionado":
       return {
         barBg: "bg-warn-fill",
-        badge: "border-warn-text/40 bg-warn-fill/10 text-warn-text",
+        badgeVariant: "warning",
         dot: "bg-warn-fill",
         description: "Livre nomeação externa (confiança)",
       };
     case "contrato_temporario":
       return {
         barBg: "bg-mute2",
-        badge: "border-line bg-line2/40 text-mute2",
+        badgeVariant: "default",
         dot: "bg-mute2",
         description: "Contratos temporários de interesse público",
       };
     case "agente_politico":
       return {
         barBg: "bg-ink",
-        badge: "border-line bg-line2/40 text-mute2",
+        badgeVariant: "default",
         dot: "bg-ink",
         description: "Prefeito, secretários e dirigentes eletivos",
       };
     case "rpps_inativos":
       return {
         barBg: "bg-faint",
-        badge: "border-line bg-line2/40 text-mute2",
+        badgeVariant: "default",
         dot: "bg-faint",
         description: "Aposentados e pensionistas do RPPS",
       };
     default:
       return {
         barBg: "bg-pill",
-        badge: "border-line bg-line2/40 text-mute2",
+        badgeVariant: "default",
         dot: "bg-pill",
         description:
           "Vínculos excepcionais e provimentos atípicos no portal de origem",
@@ -180,16 +181,7 @@ export function PessoalRegimeSection({
               CATEGORIA_REGIME_LABELS[
                 row.categoriaRegime as keyof typeof CATEGORIA_REGIME_LABELS
               ] ?? row.categoriaRegime;
-            return (
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-[11px]",
-                  style.badge,
-                )}
-              >
-                {rotulo}
-              </span>
-            );
+            return <Badge variant={style.badgeVariant}>{rotulo}</Badge>;
           },
         },
         {
@@ -218,30 +210,25 @@ export function PessoalRegimeSection({
       resumo: (
         <div className="space-y-1">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="min-w-0 font-semibold text-ink text-sm">
+            <span className="text-ink min-w-0 text-sm font-semibold">
               {row.cargo || "Cargo não informado"}
             </span>
-            <span className="numeric shrink-0 text-ink text-sm">
+            <span className="numeric text-ink shrink-0 text-sm">
               {fmtCurrency(row.proventos)}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-3 text-mute2 text-xs">
+          <div className="text-mute2 flex items-center justify-between gap-3 text-xs">
             <span className="min-w-0">
               {row.orgaoNome || "Órgão não informado"}
             </span>
-            <span
-              className={cn(
-                "inline-flex shrink-0 items-center rounded-sm border px-2 py-0.5 font-medium text-[11px]",
-                style.badge,
-              )}
-            >
+            <Badge variant={style.badgeVariant} className="shrink-0">
               {rotulo}
-            </span>
+            </Badge>
           </div>
         </div>
       ),
       detalhes: (
-        <dl className="space-y-1 text-mute2">
+        <dl className="text-mute2 space-y-1">
           {row.matricula ? (
             <div className="flex justify-between gap-3">
               <dt>Matrícula</dt>
@@ -250,7 +237,7 @@ export function PessoalRegimeSection({
           ) : null}
           <div className="flex justify-between gap-3">
             <dt>Vínculo na origem</dt>
-            <dd className="text-right text-ink">
+            <dd className="text-ink text-right">
               {row.vinculo || row.categoriaFuncional || "Não especificado"}
             </dd>
           </div>
@@ -348,21 +335,21 @@ export function PessoalRegimeSection({
                   className="h-full items-stretch"
                   style={{ width: `${item.percentualProfissionais}%` }}
                   contentClassName={cn(
-                    "w-56 border-line bg-page p-2.5",
+                    "border-line bg-page w-56 p-2.5",
                     alignmentClasses,
                   )}
                   content={
                     <div className="space-y-1 text-xs">
-                      <div className="flex items-center gap-1.5 font-semibold text-ink">
+                      <div className="text-ink flex items-center gap-1.5 font-semibold">
                         <span
                           className={`h-2 w-2 rounded-sm ${style.dot}`}
                           aria-hidden="true"
                         />
                         <span>{rotulo}</span>
                       </div>
-                      <div className="flex items-center justify-between gap-3 text-mute">
+                      <div className="text-mute flex items-center justify-between gap-3">
                         <span>{fmtPercent(item.percentualProfissionais)}</span>
-                        <span className="font-medium text-ink">
+                        <span className="text-ink font-medium">
                           {fmtNumber(item.totalProfissionais)} servidores
                         </span>
                       </div>
@@ -374,7 +361,7 @@ export function PessoalRegimeSection({
                     aria-label={`${rotulo}: ${fmtPercent(
                       item.percentualProfissionais,
                     )} (${fmtNumber(item.totalProfissionais)} servidores)`}
-                    className={`block h-full w-full transition-all ${style.barBg} cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring`}
+                    className={`block h-full w-full transition-all ${style.barBg} focus-visible:ring-focus-ring cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2`}
                   />
                 </Tooltip>
               );
@@ -404,24 +391,22 @@ export function PessoalRegimeSection({
                     />
                     <h3>{rotulo}</h3>
                   </div>
-                  <span
-                    className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-medium text-[11px] ${style.badge}`}
-                  >
+                  <Badge variant={style.badgeVariant}>
                     {fmtPercent(item.percentualProfissionais)}
-                  </span>
+                  </Badge>
                 </div>
 
                 <p className="caption mt-1">{style.description}</p>
 
                 {/* Métricas Principais: Profissionais e Proventos */}
-                <div className="mt-4 space-y-2 border-line2 border-t pt-3">
+                <div className="border-line2 mt-4 space-y-2 border-t pt-3">
                   <div className="flex items-baseline justify-between">
                     <span className="caption">Servidores</span>
                     <div className="flex items-baseline gap-1.5">
                       {item.variacaoProfissionais !== null &&
                         item.variacaoProfissionais !== undefined && (
                           <span
-                            className="shrink-0 whitespace-nowrap rounded-sm bg-line2 px-1.5 py-0.5 font-medium text-[11px] text-mute2"
+                            className="bg-line2 text-mute2 shrink-0 rounded-sm px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap"
                             title={`Variação de ${item.variacaoProfissionais > 0 ? `+${item.variacaoProfissionais}%` : `${item.variacaoProfissionais}%`} vs ${ano - 1}`}
                           >
                             {item.variacaoProfissionais > 0
@@ -430,7 +415,7 @@ export function PessoalRegimeSection({
                             vs {ano - 1}
                           </span>
                         )}
-                      <span className="font-semibold text-ink text-sm">
+                      <span className="text-ink text-sm font-semibold">
                         {fmtNumber(item.totalProfissionais)}
                       </span>
                     </div>
@@ -442,7 +427,7 @@ export function PessoalRegimeSection({
                       {item.variacaoFolha !== null &&
                         item.variacaoFolha !== undefined && (
                           <span
-                            className="shrink-0 whitespace-nowrap rounded-sm bg-line2 px-1.5 py-0.5 font-medium text-[11px] text-mute2"
+                            className="bg-line2 text-mute2 shrink-0 rounded-sm px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap"
                             title={`Variação de ${item.variacaoFolha > 0 ? `+${item.variacaoFolha}%` : `${item.variacaoFolha}%`} vs ${ano - 1}`}
                           >
                             {item.variacaoFolha > 0
@@ -452,7 +437,7 @@ export function PessoalRegimeSection({
                           </span>
                         )}
                       <span
-                        className="font-semibold text-ink text-sm"
+                        className="text-ink text-sm font-semibold"
                         title={fmtCurrency(item.totalProventos)}
                       >
                         {fmtCompact(item.totalProventos)}
@@ -462,7 +447,7 @@ export function PessoalRegimeSection({
 
                   <div className="flex items-baseline justify-between">
                     <span className="caption">Média por servidor</span>
-                    <span className="font-semibold text-ink text-sm">
+                    <span className="text-ink text-sm font-semibold">
                       {fmtCompact(item.proventoMedio)}
                     </span>
                   </div>
@@ -470,9 +455,9 @@ export function PessoalRegimeSection({
               </div>
 
               {/* Footer do Card: Impacto na Folha Total */}
-              <div className="mt-3 flex items-center justify-between border-line2 border-t pt-2.5 text-xs">
+              <div className="border-line2 mt-3 flex items-center justify-between border-t pt-2.5 text-xs">
                 <span className="caption">Parcela da folha mensal</span>
-                <span className="font-medium text-ink">
+                <span className="text-ink font-medium">
                   {fmtPercent(item.percentualFolha)} da folha
                 </span>
               </div>
@@ -487,7 +472,7 @@ export function PessoalRegimeSection({
           <div className="space-y-2 text-xs leading-relaxed">
             <p>
               Em {ano},{" "}
-              <strong className="font-semibold text-ink">
+              <strong className="text-ink font-semibold">
                 {fmtNumber(totalDivergencias)}{" "}
                 {totalDivergencias === 1
                   ? "servidor aparece"
@@ -502,7 +487,7 @@ export function PessoalRegimeSection({
                 href={urlLegislacao("constituicao", "art37")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2"
+                className="text-brand-text inline-flex items-center gap-0.5 font-medium underline underline-offset-2"
               >
                 <span>Art. 37 da Constituição Federal</span>
                 <ExternalLink className="h-3 w-3 shrink-0" />
@@ -514,7 +499,7 @@ export function PessoalRegimeSection({
                 <button
                   type="button"
                   onClick={() => setIsDivergenciasModalOpen(true)}
-                  className="inline-flex min-h-11 cursor-pointer items-center font-medium text-brand-text text-sm underline underline-offset-2"
+                  className="text-brand-text inline-flex min-h-11 cursor-pointer items-center text-sm font-medium underline underline-offset-2"
                 >
                   Ver detalhes ({servidoresDivergentes.length})
                 </button>
@@ -532,7 +517,7 @@ export function PessoalRegimeSection({
         subtitle={`Dos ${fmtNumber(totalProfissionais)} servidores do município, ${fmtNumber(servidoresDivergentes.length)} ${servidoresDivergentes.length === 1 ? "teve" : "tiveram"} o vínculo reclassificado em ${ano}. A tabela mostra o tipo cadastrado na origem e o regime usado nesta tela.`}
         maxWidth="5xl"
         footer={
-          <div className="flex w-full items-center justify-between text-mute2 text-xs">
+          <div className="text-mute2 flex w-full items-center justify-between text-xs">
             <span>
               {fmtNumber(servidoresDivergentes.length)} de{" "}
               {fmtNumber(totalProfissionais)} servidores do município
@@ -540,7 +525,7 @@ export function PessoalRegimeSection({
             <button
               type="button"
               onClick={() => setIsDivergenciasModalOpen(false)}
-              className="min-h-11 rounded-md bg-line2 px-3 py-1.5 font-medium text-ink hover:bg-line"
+              className="bg-line2 text-ink hover:bg-line min-h-11 rounded-md px-3 py-1.5 font-medium"
             >
               Fechar
             </button>

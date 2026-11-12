@@ -9,6 +9,7 @@ import { ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
 import { DespesasAreasSection } from "@/components/despesas-areas-section";
 import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
+import { PageEyebrow } from "@/components/page-eyebrow";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
@@ -67,13 +68,13 @@ export default async function DespesasPage({
   return (
     <div className="space-y-10">
       {/* Header Principal */}
-      <div>
-        <span className="inline-block font-semibold text-brand text-xs uppercase tracking-wider">
-          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
+      <div className="space-y-2">
+        <PageEyebrow>
+          Administrativo · Exercício {selectedYear}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </PageEyebrow>
         <h1>Despesas & Controle de Gastos</h1>
-        <p className="mt-1 text-mute2 text-sm leading-relaxed">
+        <p className="text-mute2 text-sm leading-relaxed">
           Para onde foi o dinheiro da prefeitura em {selectedYear}, quanto já
           saiu de verdade do caixa e quem recebeu.
         </p>
@@ -116,13 +117,13 @@ export default async function DespesasPage({
         </IndicatorPanel>
 
         <details className="group">
-          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">
+          <summary className="text-ink flex cursor-pointer items-center justify-between gap-2 text-sm font-semibold select-none">
             <span>
               Como ler estes números: reservado, entregue e pago não se somam
             </span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
+            <ChevronDown className="text-mute2 h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="mt-4 space-y-2.5 text-ink text-sm leading-relaxed">
+          <div className="text-ink mt-4 space-y-2.5 text-sm leading-relaxed">
             <p>
               Uma compra pública tem três passos: a prefeitura{" "}
               <strong>reserva</strong> o valor (empenho),{" "}
@@ -231,11 +232,11 @@ export default async function DespesasPage({
         )}
 
         <details className="group">
-          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 font-semibold text-ink text-sm">
+          <summary className="text-ink flex cursor-pointer items-center justify-between gap-2 text-sm font-semibold select-none">
             <span>O que são restos a pagar?</span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180" />
+            <ChevronDown className="text-mute2 h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="mt-4 space-y-2.5 text-ink text-sm leading-relaxed">
+          <div className="text-ink mt-4 space-y-2.5 text-sm leading-relaxed">
             <p>
               É a conta que sobra de um ano para o outro. Isso é comum:
               contratos assinados no fim do ano podem ser pagos no começo do

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@transparencia/ui";
+import { Badge, type BadgeVariant, cn } from "@transparencia/ui";
 import {
   AlertCircle,
   AlertTriangle,
@@ -22,22 +22,25 @@ export interface RadarAnomaliaCardProps {
   funnelSource?: string;
 }
 
-function getSeverityBadgeData(grau: string) {
+function getSeverityBadgeData(grau: string): {
+  label: string;
+  badgeVariant: BadgeVariant;
+} {
   if (grau === "critico") {
     return {
       label: "Atenção Especial",
-      colorClass: "bg-danger-fill/10 text-danger-text border-danger-text/40",
+      badgeVariant: "danger",
     };
   }
   if (grau === "alto") {
     return {
       label: "Atenção",
-      colorClass: "bg-warn-fill/10 text-warn-text border-warn-text/40",
+      badgeVariant: "warning",
     };
   }
   return {
     label: "Acompanhamento",
-    colorClass: "bg-line2/40 text-mute2 border-line",
+    badgeVariant: "default",
   };
 }
 
@@ -51,7 +54,7 @@ function SeverityIcon({ grau }: { grau: string }) {
   if (grau === "critico") {
     return (
       <AlertCircle
-        className="mr-1 h-3.5 w-3.5 shrink-0 text-danger-text"
+        className="text-danger-text mr-1 h-3.5 w-3.5 shrink-0"
         aria-hidden="true"
       />
     );
@@ -59,13 +62,13 @@ function SeverityIcon({ grau }: { grau: string }) {
   if (grau === "alto") {
     return (
       <AlertTriangle
-        className="mr-1 h-3.5 w-3.5 shrink-0 text-warn-text"
+        className="text-warn-text mr-1 h-3.5 w-3.5 shrink-0"
         aria-hidden="true"
       />
     );
   }
   return (
-    <Info className="mr-1 h-3.5 w-3.5 shrink-0 text-mute2" aria-hidden="true" />
+    <Info className="text-mute2 mr-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
   );
 }
 
@@ -73,14 +76,14 @@ function MethodologyIcon({ tipo }: { tipo: string }) {
   if (tipo === "estoque") {
     return (
       <Layers
-        className="mr-1 h-3.5 w-3.5 shrink-0 text-mute2"
+        className="text-mute2 mr-1 h-3.5 w-3.5 shrink-0"
         aria-hidden="true"
       />
     );
   }
   return (
     <Clock
-      className="mr-1 h-3.5 w-3.5 shrink-0 text-mute2"
+      className="text-mute2 mr-1 h-3.5 w-3.5 shrink-0"
       aria-hidden="true"
     />
   );
@@ -89,7 +92,7 @@ function MethodologyIcon({ tipo }: { tipo: string }) {
 function WhatsAppIcon() {
   return (
     <svg
-      className="h-3 w-3 shrink-0 fill-current text-ok-text"
+      className="text-ok-text h-3 w-3 shrink-0 fill-current"
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
@@ -175,31 +178,25 @@ export function RadarAnomaliaCard({
       <div>
         {/* Badges superiores com alto contraste e elegância */}
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span
+          <Badge
             data-testid="radar-severidade-badge"
-            className={cn(
-              "inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 font-medium text-xs",
-              badgeSeveridade.colorClass,
-            )}
+            variant={badgeSeveridade.badgeVariant}
           >
             <SeverityIcon grau={card.grauSeveridade} />
             {badgeSeveridade.label}
-          </span>
+          </Badge>
 
-          <span
-            data-testid="radar-metodologia-badge"
-            className="inline-flex items-center gap-1 rounded-sm border border-line bg-line2/40 px-2 py-0.5 font-medium text-mute2 text-xs"
-          >
+          <Badge data-testid="radar-metodologia-badge">
             <MethodologyIcon tipo={card.tipoMetodologia} />
             {metodologiaLabel}
-          </span>
+          </Badge>
         </div>
 
         {/* Título do Card: tipografia serif elegante */}
         <h3>{card.titulo}</h3>
 
         {/* Narrativa Factual Neutra */}
-        <p className="mt-2.5 text-mute text-xs leading-relaxed sm:text-sm">
+        <p className="text-mute mt-2.5 text-xs leading-relaxed sm:text-sm">
           {card.textoFactual || card.resumoFactual}
         </p>
 
@@ -208,7 +205,7 @@ export function RadarAnomaliaCard({
           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 sm:grid-cols-3">
             <div>
               <span className="eyebrow block">Observado</span>
-              <span className="mt-0.5 block truncate font-semibold font-serif text-ink text-sm sm:text-base">
+              <span className="text-ink mt-0.5 block truncate font-serif text-sm font-semibold sm:text-base">
                 {card.valorObservadoFormatted}
               </span>
             </div>
@@ -216,13 +213,13 @@ export function RadarAnomaliaCard({
               <span className="eyebrow block">
                 {card.esperadoLabel ?? "Média Histórica"}
               </span>
-              <span className="mt-0.5 block truncate font-medium font-sans text-ink text-xs sm:text-sm">
+              <span className="text-ink mt-0.5 block truncate font-sans text-xs font-medium sm:text-sm">
                 {card.valorEsperadoFormatted}
               </span>
             </div>
-            <div className="col-span-2 border-line border-t pt-2 sm:col-span-1 sm:border-0 sm:pt-0">
+            <div className="border-line col-span-2 border-t pt-2 sm:col-span-1 sm:border-0 sm:pt-0">
               <span className="eyebrow block">Variação</span>
-              <span className="mt-0.5 block truncate font-sans font-semibold text-warn-text text-xs sm:text-sm">
+              <span className="text-warn-text mt-0.5 block truncate font-sans text-xs font-semibold sm:text-sm">
                 {card.desvioPercentualFormatted || `${card.desvioPercentual}%`}
               </span>
             </div>
@@ -237,13 +234,13 @@ export function RadarAnomaliaCard({
             : [card.fundamentacaoLegal];
           if (links.length === 0) return null;
           return (
-            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-mute2 text-xs">
+            <div className="text-mute2 mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
               <span className="mr-0.5">Base legal:</span>
               {links.map((link, idx) => (
                 <span key={link.url} className="inline-flex items-center">
                   {idx > 0 && (
                     <>
-                      <span className="mx-1 text-mute3" aria-hidden="true">
+                      <span className="text-mute3 mx-1" aria-hidden="true">
                         •
                       </span>
                       <span className="sr-only">; </span>
@@ -254,7 +251,7 @@ export function RadarAnomaliaCard({
                     target="_blank"
                     rel="noopener noreferrer"
                     data-testid="radar-legal-link"
-                    className="inline-flex items-center gap-1 font-medium text-brand-text underline underline-offset-2 hover:no-underline"
+                    className="text-brand-text inline-flex items-center gap-1 font-medium underline underline-offset-2 hover:no-underline"
                   >
                     <span>{link.label}</span>
                     <ExternalLink
@@ -270,12 +267,12 @@ export function RadarAnomaliaCard({
       </div>
 
       {/* Ações / Rodapé perfeitamente balanceado */}
-      <div className="mt-5 flex items-center justify-between gap-3 border-line2 border-t pt-3.5">
+      <div className="border-line2 mt-5 flex items-center justify-between gap-3 border-t pt-3.5">
         <Link
           href={card.ctaUrl}
           onClick={handleCtaClick}
           data-testid="radar-cta-link"
-          className="inline-flex min-w-0 items-center gap-1 font-medium text-brand-text text-xs leading-snug hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          className="text-brand-text focus-visible:ring-focus-ring inline-flex min-w-0 items-center gap-1 text-xs leading-snug font-medium hover:underline focus-visible:ring-2 focus-visible:outline-none"
         >
           <span>{card.ctaLabel}</span>
           <ArrowRight className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -288,7 +285,7 @@ export function RadarAnomaliaCard({
           rel="noopener noreferrer"
           data-testid="radar-whatsapp-button"
           aria-label="Compartilhar no WhatsApp"
-          className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 font-medium text-ok-text text-xs transition-colors hover:bg-ok-fill/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          className="text-ok-text hover:bg-ok-fill/10 focus-visible:ring-focus-ring inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
         >
           <WhatsAppIcon />
           <span>WhatsApp</span>

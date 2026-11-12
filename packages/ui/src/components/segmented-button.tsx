@@ -48,7 +48,7 @@ export function SegmentedButton({
       type="button"
       {...ariaDeSelecao}
       className={cn(
-        "cursor-pointer font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50",
+        "focus-visible:ring-brand cursor-pointer font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50",
         variant === "tabs" ? "border-b-2" : "rounded-md border",
         SIZE_STYLES[size],
         stateStyles,

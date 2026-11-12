@@ -19,17 +19,17 @@ export function ObrasEmpenhosFederais({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="flex items-center gap-2">
-          <Landmark className="h-4 w-4 text-mute2" />
+          <Landmark className="text-mute2 h-4 w-4" />
           <span>Empenhos Federais (Transferegov.br / SIAFI)</span>
         </h4>
         {list.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="rounded-sm bg-line2 px-2 py-0.5 font-medium text-mute text-xs">
+            <span className="bg-line2 text-mute rounded-sm px-2 py-0.5 text-xs font-medium">
               {list.length}{" "}
               {list.length === 1 ? "empenho federal" : "empenhos federais"}
             </span>
             {valorTotalFormatado && (
-              <span className="rounded-sm border border-ok-fill bg-ok-fill/15 px-2.5 py-0.5 font-bold text-ok-text text-xs tabular-nums">
+              <span className="border-ok-fill bg-ok-fill/15 text-ok-text rounded-sm border px-2.5 py-0.5 text-xs font-bold tabular-nums">
                 Total: {valorTotalFormatado}
               </span>
             )}
@@ -65,31 +65,31 @@ export function ObrasEmpenhosFederais({
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="flex items-center gap-1 font-bold text-ink text-sm">
-                        <FileCheck2 className="h-3.5 w-3.5 text-brand-text" />
+                      <span className="text-ink flex items-center gap-1 text-sm font-bold">
+                        <FileCheck2 className="text-brand-text h-3.5 w-3.5" />
                         {empenho.nrEmpenho}
                       </span>
                       {Boolean(empenho.anoEmpenho) && (
-                        <span className="rounded-sm border border-line bg-line2 px-1.5 py-0.5 font-medium text-mute text-xs">
+                        <span className="border-line bg-line2 text-mute rounded-sm border px-1.5 py-0.5 text-xs font-medium">
                           Ano {empenho.anoEmpenho}
                         </span>
                       )}
-                      <span className="rounded-sm border border-brand-fill bg-brand-fill/15 px-1.5 py-0.5 font-semibold text-brand-text text-xs uppercase">
+                      <span className="border-brand-fill bg-brand-fill/15 text-brand-text rounded-sm border px-1.5 py-0.5 text-xs font-semibold uppercase">
                         {empenho.sistemaOrigem}
                       </span>
                     </div>
 
                     {empenho.descricao && (
-                      <p className="line-clamp-2 text-mute text-xs leading-relaxed">
+                      <p className="text-mute line-clamp-2 text-xs leading-relaxed">
                         {empenho.descricao}
                       </p>
                     )}
 
                     {(empenho.dataEmissao || empenho.acaoOrcamentaria) && (
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-mute2 text-xs">
+                      <div className="text-mute2 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs">
                         {empenho.dataEmissao && (
                           <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3 text-mute2" />
+                            <Calendar className="text-mute2 h-3 w-3" />
                             Emissão: {empenho.dataEmissaoFormatada}
                           </span>
                         )}
@@ -101,10 +101,10 @@ export function ObrasEmpenhosFederais({
                   </div>
 
                   <div className="shrink-0 sm:text-right">
-                    <span className="block text-mute2 text-xs">
+                    <span className="text-mute2 block text-xs">
                       Valor Empenhado
                     </span>
-                    <span className="font-bold text-ok-text text-sm tabular-nums sm:text-base">
+                    <span className="text-ok-text text-sm font-bold tabular-nums sm:text-base">
                       {empenho.valorEmpenhoFormatado}
                     </span>
                   </div>

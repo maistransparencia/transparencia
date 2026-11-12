@@ -278,6 +278,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardComiss.tipoMetodologia).toBe("estoque");
     expect(cardComiss.grauSeveridade).toBe("critico");
     expect(cardComiss.badgeSeveridade?.label).toBe("Atenção Especial");
+    expect(cardComiss.badgeSeveridade?.badgeVariant).toBe("danger");
     expect(cardComiss.textoFactual).toContain(
       "165 cargos comissionados ativos",
     );
@@ -307,6 +308,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardSaude.titulo).toBe("Aporte Expressivo em Saúde");
     expect(cardSaude.metodologiaBadge).toBe("Histórico Jan a Ago");
     expect(cardSaude.badgeSeveridade?.label).toBe("Aporte Relevante");
+    expect(cardSaude.badgeSeveridade?.badgeVariant).toBe("accent");
     expect(cardSaude.tipoMetodologia).toBe("homologa");
     expect(cardSaude.textoFactual).toContain(
       "área de Saúde totalizaram R$ 15,2 mi",
@@ -321,6 +323,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardDispensa.titulo).toBe("Compras sem Licitação");
     expect(cardDispensa.metodologiaBadge).toBe("Histórico Jan a Ago");
     expect(cardDispensa.badgeSeveridade?.label).toBe("Acompanhamento");
+    expect(cardDispensa.badgeSeveridade?.badgeVariant).toBe("default");
     expect(cardDispensa.tipoMetodologia).toBe("homologa");
     expect(cardDispensa.textoFactual).toContain(
       "48.5% dos processos de contratação foram realizados por dispensa",
@@ -794,6 +797,45 @@ describe("buildVisaoGeralViewModel - resumoObras", () => {
   });
 });
 
+describe("buildVisaoGeralViewModel - centro do mapa de obras", () => {
+  const obra = (
+    idProjeto: string,
+    situacao: string,
+    [latitude, longitude]: [number, number],
+  ) => ({ idProjeto, situacao, latitude, longitude });
+
+  it("centraliza no grupo com mais obras em andamento, não na mediana de todas", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        obrasPreview: [
+          obra("a", "em_execucao", [-21.0, -42.0]),
+          obra("b", "em_execucao", [-21.002, -42.002]),
+          obra("c", "em_execucao", [-21.004, -42.004]),
+          obra("d", "em_execucao", [-21.3, -42.3]),
+          obra("e", "concluida", [-21.3, -42.3]),
+          obra("f", "concluida", [-21.3, -42.3]),
+          obra("g", "cadastrada", [-21.3, -42.3]),
+        ],
+      }),
+    );
+    expect(vm.obrasMapCenter?.[0]).toBeCloseTo(-21.002, 3);
+    expect(vm.obrasMapCenter?.[1]).toBeCloseTo(-42.002, 3);
+  });
+
+  it("sem obra em andamento, usa a mediana de todas as obras", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        obrasPreview: [
+          obra("a", "concluida", [-21.0, -42.0]),
+          obra("b", "concluida", [-21.1, -42.1]),
+          obra("c", "cadastrada", [-21.2, -42.2]),
+        ],
+      }),
+    );
+    expect(vm.obrasMapCenter).toEqual([-21.1, -42.1]);
+  });
+});
+
 describe("buildVisaoGeralViewModel - educacaoResumo", () => {
   const resumoBase = {
     portalSlug: "porciuncula",
@@ -1007,5 +1049,94 @@ describe("buildVisaoGeralViewModel - cores das barras", () => {
     expect(vm.pipelineStages.every((etapa) => !("corToken" in etapa))).toBe(
       true,
     );
+  });
+});
+
+describe("buildVisaoGeralViewModel - contrato de situação da home", () => {
+  it("propaga mínimos e situação por área vindos do loader, sem recalcular", () => {
+    const raw = makeRawVisaoGeral({
+      minimoSaude: {
+        limite: 15,
+        percentualAplicado: 12,
+        resultado: "abaixo",
+        comparavel: true,
+        mesesCobertos: null,
+        baseLegal: "LC 141/2012",
+        urlBaseLegal: "https://example.test/lc141",
+      },
+      minimoEducacao: null,
+      situacaoHome: {
+        saude: { estado: "abaixo", emAtencao: true, motivo: "abaixo_minimo" },
+        obras: {
+          estado: "normal",
+          emAtencao: true,
+          motivo: "obra_paralisada",
+        },
+        educacao: { estado: "indisponivel", emAtencao: false, motivo: null },
+      },
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+
+    expect(vm.minimoSaude).toBe(raw.minimoSaude);
+    expect(vm.minimoEducacao).toBeNull();
+    expect(vm.situacaoHome).toBe(raw.situacaoHome);
+  });
+});
+
+describe("buildVisaoGeralViewModel - detailShortcuts", () => {
+  const generico = [
+    "Em que a Prefeitura gastou",
+    "Compras e contratações",
+    "Servidores e folha de pagamento",
+  ];
+
+  it("resume cada atalho com número e ano quando há dado", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        totalContratacoes: 12,
+        totalProfissionais: 340,
+        mesReferenciaPessoal: 6,
+      }),
+    );
+    const [despesas, licitacoes, pessoal] = vm.detailShortcuts;
+    expect(despesas?.title).toContain("pagos em 2024");
+    expect(despesas?.title).not.toContain("até agora");
+    expect(licitacoes?.title).toBe("12 contratações em 2024");
+    expect(pessoal?.title).toBe("340 servidores na folha de Jun/2024");
+  });
+
+  it("marca o valor como parcial no ano em andamento", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        totalContratacoes: 1,
+      }),
+    );
+    expect(vm.detailShortcuts[0]?.title).toContain("até agora");
+    expect(vm.detailShortcuts[1]?.title).toBe(
+      "1 contratação em 2024 até agora",
+    );
+  });
+
+  it("sem dado volta à descrição genérica, nunca zero", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        execSummary: {
+          totalDotacao: 0,
+          totalEmpenhado: 0,
+          totalLiquidado: 0,
+          totalPago: 0,
+        },
+        totalContratacoes: 0,
+        totalProfissionais: 0,
+        mesReferenciaPessoal: 0,
+      }),
+    );
+    expect(vm.detailShortcuts.map((atalho) => atalho.title)).toEqual(generico);
   });
 });

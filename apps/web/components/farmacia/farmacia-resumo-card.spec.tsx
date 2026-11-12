@@ -56,12 +56,12 @@ describe("FarmaciaResumoCard", () => {
     ).toHaveAttribute("name", "q");
   });
 
-  it("conforme: frase curta sem link embutido e botao completo no mobile", () => {
+  it("conforme: frase curta sem link embutido e botao de busca", () => {
     render(<FarmaciaResumoCard status="conforme" detailUrl={detailUrl} />);
     expect(
       screen.queryByRole("link", { name: "Busque no estoque" }),
     ).toBeNull();
-    expect(screen.getByText("Buscar no estoque")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Buscar" })).toBeInTheDocument();
     expect(
       screen.getByRole("form", { name: "Busca de remédios" }),
     ).toHaveAttribute("action", detailUrl);

@@ -85,7 +85,7 @@ export function FarmaciaResumoCard({
   return (
     <section
       aria-label="Farmácia SUS"
-      className={`grid grid-cols-1 gap-x-12 gap-y-4 border-ink border-t-2 pt-4 lg:grid-cols-2 ${className}`}
+      className={`border-ink grid grid-cols-1 gap-x-12 gap-y-4 border-t-2 pt-4 lg:grid-cols-2 ${className}`}
     >
       <div>
         <div className="flex flex-wrap items-center gap-3">
@@ -98,15 +98,12 @@ export function FarmaciaResumoCard({
             {FONTES_OFICIAIS.bnafar.nome}
           </ExternalLinkPill>
         </div>
-        <p className="mt-1 text-mute2 text-xs">
+        <p className="text-mute2 mt-1 text-xs">
           Busque o remédio que você precisa.
         </p>
       </div>
       <div className="space-y-3">
-        <FarmaciaBuscaForm
-          action={detailUrl}
-          rotuloBotaoMobile="Buscar no estoque"
-        />
+        <FarmaciaBuscaForm action={detailUrl} />
         {exemplos.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="text-mute2 text-xs">Exemplos:</span>
@@ -115,7 +112,7 @@ export function FarmaciaResumoCard({
                 <li key={exemplo.codigoPrincipioAtivo}>
                   <Link
                     href={exemplo.href}
-                    className="inline-flex min-h-11 items-center text-brand text-xs hover:underline sm:min-h-0"
+                    className="text-brand inline-flex min-h-11 items-center text-xs hover:underline sm:min-h-0"
                   >
                     {exemplo.nomePrincipioAtivo}
                   </Link>

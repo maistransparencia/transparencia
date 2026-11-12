@@ -42,7 +42,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-11-07
+last_updated: 2026-11-11
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -244,6 +244,12 @@ development_status:
   epic-20-retrospective: optional
 
   epic-23: backlog
+  23-1-registro-de-coletas-por-fonte-e-frequencia-esperada: backlog
+  23-2-query-de-frescor-com-estado-fora-do-prazo-previsto: backlog
+  23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado: backlog
+  23-4-selo-fonte-atualizado-em-nos-blocos-e-pagina-como-atualizamos: backlog
+  23-5-reportar-erro-por-indicador: backlog
+  23-6-direito-de-resposta-metodologia-e-fontes-sobre-e-quem-publica-e-quem-nao-publica: backlog
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: done
   23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: backlog
   23-8b-grupos-de-cadencia-e-workflows-agendados-por-fonte: backlog
@@ -286,3 +292,14 @@ development_status:
   26-1-siconfi-msc-patrimonial-em-schema-por-fonte: backlog
   26-2-inventario-e-plano-de-migracao-do-legado: backlog
   epic-26-retrospective: optional
+
+  epic-27: done
+  27-1-contrato-de-dados-da-home-minimos-etiqueta-com-motivo-e-estados: done
+  27-2-card-de-situacao-saude-obras-e-educacao: done
+  27-3-reorganizacao-da-home-nova-ordem-hero-rebaixado-e-radar-fora: done
+  27-4-dinheiro-que-entra-na-cidade-13o-salario-sazonal: done
+  27-5-ajustes-da-home-e-do-layout-resumo-nos-atalhos-compartilhar-a-pagina-sidebar-recolhivel: done
+  epic-27-retrospective: optional
+
+  td-backlog: in-progress
+  td-2-gasto-com-pessoal-pelo-numero-oficial-do-rgf: review

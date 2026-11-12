@@ -15,7 +15,7 @@ export function TabelaTotaisRow({ itens, className }: TabelaTotaisRowProps) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 border-line border-b py-3 font-bold text-ink text-sm sm:flex-row sm:items-center sm:justify-between",
+        "border-line text-ink flex flex-col gap-2 border-b py-3 text-sm font-bold sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >

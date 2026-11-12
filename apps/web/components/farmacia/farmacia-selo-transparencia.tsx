@@ -10,7 +10,7 @@ export function FarmaciaSeloTransparencia({
   return (
     <p className="eyebrow flex items-center gap-2 self-start">
       <span
-        className="h-[7px] w-[7px] shrink-0 rounded-full bg-ok-fill"
+        className="bg-ok-fill h-[7px] w-[7px] shrink-0 rounded-full"
         aria-hidden="true"
       />
       <span>

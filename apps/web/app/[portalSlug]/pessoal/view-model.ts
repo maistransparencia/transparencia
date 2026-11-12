@@ -5,6 +5,7 @@ import type { loadPessoalData } from "./loader";
 type PessoalRawData = Awaited<ReturnType<typeof loadPessoalData>>;
 
 const numeroPtBr = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+
 const numeroPtBrComSinal = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 1,
   signDisplay: "exceptZero",
@@ -22,16 +23,34 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
       totalFolha: 0,
       totalPago: 0,
       despesaPessoalLrf: 0,
-      rclProxy: 0,
       receitaCorrenteLiquida: 0,
       percentualFolha: 0,
-      statusLrf: "normal" as const,
+      rgf: null,
+      rgfAnoAnteriorMesmoPeriodo: null,
       limitesLrf: null,
     };
 
   const previousYearRow = raw.folhaData.find((r) => r.ano === previousYear);
 
-  const statusLrf = currentYearRow.statusLrf ?? "normal";
+  // O RGF mede o Poder Executivo inteiro: com um órgão filtrado ele não se aplica.
+  const rgf = isEntidadeFiltrada ? null : (currentYearRow.rgf ?? null);
+  const rgfAnterior = rgf
+    ? (currentYearRow.rgfAnoAnteriorMesmoPeriodo ?? null)
+    : null;
+  const statusLrf = rgf?.statusLrf ?? null;
+  const rotuloPeriodoRgf = (
+    dados: { periodicidade: string; periodo: number },
+    ano: number,
+  ) =>
+    `${dados.periodo}º ${dados.periodicidade === "semestral" ? "semestre" : "quadrimestre"} de ${ano}`;
+  const periodoRgfRotulo = rgf ? rotuloPeriodoRgf(rgf, selectedYear) : null;
+  const periodoRgfAnteriorRotulo = rgfAnterior
+    ? rotuloPeriodoRgf(rgfAnterior, previousYear)
+    : null;
+  const origemPercentual: "rgf" | "estimativa" = rgf ? "rgf" : "estimativa";
+  const percentualExibido = rgf
+    ? rgf.percentualDespesaPessoal
+    : currentYearRow.percentualFolha;
   const limites = currentYearRow.limitesLrf ?? null;
   const textoLimite = (
     comLimite: (valor: string) => string,
@@ -51,25 +70,25 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
         alert: false,
       };
     }
+    // Sem RGF publicado só há estimativa do portal: rotulada e sem veredito.
+    if (!rgf) {
+      return {
+        title: "Gasto com Pessoal (estimativa)",
+        subtext: "",
+        alert: false,
+      };
+    }
     if (statusLrf === "excedido") {
       return {
         title: "Gasto com Pessoal (LRF)",
-        subtext: textoLimite(
-          (v) => `acima do teto de ${v}`,
-          "acima do teto da LRF",
-          limites?.maximo,
-        ),
+        subtext: "Acima do teto da lei.",
         alert: true,
       };
     }
     if (statusLrf === "prudencial") {
       return {
         title: "Gasto com Pessoal (LRF)",
-        subtext: textoLimite(
-          (v) => `acima do limite prudencial (${v})`,
-          "acima do limite prudencial",
-          limites?.prudencial,
-        ),
+        subtext: "Acima do limite prudencial.",
         alert: true,
       };
     }
@@ -77,8 +96,8 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
       return {
         title: "Gasto com Pessoal (LRF)",
         subtext: textoLimite(
-          (v) => `acima do limite de alerta (${v})`,
-          "acima do limite de alerta",
+          (v) => `Acima do limite de alerta (${v}).`,
+          "Acima do limite de alerta.",
           limites?.alerta,
         ),
         alert: true,
@@ -86,26 +105,21 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     }
     return {
       title: "Gasto com Pessoal (LRF)",
-      subtext: textoLimite(
-        (v) => `dentro dos limites da LRF (teto ${v})`,
-        "dentro dos limites da LRF",
-        limites?.maximo,
-      ),
+      subtext: statusLrf === "normal" ? "Dentro dos limites da lei." : "",
       alert: false,
     };
   })();
 
+  // Compara o mesmo período dos dois anos (3º com 3º quadrimestre); sem par, sem comparação.
   const folhaTrend = (() => {
-    if (!previousYearRow || previousYearRow.totalFolha === 0) {
-      return undefined;
-    }
+    if (!rgf || !rgfAnterior || !periodoRgfAnteriorRotulo) return undefined;
     const diff = Number(
       (
-        currentYearRow.percentualFolha - previousYearRow.percentualFolha
+        rgf.percentualDespesaPessoal - rgfAnterior.percentualDespesaPessoal
       ).toFixed(1),
     );
     return {
-      value: `${numeroPtBrComSinal.format(diff)} p.p. vs ${previousYear}`,
+      value: `${numeroPtBrComSinal.format(diff)} p.p. vs ${periodoRgfAnteriorRotulo}`,
       isPositive: diff <= 0,
     };
   })();
@@ -181,16 +195,16 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
   });
 
   const headerDescription = isEntidadeFiltrada
-    ? "Quanto a folha de pagamento desta entidade pesa na receita do município, a receita corrente líquida (RCL), que soma o que o município arrecadou nos últimos 12 meses."
-    : "Quanto da receita do município vai para o pagamento de pessoal. A base é a receita corrente líquida (RCL), que soma o que o município arrecadou nos últimos 12 meses.";
+    ? "Quanto a folha de pagamento deste órgão pesa na receita do município."
+    : "Quanto a Prefeitura paga ao pessoal e quanto isso pesa na receita.";
 
   /** Continuação da frase "A Lei de Responsabilidade Fiscal ..." (a lei vira link na página). */
   const limitesLrfDescricao = (() => {
     if (!limites) return null;
     if (isEntidadeFiltrada) {
-      return `limita o gasto total com pessoal a ${fmtLimite(limites.maximo)} da RCL no Poder Executivo.`;
+      return `limita o gasto total com pessoal a ${fmtLimite(limites.maximo)} da receita do município.`;
     }
-    return `limita esse gasto a ${fmtLimite(limites.maximo)} da RCL no Poder Executivo; ${fmtLimite(limites.alerta)} é o limite de alerta e ${fmtLimite(limites.prudencial)}, o limite prudencial.`;
+    return `limita esse gasto a ${fmtLimite(limites.maximo)} da receita.`;
   })();
 
   const somaServidores = (itens: { totalProfissionais: number }[]) =>
@@ -212,6 +226,19 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     };
   })();
 
+  // Os limites valem para o Poder Executivo inteiro; com um órgão filtrado a barra induziria a comparar a parte com o todo.
+  const barraLimitesLrf =
+    isEntidadeFiltrada || !limites || !rgf
+      ? null
+      : {
+          teto: limites.maximo,
+          prudencial: limites.prudencial,
+          tetoTexto: fmtLimite(limites.maximo),
+          prudencialTexto: fmtLimite(limites.prudencial),
+          // Marcadores só no número oficial do RGF; a estimativa não é comparável com o limite.
+          exibirMarcadores: true,
+        };
+
   return {
     selectedYear,
     previousYear,
@@ -223,6 +250,16 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
     servidoresTrend,
     folhaKpi,
     folhaTrend,
+    barraLimitesLrf,
+    origemPercentual,
+    percentualExibido,
+    periodoRgfRotulo,
+    rgf,
+    notaFonteLrf: rgf
+      ? `Relatório oficial da Prefeitura, ${periodoRgfRotulo}: gasto com pessoal nos últimos 12 meses em relação à receita.`
+      : isEntidadeFiltrada
+        ? "Conta do portal só para este órgão. O número oficial vale para a Prefeitura inteira e não muda com o filtro."
+        : "Estimativa do portal: folha paga no ano em relação à receita. O relatório oficial deste ano ainda não saiu, então não dá para dizer se o limite da lei foi respeitado.",
     chefiasTrend,
     totalFolhaTrend,
     partialPeriod: getPartialYearPeriod(

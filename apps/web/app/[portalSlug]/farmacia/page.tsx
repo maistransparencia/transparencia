@@ -51,7 +51,7 @@ export default async function FarmaciaPage({
   const conforme = viewModel.status === "conforme";
 
   return (
-    <div className="mx-auto flex max-w-[1040px] flex-col gap-9 pb-16 sm:gap-12">
+    <div className="mx-auto flex max-w-full flex-col gap-9 pb-16 sm:gap-12">
       <div className="space-y-5">
         <FarmaciaCabecalho
           conforme={conforme}
@@ -65,15 +65,15 @@ export default async function FarmaciaPage({
             Digite pelo menos 2 letras para buscar.
           </p>
         )}
-        {conforme && (
+        {conforme && !viewModel.hasBusca && (
           <FarmaciaIndicadores indicadores={viewModel.indicadores} />
         )}
       </div>
 
       {viewModel.status === "indisponivel" && (
-        <div className="flex flex-col items-center border-line border-y px-4 py-8 text-center">
-          <AlertCircle className="mb-2 h-6 w-6 text-mute3" aria-hidden="true" />
-          <p className="font-medium text-ink text-sm">
+        <div className="border-line flex flex-col items-center border-y px-4 py-8 text-center">
+          <AlertCircle className="text-mute3 mb-2 h-6 w-6" aria-hidden="true" />
+          <p className="text-ink text-sm font-medium">
             As informações sobre o estoque de medicamentos não estão disponíveis
             no momento.
           </p>

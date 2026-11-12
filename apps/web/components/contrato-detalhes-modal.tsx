@@ -134,7 +134,7 @@ export function ContratoDetalhesModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-line bg-page px-4 py-2 font-medium text-ink text-xs transition-colors hover:bg-line2"
+            className="border-line bg-page text-ink hover:bg-line2 rounded-md border px-4 py-2 text-xs font-medium transition-colors"
           >
             Fechar
           </button>
@@ -143,9 +143,9 @@ export function ContratoDetalhesModal({
     >
       <div className="space-y-6 py-2" data-testid="contrato-detalhes-modal">
         {contrato.ano && ano && contrato.ano !== ano && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warn-text/30 bg-warn-fill/10 px-4 py-3 text-warn-text text-xs">
+          <div className="border-warn-text/30 bg-warn-fill/10 text-warn-text flex flex-wrap items-center justify-between gap-3 rounded-md border px-4 py-3 text-xs">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 text-warn-text" />
+              <AlertCircle className="text-warn-text h-4 w-4 shrink-0" />
               <span>
                 Este contrato pertence ao exercício de{" "}
                 <strong className="font-semibold">{contrato.ano}</strong> (você
@@ -155,7 +155,7 @@ export function ContratoDetalhesModal({
             </div>
             <Link
               href={`/${portalSlug || "portal"}/licitacoes?ano=${contrato.ano}&contratoNumero=${encodeURIComponent(contrato.contratoNumero || contrato.contratoServicoId || "")}#contratos-servicos-vigentes`}
-              className="inline-flex items-center gap-1 font-semibold text-warn-text underline decoration-warn-text/40 underline-offset-2 transition-colors hover:text-ink"
+              className="text-warn-text decoration-warn-text/40 hover:text-ink inline-flex items-center gap-1 font-semibold underline underline-offset-2 transition-colors"
             >
               <span>Mudar painel para {contrato.ano}</span>
             </Link>
@@ -163,12 +163,12 @@ export function ContratoDetalhesModal({
         )}
 
         {/* Bloco 1: Fornecedor, Órgão, Vigência, Licitação de Origem e Ano */}
-        <div className="grid grid-cols-1 gap-4 rounded-md border border-line bg-line2 p-4 sm:grid-cols-2 sm:gap-6">
+        <div className="border-line bg-line2 grid grid-cols-1 gap-4 rounded-md border p-4 sm:grid-cols-2 sm:gap-6">
           <div>
-            <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+            <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
               Fornecedor
             </span>
-            <p className="mt-0.5 font-semibold text-ink text-sm">
+            <p className="text-ink mt-0.5 text-sm font-semibold">
               {contrato.fornecedorNome}
             </p>
             <p className="text-mute2 text-xs">
@@ -178,9 +178,9 @@ export function ContratoDetalhesModal({
               </span>
             </p>
             {contrato.orgaoNome && (
-              <p className="mt-1 text-mute2 text-xs">
+              <p className="text-mute2 mt-1 text-xs">
                 Órgão Responsável:{" "}
-                <span className="font-semibold text-ink">
+                <span className="text-ink font-semibold">
                   {contrato.orgaoNome}
                 </span>
               </p>
@@ -188,25 +188,25 @@ export function ContratoDetalhesModal({
           </div>
 
           <div>
-            <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+            <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
               Vigência Contratual
             </span>
-            <p className="mt-0.5 font-medium text-ink text-sm">
+            <p className="text-ink mt-0.5 text-sm font-medium">
               {vigenciaText}
             </p>
             {contrato.ano && (
               <p className="text-mute2 text-xs">
                 Exercício de referência:{" "}
-                <span className="font-semibold text-ink">{contrato.ano}</span>
+                <span className="text-ink font-semibold">{contrato.ano}</span>
               </p>
             )}
             {contrato.licitacaoNumero && (
-              <div className="mt-1 flex items-center gap-1.5 text-mute2 text-xs">
+              <div className="text-mute2 mt-1 flex items-center gap-1.5 text-xs">
                 <span>Processo Licitatório:</span>
                 <button
                   type="button"
                   onClick={handleLicitacaoClick}
-                  className="inline-flex cursor-pointer items-center gap-1 font-semibold text-brand underline decoration-brand/40 hover:text-ink hover:decoration-ink/40"
+                  className="text-brand decoration-brand/40 hover:text-ink hover:decoration-ink/40 inline-flex cursor-pointer items-center gap-1 font-semibold underline"
                   title="Ver detalhes do processo licitatório vinculado"
                 >
                   <span>{contrato.licitacaoNumero}</span>
@@ -222,16 +222,16 @@ export function ContratoDetalhesModal({
           contrato.fontesRecursos ||
           contrato.programaNome ||
           contrato.projetoAtividadeNome) && (
-          <div className="rounded-md border border-brand/30 bg-brand/10 p-4">
+          <div className="border-brand/30 bg-brand/10 rounded-md border p-4">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-brand text-xs uppercase tracking-wider">
+              <span className="text-brand text-xs font-semibold tracking-wider uppercase">
                 Fonte de Recursos &amp; Destinação Orçamentária
               </span>
               <a
                 href={urlLegislacao("lei14133Ato20212024", "art92")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
+                className="text-brand inline-flex items-center gap-1 text-xs font-medium hover:underline"
                 title="Art. 92, VIII da Lei 14.133/2021"
               >
                 <span>Art. 92 da Lei 14.133/21</span>
@@ -242,15 +242,15 @@ export function ContratoDetalhesModal({
             {/* Origem dos Recursos */}
             {(contrato.fontePrincipal || contrato.fontesRecursos) && (
               <div className="mt-2.5 space-y-1.5">
-                <span className="font-medium text-mute2 text-xs">
+                <span className="text-mute2 text-xs font-medium">
                   Origem dos Recursos:
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   {contrato.fontePrincipal && (
-                    <span className="inline-flex items-center gap-1.5 rounded-md border border-brand/30 bg-page px-2.5 py-1 font-semibold text-brand text-xs">
-                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-fill" />
+                    <span className="border-brand/30 bg-page text-brand inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold">
+                      <span className="bg-brand-fill inline-block h-1.5 w-1.5 rounded-full" />
                       {contrato.fontePrincipal}
-                      <span className="rounded bg-brand/10 px-1 py-0.5 font-normal text-[10px] text-brand">
+                      <span className="bg-brand/10 text-brand rounded px-1 py-0.5 text-[10px] font-normal">
                         Principal
                       </span>
                     </span>
@@ -267,7 +267,7 @@ export function ContratoDetalhesModal({
                     return allFontes.map((fonte) => (
                       <span
                         key={fonte}
-                        className="inline-flex items-center rounded-md border border-line bg-page/80 px-2 py-0.5 font-normal text-ink text-xs"
+                        className="border-line bg-page/80 text-ink inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-normal"
                       >
                         {fonte}
                       </span>
@@ -279,23 +279,23 @@ export function ContratoDetalhesModal({
 
             {/* Destinação Orçamentária / Programática */}
             {(contrato.programaNome || contrato.projetoAtividadeNome) && (
-              <div className="mt-3.5 grid grid-cols-1 gap-2.5 border-brand/30 border-t pt-3 text-xs sm:grid-cols-2">
+              <div className="border-brand/30 mt-3.5 grid grid-cols-1 gap-2.5 border-t pt-3 text-xs sm:grid-cols-2">
                 {contrato.programaNome && (
                   <div>
-                    <span className="font-medium text-[10px] text-mute2 uppercase tracking-wider">
+                    <span className="text-mute2 text-[10px] font-medium tracking-wider uppercase">
                       Programa Orçamentário
                     </span>
-                    <p className="mt-0.5 font-medium text-ink leading-snug">
+                    <p className="text-ink mt-0.5 leading-snug font-medium">
                       {contrato.programaNome}
                     </p>
                   </div>
                 )}
                 {contrato.projetoAtividadeNome && (
                   <div>
-                    <span className="font-medium text-[10px] text-mute2 uppercase tracking-wider">
+                    <span className="text-mute2 text-[10px] font-medium tracking-wider uppercase">
                       Ação / Projeto-Atividade
                     </span>
-                    <p className="mt-0.5 font-medium text-ink leading-snug">
+                    <p className="text-ink mt-0.5 leading-snug font-medium">
                       {contrato.projetoAtividadeNome}
                     </p>
                   </div>
@@ -307,10 +307,10 @@ export function ContratoDetalhesModal({
 
         {/* Bloco 2: Objeto Integral */}
         <div className="min-w-0">
-          <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+          <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
             Objeto Integral do Contrato
           </span>
-          <div className="mt-1.5 whitespace-pre-wrap break-words rounded-md border border-line bg-page p-3.5 text-ink text-sm leading-relaxed [overflow-wrap:anywhere] [word-break:break-word] sm:p-4">
+          <div className="border-line bg-page text-ink mt-1.5 rounded-md border p-3.5 text-sm leading-relaxed [overflow-wrap:anywhere] break-words [word-break:break-word] whitespace-pre-wrap sm:p-4">
             {contrato.objetoDescricao || "Objeto não informado."}
           </div>
         </div>
@@ -321,61 +321,61 @@ export function ContratoDetalhesModal({
             <h3>Execução Financeira e Orçamentária</h3>
             {contrato.valorContrato !== undefined &&
               contrato.valorContrato > 0 && (
-                <div className="flex items-baseline gap-1.5 rounded-md border border-brand/30 bg-brand/10 px-3 py-1 text-right">
-                  <span className="font-semibold text-[11px] text-brand uppercase tracking-wider">
+                <div className="border-brand/30 bg-brand/10 flex items-baseline gap-1.5 rounded-md border px-3 py-1 text-right">
+                  <span className="text-brand text-[11px] font-semibold tracking-wider uppercase">
                     Valor Contratado:
                   </span>
-                  <span className="numeric text-left font-bold text-base text-brand tabular-nums sm:text-lg">
+                  <span className="numeric text-brand text-left text-base font-bold tabular-nums sm:text-lg">
                     {fmtCurrency(contrato.valorContrato)}
                   </span>
                 </div>
               )}
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-            <div className="rounded-md border border-line bg-page p-3.5">
-              <span className="font-medium text-mute2 text-xs">Empenhado</span>
-              <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
+            <div className="border-line bg-page rounded-md border p-3.5">
+              <span className="text-mute2 text-xs font-medium">Empenhado</span>
+              <p className="numeric text-ink mt-1 text-left text-base font-semibold tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalEmpenhado)}
               </p>
             </div>
 
-            <div className="rounded-md border border-line bg-page p-3.5">
-              <span className="font-medium text-mute2 text-xs">Liquidado</span>
-              <p className="numeric mt-1 text-left font-semibold text-base text-ink tabular-nums sm:text-lg">
+            <div className="border-line bg-page rounded-md border p-3.5">
+              <span className="text-mute2 text-xs font-medium">Liquidado</span>
+              <p className="numeric text-ink mt-1 text-left text-base font-semibold tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalLiquidado)}
               </p>
             </div>
 
-            <div className="rounded-md border border-line bg-page p-3.5">
-              <span className="font-medium text-mute2 text-xs">Pago</span>
-              <p className="numeric mt-1 text-left font-semibold text-base text-ok-text tabular-nums sm:text-lg">
+            <div className="border-line bg-page rounded-md border p-3.5">
+              <span className="text-mute2 text-xs font-medium">Pago</span>
+              <p className="numeric text-ok-text mt-1 text-left text-base font-semibold tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.totalPago)}
               </p>
             </div>
 
-            <div className="rounded-md border border-line bg-page p-3.5">
-              <span className="font-medium text-mute2 text-xs">
+            <div className="border-line bg-page rounded-md border p-3.5">
+              <span className="text-mute2 text-xs font-medium">
                 Saldo Pendente
               </span>
-              <p className="numeric mt-1 text-left font-semibold text-base text-warn-text tabular-nums sm:text-lg">
+              <p className="numeric text-warn-text mt-1 text-left text-base font-semibold tabular-nums sm:text-lg">
                 {fmtCurrency(contrato.saldoPendente)}
               </p>
             </div>
           </div>
 
           {/* Barra de Progresso e Percentual Pago */}
-          <div className="mt-4 rounded-md border border-line bg-line2 p-4">
+          <div className="border-line bg-line2 mt-4 rounded-md border p-4">
             <div className="mb-2 flex items-center justify-between text-xs">
-              <span className="font-semibold text-ink">
+              <span className="text-ink font-semibold">
                 Percentual Pago da Despesa
               </span>
-              <span className="numeric text-left font-semibold text-ink text-sm tabular-nums">
+              <span className="numeric text-ink text-left text-sm font-semibold tabular-nums">
                 {fmtPercent(contrato.percentualPago)}
               </span>
             </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-line">
+            <div className="bg-line h-2.5 w-full overflow-hidden rounded-full">
               <div
-                className="h-full rounded-full bg-ok-fill transition-all duration-300"
+                className="bg-ok-fill h-full rounded-full transition-all duration-300"
                 style={{
                   width: `${Math.min(100, Math.max(0, contrato.percentualPago || 0))}%`,
                 }}
@@ -383,9 +383,9 @@ export function ContratoDetalhesModal({
             </div>
             {contrato.valorAditado !== undefined &&
               contrato.valorAditado > 0 && (
-                <p className="mt-2.5 text-mute2 text-xs">
+                <p className="text-mute2 mt-2.5 text-xs">
                   Valor Aditado:{" "}
-                  <strong className="font-semibold text-ink">
+                  <strong className="text-ink font-semibold">
                     {fmtCurrency(contrato.valorAditado)}
                   </strong>
                 </p>

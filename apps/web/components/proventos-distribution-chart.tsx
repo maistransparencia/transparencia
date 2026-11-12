@@ -26,14 +26,14 @@ export function ProventosDistributionChart({
       />
 
       {totalServidores === 0 ? (
-        <div className="flex h-44 items-center justify-center border-line border-y px-4 text-center text-mute2 text-xs sm:text-sm">
+        <div className="border-line text-mute2 flex h-44 items-center justify-center border-y px-4 text-center text-xs sm:text-sm">
           Nenhum registro de proventos individuais disponível para os filtros
           selecionados.
         </div>
       ) : (
         <div className="relative overflow-x-auto overflow-y-hidden pt-2 pb-2">
           <div
-            className="grid min-w-175 items-end gap-2.5 px-1 pt-2 pb-1 sm:min-w-0"
+            className="grid min-w-175 items-start gap-2.5 px-1 pt-2 pb-1 sm:min-w-0"
             style={{
               gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`,
             }}
@@ -48,20 +48,20 @@ export function ProventosDistributionChart({
                   key={item.faixa}
                   className="group flex w-full min-w-0 flex-col items-center"
                 >
-                  <span className="mb-1 font-semibold text-ink text-xs">
+                  <span className="text-ink mb-1 text-xs font-semibold">
                     {item.count}
                   </span>
 
-                  <div className="relative flex h-44 w-full items-end bg-track">
+                  <div className="bg-track relative flex h-44 w-full items-end">
                     <div
-                      className="w-full bg-brand-fill transition-all duration-500"
+                      className="bg-brand-fill w-full transition-all duration-500"
                       style={{ height: `${heightPct}%` }}
                       title={`${item.faixa}: ${item.count} servidores`}
                     />
                   </div>
 
                   <span
-                    className="caption mt-2 w-full truncate text-center"
+                    className="caption mt-2 w-full text-center leading-tight text-balance"
                     title={item.faixa}
                   >
                     {item.faixa}

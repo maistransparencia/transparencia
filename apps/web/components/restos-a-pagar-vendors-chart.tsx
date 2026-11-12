@@ -36,13 +36,13 @@ export function RestosAPagarVendorsChart({
       <div className="space-y-2">
         {title && <h4>{title}</h4>}
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-mute2 text-xs">
+        <div className="text-mute2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 bg-warn-fill" aria-hidden="true" />
+            <span className="bg-warn-fill h-2.5 w-2.5" aria-hidden="true" />
             Já entregue, falta pagar
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 bg-brand-fill" aria-hidden="true" />
+            <span className="bg-brand-fill h-2.5 w-2.5" aria-hidden="true" />
             Ainda em andamento
           </span>
         </div>
@@ -62,33 +62,33 @@ export function RestosAPagarVendorsChart({
               className="group"
             >
               <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3 [&::-webkit-details-marker]:hidden">
-                <span className="font-medium text-ink text-sm">
+                <span className="text-ink text-sm font-medium">
                   {toTitleCase(item.fornecedor)}
                 </span>
-                <span className="flex items-center gap-2 text-right text-ink text-sm tabular-nums">
+                <span className="text-ink flex items-center gap-2 text-right text-sm tabular-nums">
                   {fmtCompact(total)}
                   <ChevronDown
-                    className="h-4 w-4 shrink-0 text-mute2 transition-transform group-open:rotate-180"
+                    className="text-mute2 h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
                     aria-hidden="true"
                   />
                 </span>
-                <span className="col-span-full block h-1.5 w-full overflow-hidden bg-track">
+                <span className="bg-track col-span-full block h-1.5 w-full overflow-hidden">
                   <span
                     className="flex h-full"
                     style={{ width: `${larguraBarra}%` }}
                   >
                     {entregue > 0 && (
                       <span
-                        className="block h-full bg-warn-fill"
+                        className="bg-warn-fill block h-full"
                         style={{ width: `${larguraEntregue}%` }}
                       />
                     )}
                     {emAndamento > 0 && (
-                      <span className="block h-full flex-1 bg-brand-fill" />
+                      <span className="bg-brand-fill block h-full flex-1" />
                     )}
                   </span>
                 </span>
-                <span className="col-span-full text-mute2 text-xs">
+                <span className="text-mute2 col-span-full text-xs">
                   {[
                     entregue > 0 && `${fmtCompact(entregue)} já entregue`,
                     emAndamento > 0 &&

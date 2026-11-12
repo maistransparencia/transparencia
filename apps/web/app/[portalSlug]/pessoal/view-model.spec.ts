@@ -4,6 +4,21 @@ import { buildPessoalViewModel } from "./view-model";
 
 const LIMITES_LRF = { maximo: 54, prudencial: 51.3, alerta: 48.6 };
 
+function rgfDe(
+  statusLrf: string | null,
+  percentualDespesaPessoal = 50,
+  periodo = 3,
+) {
+  return {
+    periodicidade: "quadrimestral",
+    periodo,
+    despesaPessoal12Meses: 1000,
+    receitaCorrenteLiquidaAjustada: 2000,
+    percentualDespesaPessoal,
+    statusLrf,
+  };
+}
+
 type RawData = Awaited<ReturnType<typeof loadPessoalData>>;
 
 function makeRaw(overrides: Record<string, unknown> = {}): RawData {
@@ -14,7 +29,12 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       entidadesIds: undefined,
     },
     folhaData: [
-      { totalFolha: 1000, totalPago: 900, rclProxy: 2000, percentualFolha: 45 },
+      {
+        totalFolha: 1000,
+        totalPago: 900,
+        receitaCorrenteLiquida: 2000,
+        percentualFolha: 45,
+      },
     ],
     pctChefias: 60,
     decimo13: { empenhado: 100, pago: 90, pctPago: 90 },
@@ -36,10 +56,10 @@ describe("buildPessoalViewModel", () => {
       totalFolha: 0,
       totalPago: 0,
       despesaPessoalLrf: 0,
-      rclProxy: 0,
       receitaCorrenteLiquida: 0,
       percentualFolha: 0,
-      statusLrf: "normal",
+      rgf: null,
+      rgfAnoAnteriorMesmoPeriodo: null,
       limitesLrf: null,
     });
   });
@@ -59,18 +79,16 @@ describe("buildPessoalViewModel", () => {
           {
             totalFolha: 900,
             totalPago: 900,
-            rclProxy: 2000,
+            receitaCorrenteLiquida: 2000,
             percentualFolha: 45,
-            statusLrf: "normal",
+            rgf: rgfDe("normal"),
             limitesLrf: LIMITES_LRF,
           },
         ],
       }),
     );
     expect(vmNormal.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
-    expect(vmNormal.folhaKpi.subtext).toBe(
-      "dentro dos limites da LRF (teto 54%)",
-    );
+    expect(vmNormal.folhaKpi.subtext).toBe("Dentro dos limites da lei.");
     expect(vmNormal.folhaKpi.alert).toBe(false);
 
     const vmAlerta = buildPessoalViewModel(
@@ -79,16 +97,18 @@ describe("buildPessoalViewModel", () => {
           {
             totalFolha: 1000,
             totalPago: 900,
-            rclProxy: 2000,
+            receitaCorrenteLiquida: 2000,
             percentualFolha: 50,
-            statusLrf: "alerta",
+            rgf: rgfDe("alerta"),
             limitesLrf: LIMITES_LRF,
           },
         ],
       }),
     );
     expect(vmAlerta.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
-    expect(vmAlerta.folhaKpi.subtext).toBe("acima do limite de alerta (48,6%)");
+    expect(vmAlerta.folhaKpi.subtext).toBe(
+      "Acima do limite de alerta (48,6%).",
+    );
     expect(vmAlerta.folhaKpi.alert).toBe(true);
 
     const vmPrudencial = buildPessoalViewModel(
@@ -97,18 +117,16 @@ describe("buildPessoalViewModel", () => {
           {
             totalFolha: 1050,
             totalPago: 900,
-            rclProxy: 2000,
+            receitaCorrenteLiquida: 2000,
             percentualFolha: 52.5,
-            statusLrf: "prudencial",
+            rgf: rgfDe("prudencial"),
             limitesLrf: LIMITES_LRF,
           },
         ],
       }),
     );
     expect(vmPrudencial.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
-    expect(vmPrudencial.folhaKpi.subtext).toBe(
-      "acima do limite prudencial (51,3%)",
-    );
+    expect(vmPrudencial.folhaKpi.subtext).toBe("Acima do limite prudencial.");
     expect(vmPrudencial.folhaKpi.alert).toBe(true);
 
     const vmEstouro = buildPessoalViewModel(
@@ -117,17 +135,37 @@ describe("buildPessoalViewModel", () => {
           {
             totalFolha: 1200,
             totalPago: 900,
-            rclProxy: 2000,
+            receitaCorrenteLiquida: 2000,
             percentualFolha: 60,
-            statusLrf: "excedido",
+            rgf: rgfDe("excedido"),
             limitesLrf: LIMITES_LRF,
           },
         ],
       }),
     );
     expect(vmEstouro.folhaKpi.title).toBe("Gasto com Pessoal (LRF)");
-    expect(vmEstouro.folhaKpi.subtext).toBe("acima do teto de 54%");
+    expect(vmEstouro.folhaKpi.subtext).toBe("Acima do teto da lei.");
     expect(vmEstouro.folhaKpi.alert).toBe(true);
+  });
+
+  it("descreve a página e o teto da lei em uma frase curta", () => {
+    const vm = buildPessoalViewModel(
+      makeRaw({
+        folhaData: [
+          {
+            totalFolha: 1000,
+            totalPago: 900,
+            receitaCorrenteLiquida: 2000,
+            percentualFolha: 45,
+            limitesLrf: LIMITES_LRF,
+          },
+        ],
+      }),
+    );
+    expect(vm.headerDescription).toBe(
+      "Quanto a Prefeitura paga ao pessoal e quanto isso pesa na receita.",
+    );
+    expect(vm.limitesLrfDescricao).toBe("limita esse gasto a 54% da receita.");
   });
 
   it("configura folhaKpi e headerDescription contextuais quando há entidade filtrada", () => {
@@ -142,9 +180,9 @@ describe("buildPessoalViewModel", () => {
           {
             totalFolha: 240,
             totalPago: 200,
-            rclProxy: 10000,
+            receitaCorrenteLiquida: 10000,
             percentualFolha: 2.4,
-            statusLrf: "normal",
+            rgf: rgfDe("normal"),
             limitesLrf: LIMITES_LRF,
           },
         ],
@@ -157,10 +195,10 @@ describe("buildPessoalViewModel", () => {
     );
     expect(vm.folhaKpi.alert).toBe(false);
     expect(vm.headerDescription).toContain(
-      "desta entidade pesa na receita do município",
+      "deste órgão pesa na receita do município",
     );
     expect(vm.limitesLrfDescricao).toBe(
-      "limita o gasto total com pessoal a 54% da RCL no Poder Executivo.",
+      "limita o gasto total com pessoal a 54% da receita do município.",
     );
   });
 
@@ -208,14 +246,16 @@ describe("buildPessoalViewModel", () => {
             ano: 2024,
             totalFolha: 1100,
             totalPago: 1000,
-            rclProxy: 2000,
+            receitaCorrenteLiquida: 2000,
             percentualFolha: 55,
+            rgf: rgfDe("excedido", 55),
+            rgfAnoAnteriorMesmoPeriodo: rgfDe("alerta", 50),
           },
           {
             ano: 2023,
             totalFolha: 1000,
             totalPago: 900,
-            rclProxy: 2000,
+            receitaCorrenteLiquida: 2000,
             percentualFolha: 50,
           },
         ],
@@ -226,7 +266,7 @@ describe("buildPessoalViewModel", () => {
 
     // folhaTrend: 55% - 50% = +5 p.p. (aumento de comprometimento => isPositive false)
     expect(vm.folhaTrend).toEqual({
-      value: "+5 p.p. vs 2023",
+      value: "+5 p.p. vs 3º quadrimestre de 2023",
       isPositive: false,
     });
 
@@ -243,6 +283,90 @@ describe("buildPessoalViewModel", () => {
     });
   });
 
+  it("sem RGF publicado mostra estimativa rotulada, sem veredito, sem comparação e sem marcadores", () => {
+    const vm = buildPessoalViewModel(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1100,
+            totalPago: 1000,
+            receitaCorrenteLiquida: 2000,
+            percentualFolha: 52,
+            rgf: null,
+            rgfAnoAnteriorMesmoPeriodo: null,
+            limitesLrf: LIMITES_LRF,
+          },
+        ],
+      }),
+    );
+
+    expect(vm.origemPercentual).toBe("estimativa");
+    expect(vm.percentualExibido).toBe(52);
+    expect(vm.folhaTrend).toBeUndefined();
+    expect(vm.folhaKpi.title).toBe("Gasto com Pessoal (estimativa)");
+    expect(vm.folhaKpi.alert).toBe(false);
+    expect(vm.folhaKpi.subtext).toBe("");
+    expect(vm.barraLimitesLrf).toBeNull();
+    expect(vm.notaFonteLrf).toContain("Estimativa do portal");
+  });
+
+  it("com RGF usa o percentual oficial e o rótulo do período, com marcadores de teto e prudencial", () => {
+    const vm = buildPessoalViewModel(
+      makeRaw({
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1000,
+            totalPago: 900,
+            receitaCorrenteLiquida: 2000,
+            percentualFolha: 45,
+            rgf: rgfDe("normal", 53.46),
+            rgfAnoAnteriorMesmoPeriodo: null,
+            limitesLrf: LIMITES_LRF,
+          },
+        ],
+      }),
+    );
+    expect(vm.origemPercentual).toBe("rgf");
+    expect(vm.percentualExibido).toBe(53.46);
+    expect(vm.periodoRgfRotulo).toBe("3º quadrimestre de 2024");
+    expect(vm.barraLimitesLrf?.exibirMarcadores).toBe(true);
+    expect(vm.notaFonteLrf).toContain("3º quadrimestre de 2024");
+    // Sem par no ano anterior, a comparação some
+    expect(vm.folhaTrend).toBeUndefined();
+  });
+
+  it("com um órgão filtrado ignora o RGF (vale para a Prefeitura inteira)", () => {
+    const vm = buildPessoalViewModel(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: false,
+          entidadesIds: ["3"],
+        },
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 100,
+            totalPago: 90,
+            receitaCorrenteLiquida: 2000,
+            percentualFolha: 5,
+            rgf: rgfDe("normal", 53),
+            limitesLrf: LIMITES_LRF,
+          },
+        ],
+      }),
+    );
+    expect(vm.origemPercentual).toBe("estimativa");
+    expect(vm.barraLimitesLrf).toBeNull();
+  });
+
   it("retorna trends como undefined quando nao ha ano anterior para comparar", () => {
     const vm = buildPessoalViewModel(
       makeRaw({
@@ -251,7 +375,7 @@ describe("buildPessoalViewModel", () => {
             ano: 2020,
             totalFolha: 1000,
             totalPago: 900,
-            rclProxy: 2000,
+            receitaCorrenteLiquida: 2000,
             percentualFolha: 50,
           },
         ],

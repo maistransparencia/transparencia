@@ -20,7 +20,7 @@ export default function GlobalError({
 
   return (
     <html lang="pt-BR">
-      <body className="flex min-h-screen items-center justify-center bg-page font-sans text-ink antialiased">
+      <body className="bg-page text-ink flex min-h-screen items-center justify-center font-sans antialiased">
         <div className="flex max-w-[600px] flex-col items-start gap-4 px-6">
           <h1>Portal temporariamente indisponível</h1>
           <p className="text-mute">
@@ -35,7 +35,7 @@ export default function GlobalError({
           <button
             type="button"
             onClick={reset}
-            className="rounded bg-ink px-4 py-2 font-medium text-onink text-sm transition-opacity hover:opacity-90"
+            className="bg-ink text-onink rounded px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
           >
             Tentar novamente
           </button>

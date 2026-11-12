@@ -96,6 +96,7 @@ function RouteChangeListener() {
         rawHref.startsWith("tel:") ||
         rawHref.startsWith("#") ||
         rawHref.startsWith("javascript:") ||
+        rawHref.startsWith("vbscript:") ||
         rawHref.startsWith("blob:") ||
         rawHref.startsWith("data:") ||
         rawHref.startsWith("/api/") ||

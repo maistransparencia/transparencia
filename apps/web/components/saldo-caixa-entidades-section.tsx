@@ -5,6 +5,7 @@ import type {
 } from "@transparencia/db";
 import {
   AlertBox,
+  Badge,
   cn,
   fmtCompact,
   fmtPercent,
@@ -82,7 +83,7 @@ export function SaldoCaixaEntidadesSection({
       href={FONTES_OFICIAIS.siconfi.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2"
+      className="text-brand-text inline-flex items-center gap-0.5 font-medium underline underline-offset-2"
     >
       <span>SICONFI</span>
       <ExternalLink className="h-3 w-3 shrink-0" />
@@ -93,7 +94,7 @@ export function SaldoCaixaEntidadesSection({
       href={urlLegislacao("constituicao", "art167")}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-0.5 font-medium text-brand-text underline underline-offset-2"
+      className="text-brand-text inline-flex items-center gap-0.5 font-medium underline underline-offset-2"
     >
       <span>Constituição Federal, art. 167, XI</span>
       <ExternalLink className="h-3 w-3 shrink-0" />
@@ -153,12 +154,12 @@ export function SaldoCaixaEntidadesSection({
       <section aria-label={tituloSecao} className={cn("space-y-4", className)}>
         <SectionHeader title={tituloSecao} description={subtituloSecao} />
 
-        <div className="flex flex-col items-center justify-center border-line border-y p-8 text-center">
-          <AlertCircle className="mb-2 h-8 w-8 text-mute3" />
-          <p className="font-medium text-ink text-sm">
+        <div className="border-line flex flex-col items-center justify-center border-y p-8 text-center">
+          <AlertCircle className="text-mute3 mb-2 h-8 w-8" />
+          <p className="text-ink text-sm font-medium">
             Ainda não há dados de caixa de {ano}.
           </p>
-          <p className="mt-1 max-w-md text-mute2 text-xs">
+          <p className="text-mute2 mt-1 max-w-md text-xs">
             O Tesouro Nacional ainda não validou o envio das contas. As
             prefeituras enviam todo mês, e o Tesouro confere antes de publicar.
           </p>
@@ -311,7 +312,7 @@ export function SaldoCaixaEntidadesSection({
       </IndicatorPanel>
 
       {evolucaoMensal && evolucaoMensal.pontos.length > 0 && (
-        <div className="panel panel-brand border! space-y-5 rounded-md! p-4! sm:p-6!">
+        <div className="panel panel-brand space-y-5 rounded-md! border! p-4! sm:p-6!">
           <div className="space-y-1">
             <h3>Como o caixa mudou mês a mês</h3>
             <p className="text-mute2 text-sm leading-relaxed">
@@ -405,9 +406,9 @@ export function SaldoCaixaEntidadesSection({
                         )}
                       </h4>
                       {entidade.saldoDescobertoFlag && (
-                        <span className="shrink-0 rounded-sm border border-danger-text/40 bg-danger-fill/10 px-2 py-0.5 font-semibold text-[11px] text-danger-text">
+                        <Badge variant="danger" className="shrink-0">
                           Saldo negativo
-                        </span>
+                        </Badge>
                       )}
                     </div>
 
@@ -432,14 +433,14 @@ export function SaldoCaixaEntidadesSection({
                     </div>
 
                     {entidade.saldoCaixaBancos < 0 ? (
-                      <div className="mt-3 border-danger-fill border-l-2 py-1 pl-2.5 text-[11px] text-danger-text leading-snug">
+                      <div className="border-danger-fill text-danger-text mt-3 border-l-2 py-1 pl-2.5 text-[11px] leading-snug">
                         Saldo negativo neste mês: os pagamentos superaram o que
                         entrou nesta entidade. Merece atenção.
                       </div>
                     ) : (
                       <div className="mt-3">
                         <div
-                          className="flex h-2 w-full overflow-hidden bg-track"
+                          className="bg-track flex h-2 w-full overflow-hidden"
                           role="progressbar"
                           aria-valuenow={Math.round(percentualLivres)}
                           aria-valuemin={0}
@@ -459,9 +460,9 @@ export function SaldoCaixaEntidadesSection({
                     )}
 
                     <div className="mt-3 space-y-1.5 text-xs">
-                      <div className="flex items-center justify-between text-mute">
+                      <div className="text-mute flex items-center justify-between">
                         <span className="flex items-center gap-1.5">
-                          <span className="h-2 w-2 bg-ok-fill" />
+                          <span className="bg-ok-fill h-2 w-2" />
                           Livres
                         </span>
                         <span
@@ -476,9 +477,9 @@ export function SaldoCaixaEntidadesSection({
                             ` (${fmtPercent(percentualLivres, 0)})`}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-mute">
+                      <div className="text-mute flex items-center justify-between">
                         <span className="flex items-center gap-1.5">
-                          <span className="h-2 w-2 bg-warn-fill" />
+                          <span className="bg-warn-fill h-2 w-2" />
                           Vinculados
                         </span>
                         <span

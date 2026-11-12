@@ -58,7 +58,7 @@ export function SaudeDestaqueOrigem({
       className="space-y-3"
       data-testid="saude-destaque-origem"
     >
-      <h3 className="md:min-h-[2lh]">
+      <h3 className="">
         De onde {isCurrentYear ? "vem" : "veio"} o dinheiro da saúde em {ano}?
       </h3>
       {temDados ? (
@@ -67,12 +67,12 @@ export function SaudeDestaqueOrigem({
             <span className="stat-value-lg text-brand-text">
               R$ {fontes.percentualUniaoSus}
             </span>
-            <span className="font-semibold text-sm">
+            <span className="text-sm font-semibold">
               de cada R$ 100 vêm do Governo Federal
             </span>
           </p>
           <div className="space-y-2">
-            <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
+            <p className="flex flex-wrap items-baseline justify-between gap-x-4 text-sm font-semibold tabular-nums">
               <span>Governo Federal: {fontes.percentualUniaoSus}%</span>
               <span>Outras fontes: {100 - fontes.percentualUniaoSus}%</span>
             </p>

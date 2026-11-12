@@ -12,6 +12,7 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Restos a pagar | Contas de anos anteriores que ainda estão sendo pagas | "Dívida" sem contexto |
 | Restos a pagar processados | Já entregues e conferidos: o fornecedor cumpriu a sua parte e falta o pagamento | "Direito adquirido do credor" |
 | Restos a pagar não processados | Ainda em andamento: depende de conferência antes do pagamento | "Pendente de liquidação" |
+| Entidade (filtro da sidebar) | Órgão: parte da Prefeitura com orçamento próprio, como a própria Prefeitura, os fundos municipais e o instituto de previdência | "Entidade", "Perímetro institucional", "Consolidado" |
 | LOA (Lei Orçamentária Anual) | Lei que diz quanto a prefeitura pode gastar e quanto espera arrecadar no ano | "Orçamento fixo" |
 | FPM | Repasse do governo federal aos municípios | |
 | ICMS (cota-parte) | Parte do imposto estadual sobre vendas que o estado repassa ao município | |

@@ -64,8 +64,8 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
   const ponto = payload[0]?.payload;
 
   return (
-    <div className="min-w-[200px] space-y-1.5 border border-line bg-page p-3 text-xs">
-      <div className="flex justify-between border-line border-b pb-1 font-bold font-serif text-ink text-sm">
+    <div className="border-line bg-page min-w-[200px] space-y-1.5 border p-3 text-xs">
+      <div className="border-line text-ink flex justify-between border-b pb-1 font-serif text-sm font-bold">
         <span>IDEB {label}</span>
       </div>
       <div className="space-y-1 pt-1">
@@ -76,14 +76,14 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
               key={item.name}
               className="flex items-center justify-between gap-3"
             >
-              <span className="flex items-center gap-1.5 text-mute">
+              <span className="text-mute flex items-center gap-1.5">
                 <span
                   className="inline-block h-2 w-2 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
                 {item.name}:
               </span>
-              <span className="font-bold text-ink">
+              <span className="text-ink font-bold">
                 {item.value.toLocaleString("pt-BR", {
                   minimumFractionDigits: 1,
                   maximumFractionDigits: 1,
@@ -94,11 +94,11 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
         })}
       </div>
       {ponto && (
-        <div className="mt-2 space-y-0.5 border-line border-t pt-2 text-mute text-xs">
+        <div className="border-line text-mute mt-2 space-y-0.5 border-t pt-2 text-xs">
           {ponto.saebLinguaPortuguesa !== null && (
             <div className="flex justify-between">
               <span>Saeb Português:</span>
-              <span className="font-medium text-ink">
+              <span className="text-ink font-medium">
                 {ponto.saebLinguaPortuguesa}
               </span>
             </div>
@@ -106,7 +106,7 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
           {ponto.saebMatematica !== null && (
             <div className="flex justify-between">
               <span>Saeb Matemática:</span>
-              <span className="font-medium text-ink">
+              <span className="text-ink font-medium">
                 {ponto.saebMatematica}
               </span>
             </div>
@@ -114,7 +114,7 @@ function CustomIdebTooltip({ active, payload, label }: CustomTooltipProps) {
           {ponto.taxaAprovacao !== null && (
             <div className="flex justify-between">
               <span>Taxa Aprovação:</span>
-              <span className="font-medium text-ink">
+              <span className="text-ink font-medium">
                 {ponto.taxaAprovacao}%
               </span>
             </div>
@@ -169,17 +169,17 @@ export function EducacaoHistoricoSection({
           </fieldset>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-medium text-mute text-xs">
+        <div className="text-mute flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium">
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-brand-fill" />
+            <span className="bg-brand-fill h-2.5 w-2.5 rounded-full" />
             Rede municipal
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-0.5 w-3 border-warn-fill border-t-2 border-dotted" />
+            <span className="border-warn-fill h-0.5 w-3 border-t-2 border-dotted" />
             {currentHistorico.mediaEstadualLabel}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-0.5 w-3 border-mute border-t-2 border-dashed" />
+            <span className="border-mute h-0.5 w-3 border-t-2 border-dashed" />
             {currentHistorico.mediaNacionalLabel}
           </span>
         </div>

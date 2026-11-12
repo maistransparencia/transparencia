@@ -11,12 +11,12 @@ export function StatRow({ label, value, className }: StatRowProps) {
   return (
     <div
       className={cn(
-        "flex items-baseline justify-between gap-4 border-line border-b py-2 text-sm",
+        "border-line flex items-baseline justify-between gap-4 border-b py-2 text-sm",
         className,
       )}
     >
       <span className="text-mute2">{label}</span>
-      <span className="text-right font-medium text-ink tabular-nums">
+      <span className="text-ink text-right font-medium tabular-nums">
         {value}
       </span>
     </div>

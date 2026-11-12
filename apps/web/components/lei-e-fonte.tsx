@@ -16,7 +16,7 @@ export function LeiLink({ label, url, ariaLabel }: LeiLinkProps) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={ariaLabel}
-      className="inline-flex items-center gap-0.5 text-brand-text underline underline-offset-2"
+      className="text-brand-text inline-flex items-center gap-0.5 underline underline-offset-2"
     >
       {label}
       <ExternalLink className="h-3 w-3" aria-hidden="true" />

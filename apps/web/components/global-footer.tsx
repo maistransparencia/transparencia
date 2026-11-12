@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BrandLogo,
   cn,
   fmtDate,
   type PortalOption,
@@ -14,7 +15,6 @@ import { env } from "@/env";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { botaoPrimario } from "./botoes-acao";
-import { BrandLogo } from "./brand-logo";
 import { FeedbackModal } from "./feedback-modal";
 import { NewsletterModal } from "./newsletter-modal";
 import { PushNotificationSettings } from "./push-notification-settings";
@@ -95,7 +95,7 @@ export function GlobalFooter({
       href={normalizedUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-0.5 rounded-sm font-medium text-brand-text underline underline-offset-2 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-2"
+      className="text-brand-text hover:text-ink focus-visible:outline-ink inline-flex items-center gap-0.5 rounded-sm font-medium underline underline-offset-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       portal oficial
       <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
@@ -107,13 +107,13 @@ export function GlobalFooter({
     <>
       <footer
         className={cn(
-          "footer-surface mt-auto border-footer-line border-t-2",
+          "footer-surface border-footer-line mt-auto border-t-2",
           activePortal
             ? "pb-[calc(env(safe-area-inset-bottom,0px)+9rem)] md:pb-0"
             : "pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] md:pb-0",
         )}
       >
-        <div className="mx-auto max-w-[1000px] px-4 sm:px-6 md:px-10">
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 md:px-10">
           {/* Marca e fonte, neste dispositivo (só com conteúdo) e alertas */}
           <div
             className={cn(
@@ -122,7 +122,7 @@ export function GlobalFooter({
             )}
           >
             <div className="min-w-0 space-y-2">
-              <p className="flex items-center gap-2 font-bold font-serif text-base text-ink leading-tight">
+              <p className="text-ink flex items-center gap-2 font-serif text-base leading-tight font-bold">
                 <BrandLogo className="h-6 w-6 shrink-0" />
                 {env.NEXT_PUBLIC_PROJECT_NAME}
               </p>
@@ -135,14 +135,15 @@ export function GlobalFooter({
                 </p>
               )}
               <p className="text-mute2 text-xs leading-relaxed">
-                Plataforma cívica independente de controle social e auditoria
-                fiscal das contas públicas municipais.
+                Iniciativa livre e apartidária, sem vínculo com a administração
+                municipal. Reúne dados de fontes públicas oficiais para você
+                acompanhar o que a prefeitura faz pela cidade.
               </p>
             </div>
 
             {hasDeviceColumn && (
-              <div className="min-w-0 space-y-3 sm:border-line sm:border-l sm:pl-6">
-                <p className="font-semibold text-ink text-xs">
+              <div className="sm:border-line min-w-0 space-y-3 sm:border-l sm:pl-6">
+                <p className="text-ink text-xs font-semibold">
                   Neste dispositivo
                 </p>
                 {effectivePortalSlug && (
@@ -152,8 +153,8 @@ export function GlobalFooter({
               </div>
             )}
 
-            <div className="min-w-0 space-y-3 sm:border-line sm:border-l sm:pl-6">
-              <p className="font-semibold text-ink text-xs">Alertas</p>
+            <div className="sm:border-line min-w-0 space-y-3 sm:border-l sm:pl-6">
+              <p className="text-ink text-xs font-semibold">Alertas</p>
               <button
                 type="button"
                 onClick={() => setIsNewsletterOpen(true)}
@@ -170,11 +171,11 @@ export function GlobalFooter({
           </div>
 
           {/* Barra inferior: procedência dos dados + links legais */}
-          <div className="flex flex-col gap-3 border-line border-t py-4 text-xs sm:flex-row sm:items-center sm:justify-between">
+          <div className="border-line flex flex-col gap-3 border-t py-4 text-xs sm:flex-row sm:items-center sm:justify-between">
             {!isRootPage && (displayExtractionDate || officialLink) ? (
-              <p className="flex items-start gap-2 text-mute2 leading-relaxed">
+              <p className="text-mute2 flex items-start gap-2 leading-relaxed">
                 <span
-                  className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ok-fill"
+                  className="bg-ok-fill mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
                   aria-hidden="true"
                 />
                 <span>
@@ -183,7 +184,7 @@ export function GlobalFooter({
                       Dados extraídos em{" "}
                       <time
                         dateTime={effectiveExtractionDate}
-                        className="font-medium text-mute tabular-nums"
+                        className="text-mute font-medium tabular-nums"
                       >
                         {displayExtractionDate}
                       </time>
@@ -201,7 +202,7 @@ export function GlobalFooter({
                   href={urlLegislacao("lai")}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline hover:text-ink"
+                  className="hover:text-ink underline"
                 >
                   Lei de Acesso à Informação (Lei nº 12.527/2011)
                 </a>{" "}
@@ -210,7 +211,7 @@ export function GlobalFooter({
                   href={urlLegislacao("lrf")}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline hover:text-ink"
+                  className="hover:text-ink underline"
                 >
                   Lei de Responsabilidade Fiscal (LC nº 101/2000)
                 </a>
@@ -227,7 +228,7 @@ export function GlobalFooter({
                 onClick={() => setIsFeedbackOpen(true)}
                 className={`cursor-pointer ${linkClass}`}
               >
-                Reportar erro
+                Sugestão ou erro
               </button>
               <Link href="/termos" className={linkClass}>
                 Termos de uso

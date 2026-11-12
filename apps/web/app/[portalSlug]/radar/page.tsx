@@ -1,4 +1,4 @@
-import { Indicator, IndicatorPanel, SectionHeader } from "@transparencia/ui";
+import { SectionHeader } from "@transparencia/ui";
 import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
@@ -39,17 +39,12 @@ export default async function RadarPage({
   const resolvedSearchParams = await searchParams;
   const rawData = await loadRadarData(portalSlug, resolvedSearchParams);
   const viewModel = buildRadarHistoricoViewModel(rawData);
-  const { portalName, totalAlertasGeral, secoes, hasAlertas, emptyState } =
-    viewModel;
+  const { portalName, secoes, hasAlertas, emptyState } = viewModel;
 
   return (
     <div className="w-full space-y-6 pb-12">
       {/* Cabeçalho da Página */}
       <div className="flex flex-col gap-2">
-        <p className="eyebrow text-brand-text!">
-          Controle Social e Auditoria Fiscal
-        </p>
-
         <h1>Radar Cívico Municipal</h1>
         <p className="lead max-w-none">
           Há algum gasto ou situação em {portalName} que merece um olhar mais
@@ -59,23 +54,11 @@ export default async function RadarPage({
         </p>
       </div>
 
-      {hasAlertas && (
-        <IndicatorPanel tone="brand">
-          <Indicator
-            label={
-              totalAlertasGeral === 1 ? "Alerta apurado" : "Alertas apurados"
-            }
-            value={totalAlertasGeral}
-            note="em todo o histórico"
-          />
-        </IndicatorPanel>
-      )}
-
       {/* Navegação Rápida / Barra de Âncoras por Exercício */}
       {hasAlertas && secoes.length > 1 && (
         <nav
           aria-label="Navegação por exercício"
-          className="no-scrollbar sticky top-0 z-10 -mx-4 flex items-center gap-2 overflow-x-auto bg-page/95 px-4 py-3 backdrop-blur-xs sm:mx-0"
+          className="no-scrollbar bg-page/95 sticky top-0 z-10 -mx-4 flex items-center gap-2 overflow-x-auto px-4 py-3 backdrop-blur-xs sm:mx-0"
         >
           <span className="eyebrow shrink-0">Exercícios:</span>
           <div className="flex items-center gap-2">
@@ -83,10 +66,10 @@ export default async function RadarPage({
               <a
                 key={sec.ano}
                 href={`#ano-${sec.ano}`}
-                className="inline-flex shrink-0 items-center gap-1.5 bg-line2 px-3 py-1 font-semibold text-mute text-xs transition-colors hover:text-ink"
+                className="bg-line2 text-mute hover:text-ink inline-flex shrink-0 items-center gap-1.5 px-3 py-1 text-xs font-semibold transition-colors"
               >
                 <span>{sec.ano}</span>
-                <span className="rounded-full border border-line bg-page px-1.5 py-0.5 font-bold text-mute text-xs">
+                <span className="border-line bg-page text-mute rounded-full border px-1.5 py-0.5 text-xs font-bold">
                   {sec.totalAlertas}
                 </span>
               </a>
@@ -99,14 +82,14 @@ export default async function RadarPage({
       {!hasAlertas ? (
         <div
           data-testid="radar-empty-state"
-          className="flex items-start gap-4 border-line border-y py-6"
+          className="border-line flex items-start gap-4 border-y py-6"
         >
-          <div className="shrink-0 text-ok-text">
+          <div className="text-ok-text shrink-0">
             <ShieldCheck className="h-6 w-6" aria-hidden="true" />
           </div>
           <div>
             <h2>{emptyState.title}</h2>
-            <p className="mt-1 text-mute">{emptyState.message}</p>
+            <p className="text-mute mt-1">{emptyState.message}</p>
           </div>
         </div>
       ) : (

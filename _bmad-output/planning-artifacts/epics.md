@@ -98,6 +98,7 @@ This document provides the complete epic and story breakdown for transparencia, 
 - [Epic 24: Educação: Aprendizado e Financiamento (Dados do SIOPE e do INEP)](#epic-24-educação-aprendizado-e-financiamento-dados-do-siope-e-do-inep)
 - [Epic 25: Saúde: a Prefeitura aplica o mínimo exigido?](#epic-25-saúde-a-prefeitura-aplica-o-mínimo-exigido)
 - [Epic 26: Camada Raw por Fonte (Fim do Schema por Município) (esboço)](#epic-26-camada-raw-por-fonte-fim-do-schema-por-município-esboço)
+- [Epic 27: Home: a Situação da Cidade Primeiro](#epic-27-home-a-situação-da-cidade-primeiro)
 
 ---
 
@@ -3088,7 +3089,7 @@ So that wrong numbers are corrected quickly.
 
 **Acceptance Criteria:**
 - **Given** o `feedback-modal` existente
-- **When** o usuário aciona "Reportar erro" em um indicador
+- **When** o usuário aciona "Sugestão ou erro" (rótulo definido na Story 27.5; antes "Reportar erro") em um indicador
 - **Then** o envio leva `portal_slug`, identificador do indicador e a descrição, e o rótulo é explícito e visível em cada bloco
 - **And** o texto segue linguagem cidadã e tom não acusatório.
 
@@ -3103,7 +3104,7 @@ So that the portal is accountable for what it shows.
 **Acceptance Criteria:**
 - **Given** o `jurista-fiscal` validou o fluxo e o texto do direito de resposta (peso jurídico; LAI, LGPD)
 - **When** o usuário acessa as páginas "Sobre", "Metodologia e fontes" e "Quem publica e quem não publica"
-- **Then** as fontes e a lacuna de publicação por município são geradas dos dados reais por `portal_slug`, e cada indicador oferece "Direito de resposta" ao lado de "Reportar erro"
+- **Then** as fontes e a lacuna de publicação por município são geradas dos dados reais por `portal_slug`, e cada indicador oferece "Direito de resposta" ao lado de "Sugestão ou erro"
 - **And** hoje as fontes só aparecem em termos e privacidade; essas páginas passam a ser a referência, com promessas negativas explícitas (não inventa dado, não junta registros só pelo nome, não expõe dados pessoais além do já público).
 
 ### Story 23.7: Origem das "Entradas Fora do Orçamento" em Receitas
@@ -4073,8 +4074,216 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 - **26.2 Inventário e plano de migração do legado.** Listar as 22 tabelas por portal, agrupar por fonte, definir ordem, paridade e reversão.
 - **26.3 Migração das tabelas do portal municipal (Fiorilli) para schema por fonte**, uma tabela ou grupo por story.
 - **26.4 Remoção dos schemas por município e dos modelos de consolidação.**
+- **26.5 Migração do RGF (`siconfi_rgf`, criado na Story TD.2) para `raw_siconfi`.** A TD.2 grava a tabela no schema por município, seguindo o padrão atual, para não depender desta epic. Mover junto com `siconfi_msc_patrimonial` (26.1), com `portal_slug` na chave e teste de paridade.
 
 **Dependências:** a 26.1 pode rodar a qualquer momento, de preferência depois da 24.9; o restante depois da 26.2.
+
+---
+
+## Epic 27: Home: a Situação da Cidade Primeiro
+
+A página inicial deixa de abrir pela arrecadação e passa a abrir pela pergunta "Como está a minha cidade hoje?". Os três temas que mais pesam em cidade pequena (saúde, obras e educação) viram cards de situação, cada um com a pergunta do cidadão, a resposta em uma frase e a régua que a sustenta. O dinheiro fica logo abaixo, em duas perguntas separadas: "Dinheiro que entra na cidade" (o 13º dos servidores, só na época) e "Para onde vai o dinheiro público" (o hero fiscal rebaixado). Origem: sessão de produto e UX de 2026-11-09 com mockups em `https://claude.ai/artifact/E27agKixrsAExv4Pgwb5ih` (canvas privado do Julio; a decisão final está neste texto, não no canvas). Depois das refatorações de Educação (Epic 24) e Saúde (Epic 25), a home é a última página que ainda abre como relatório contábil.
+
+**Público (informado pelo Julio em 2026-11-09):** hoje, pessoas com mais de 30 anos vindas do Facebook; a meta é alcançar a faixa anterior, vinda do Instagram. Quase todos leigos. Os municípios são pequenos e os próximos também serão. Daí: celular primeiro, uma resposta curta por card, botão "Compartilhar" em cada card e nada de jargão. O 13º interessa sobretudo ao **comerciante local** (o dinheiro da folha vira venda na cidade), não ao servidor.
+
+**Contexto e substituição do handoff:** `handoff-remodelagem-home-utilidade.md` (Epic 19) continua valendo como contexto. Nesta epic, **três pontos dele são substituídos**: (1) o Radar Cívico não sobe para a primeira dobra, **sai da home** (a rota `/radar` continua; os alertas ainda são técnicos demais para a vitrine e a versão "novidades em linguagem comum" fica no backlog); (2) o apagão da farmácia deixa de ser "Violação" e "Inconformidade Crítica" na home: o texto segue o que o card já diz ("não encontramos estoque divulgado... isso não quer dizer que falta remédio") e **não recebe a etiqueta "Merece atenção"**; (3) "Copiar requerimento" e "Compartilhar no WhatsApp" **ficam na home** (decisão do Julio, 2026-11-09), dentro do card de saúde no estado de apagão.
+
+**Decisões fechadas em 2026-11-09:**
+- **Ordem fixa**, sem reordenar por dado: abertura (h1 com o município, período em texto), "Como está a cidade hoje" (Saúde, Obras, Educação), "Dinheiro que entra na cidade" (13º, sazonal), "Para onde vai o dinheiro público" (hero fiscal e saldo em caixa) e "Mais detalhes". O cidadão aprende onde fica cada coisa.
+- **Sem seletor de ano no conteúdo.** Ele já existe no sidebar (desktop) e no header (mobile). A home mostra o período só como texto.
+- **Etiqueta "Merece atenção" só com dois gatilhos, ambos fatos com régua:** `abaixo_minimo` (mínimo de saúde ou de educação com resultado `abaixo`, **só no ano fechado**) e `obra_paralisada` (qualquer obra paralisada, pelo menos uma). Toda etiqueta traz o **motivo escrito em uma linha** ("2 obras estão paradas."). **Não disparam:** mínimo `parcial` ou `sem_dado`, apagão da farmácia (não divulgar o estoque não é falta de remédio), Ideb em queda (nota que oscila a cada dois anos; a meta é parâmetro do portal, não limite legal; a queda já aparece no card com a seta para baixo e "era X").
+- **Uma manchete por card**, a pergunta do uso (remédio, obra, escola). O mínimo legal entra como **linha de apoio**, menor, com barra e link da lei.
+- **Cidade sem dado não ganha card vazio:** o card some e os demais seguem empilhados, sem espaço reservado.
+
+**Estados de cada card (todos desenhados no canvas):** normal; mínimo `parcial` no ano em andamento ("Em andamento", sem "Sim" nem "Não"); `abaixo` ("Ainda não", em âmbar, sem vermelho e sem acusação); `sem_dado` (a linha da régua não aparece, e o card nunca mostra "sem dado" como se fosse resposta); farmácia em apagão; cidade sem obras.
+
+**O que o levantamento de 2026-11-09 mostrou (verificado no código):** o loader da home hoje **não carrega** o mínimo de saúde (`getSaudeMinimoConstitucional`, usado só pela página de saúde) nem o mínimo de educação (`siope.minimos.mde`, usado só pela página de educação); `MinimoLegalDTO` já traz `limite`, `percentualAplicado`, `resultado` (`cumpriu`, `abaixo`, `parcial`, `sem_dado`), `baseLegal` e `urlBaseLegal`; o 13º existe em `getExecucaoDecimoTerceiroMetrics` (empenhado, liquidado, pago e percentual pago) **por ano, sem mês e sem data de pagamento**, porque o mart `fct_pessoal_folha_metricas` agrega por ano e empresa, embora o staging de pessoal tenha a coluna `mes`; `ResumoObrasDTO` traz `paralisadas` e `valorParalisadas`, **sem a duração da paralisação**; a busca de remédio já existe (`farmacia-busca-destaque`, `farmacia-busca-form`).
+
+**Restrições:** Regra 2 (camada de apresentação burra: o percentual da home sai da **mesma query** da página interna, nunca recalculado na tela), Regra 9 e 18 (nomes claros e `camelCase`), Regra 10 (códigos `abaixo_minimo`, `obra_paralisada` em snake_case; a UI traduz), Regra 12 (`llms.txt` e `llms-full.txt`), Regra 15 (seed e dbt só no banco local), Regra 20 (toda lei citada com link oficial), Regra 23 (sem município, UF ou ano fixos), Regra 24 e 25 (vocabulário, `DESIGN.md` e `EXPERIENCE.md`), Regra 27 (pergunta primeiro, dado derivado diz que é derivado), `jurista-fiscal` para a base legal, `contador-publico` para os estágios do 13º e `editor-cidadao` para todo texto ao cidadão.
+
+**Fora do escopo (backlog, com motivo):**
+- **Radar Cívico na home:** alertas técnicos demais para a vitrine. Evolução: feed de novidades em linguagem comum (outra fonte e outro produto).
+- **Assistência social:** ainda sem dado (Epic 21). Não se reserva espaço nem se mostra "em breve".
+- **Previdência em dia:** não interessa ao comerciante e não há fonte (a contribuição patronal é despesa, não situação de regularidade).
+- **Salário do mês pago:** exige competência (mês) no mart e data de pagamento, que não achamos nos models. Story de dados própria.
+- **Fornecedores locais pagos em dia:** produto novo.
+- **Duração da obra paralisada** como critério da etiqueta: só com dado confirmado.
+- **Ideb em queda como gatilho:** descartado nesta epic (ver acima).
+
+**Release:** as Stories 27.1 a 27.3 vão no release. A 27.4 entra se ficar pronta a tempo; senão vai logo depois.
+
+---
+
+### Story 27.1: Contrato de Dados da Home (Mínimos, Etiqueta com Motivo e Estados)
+
+As a citizen opening the portal,  
+I want the home to show the same numbers as the Saúde and Educação pages,  
+So that a card on the home never contradicts the page it links to.
+
+**Origem:** sessão de 2026-11-09. Base das Stories 27.2 e 27.3. **Sem mudança visual.**
+
+**Acceptance Criteria:**
+- **Given** o loader da home em `apps/web/app/[portalSlug]/loader.ts`
+- **When** a story termina
+- **Then** o loader passa a trazer o mínimo de saúde (a mesma query `getSaudeMinimoConstitucional` da página de saúde) e o mínimo de educação (a mesma fonte `siope.minimos.mde` da página de educação), cada um com `limite`, `percentualAplicado`, `resultado`, `baseLegal` e `urlBaseLegal`.
+- **And** o percentual exibido na home é **idêntico** ao da página interna no mesmo ano e portal; há teste de paridade entre as duas (Regra 2: nada é recalculado na tela).
+- **And** `@transparencia/db` devolve, por área (saúde, obras, educação), `emAtencao` (booleano) e `motivo` (código em snake_case, Regra 10): `abaixo_minimo` quando o resultado do mínimo é `abaixo` **e o ano está fechado**; `obra_paralisada` quando `ResumoObrasDTO.paralisadas` é maior que zero. A tradução em frase é da camada de apresentação.
+- **And** `parcial`, `sem_dado`, apagão da farmácia e queda do Ideb **nunca** geram `emAtencao`; há teste para cada um desses casos.
+- **And** o estado de cada área é expresso por um valor tipado (`normal`, `parcial`, `abaixo`, `sem_dado`, `indisponivel`), sem ternário aninhado (Regra 13) e sem tautologia (Regra 14).
+- **And** quando uma fonte falha ou não existe para o município, a área vem como `indisponivel` e o loader **não derruba a página** (mesma tolerância que `getResumoFarmaciaSus(...).catch` já tem).
+- **And** nenhum literal de município, UF ou ano (Regra 23); campos em `camelCase` (Regra 18).
+- **And** `make test/ts` (ou `pnpm test`) e `pnpm typecheck` passam, com testes novos no `loader.spec.ts` e no `view-model.spec.ts`.
+
+**Fora do escopo:** qualquer componente ou mudança visual; o 13º e a janela do 13º (Story 27.4, que traz o próprio dado ao loader).
+
+**Dependências:** nenhuma. Pré-requisito da 27.2.
+
+---
+
+### Story 27.2: Card de Situação (Saúde, Obras e Educação)
+
+As a citizen with little time,  
+I want each city area to answer one question in a sentence, with the rule that backs it,  
+So that I know how the city is doing before reading any table.
+
+**Origem:** sessão de 2026-11-09 (mockup "Card de situação" e "D · Estados dos cards").
+
+**Acceptance Criteria:**
+- **Given** os dados da Story 27.1
+- **When** a home carrega
+- **Then** a seção "Como está a cidade hoje" (`h2`) mostra, na **ordem fixa** Saúde, Obras, Educação, um card por área com: `eyebrow` da área, pergunta em `h3` ("Tem remédio no posto de saúde?", "As obras da cidade estão andando?", "A educação da cidade está melhorando?"), resposta curta em `stat-value`, a linha "Fonte:" em `caption` com as fontes **com link** (`FONTES_OFICIAIS`, nova aba, `rel="noopener noreferrer"`, seta `ArrowUpRight` do Lucide), "Ver detalhes" e "Compartilhar" (rótulos da Regra 24), no formato `panel` do `DESIGN.md`.
+- **And** a **Saúde** tem como manchete o estado do estoque da farmácia e reaproveita a busca de remédio (`farmacia-busca-destaque`); o mínimo de saúde aparece como linha de apoio ("A Prefeitura aplica o mínimo exigido em saúde?"), com barra quadrada, traço do mínimo e a base legal vinda de `urlBaseLegal` (Regra 20, `target="_blank"` e `rel="noopener noreferrer"`).
+- **And** a **Educação** tem como manchete a nota do Ideb com "era X" ao lado; quando a nota sobe ou cai, a seta `ArrowUp`/`ArrowDown` do Lucide vem antes do texto, e seta e texto ficam juntos em `ok-text` (subiu) ou `warn-text` (caiu); o leitor de tela ouve "subiu" ou "caiu", e o texto de compartilhar diz "(caiu, era X)"; o mínimo de educação aparece como linha de apoio, no mesmo padrão. A meta do Ideb é exibida como contexto, sem tom de limite legal.
+- **And** **Obras** mostra "N em andamento" como manchete e as paradas ao lado ("1 parada", "M paradas" ou "nenhuma parada"); com a etiqueta, o complemento das paradas **some**, porque o motivo já diz quantas estão paradas; sem nenhuma obra em andamento nem parada, a manchete passa a ser as não iniciadas ("15 não iniciadas"), com as concluídas ao lado, e, sem não iniciadas, as concluídas; nunca "0 em andamento" sozinho.
+- **And** a proporção por situação fica em barra quadrada segmentada (`h-3`, `gap-px` entre as partes, proporção por `flex-grow`), na ordem do ciclo da obra: concluídas (`ok-fill`), em andamento (`brand-fill`), paradas (`warn-fill`) e não iniciadas (`faint`), mais canceladas (`mute3`) só quando houver; o total da barra é a soma das partes desenhadas, então nenhum pedaço fica sem status na legenda; com legenda e o mini mapa que já existe, sem recalcular contagens na tela.
+- **And** as barras do mínimo legal usam o `ThresholdMeter` do `packages/ui` (marcador no mínimo, tom `warn` quando abaixo), nunca uma barra desenhada à mão.
+- **And** os **estados** seguem o canvas: `parcial` mostra "Em andamento: X% aplicados até agora" sem veredito; `abaixo` mostra "Ainda não:" em tom de atenção (âmbar, nunca vermelho) com `emAtencao`; `sem_dado` **omite** a linha da régua; cidade sem obras ou sem resumo de educação **não renderiza** o card e os demais dividem a linha.
+- **And** a etiqueta "Merece atenção" aparece **somente** quando `emAtencao` é verdadeiro e **sempre acompanhada do motivo escrito** em uma linha ("2 obras estão paradas.", "Aplicou menos que o mínimo exigido no ano."); a etiqueta nunca aparece sozinha.
+- **And** com a farmácia em **apagão** o card de saúde mostra "Sem informação de estoque" com o texto atual ("isso não quer dizer que falta remédio"), o link da Lei 14.654/2023, **mantém "Copiar requerimento" e "Compartilhar no WhatsApp"**, esconde a busca e **não leva etiqueta**; a borda é neutra.
+- **And** com a farmácia `indisponivel` o card de saúde tem comportamento **a decidir com o Julio no início da story** (proposta: o mínimo de saúde vira a manchete única do card; se também não houver mínimo, o card some).
+- **And** o conteúdo do botão "Compartilhar" carrega o **período e a fonte** do dado, para não perder o contexto fora da página (por exemplo "2 obras paradas" sem data pode ser lido como abandono).
+- **And** o componente fica em `apps/web/components/` (domínio, não em `packages/ui`), reusa `fmtPercent`, `fmtDate` e o `ModalDialog` onde couber, usa só os tokens do `DESIGN.md` (sem `slate-*`, sem `font-mono` fora de `table` e `numeric`) e os textos passam pelo `editor-cidadao`.
+- **And** os cards ficam **empilhados**, um por linha, com 32px entre eles (`space-y-8`); dentro do card, a partir de `md`, a resposta fica à esquerda e o detalhe (busca de remédio, barra e mapa de obras, linha do mínimo) à direita, com "Ver detalhes" e "Compartilhar" embaixo da resposta; no celular tudo empilha na ordem de leitura e as ações fecham o card. "Compartilhar" é discreto (sem borda), com alvo de toque de 44px. Sem altura fixa nem `min-height`.
+- **Ajuste pós-implementação (2026-11-10):** a grade de 3 colunas da proposta original foi descartada na revisão visual com o Julio (colunas espremidas e espaço negativo demais); os critérios acima já refletem o layout aprovado na prancheta "E · Ajustes" do canvas.
+- **And** não há ternário aninhado (Regra 13); `pnpm typecheck` e `pnpm test` passam, com teste por estado de cada card e teste de guarda de tokens (Story 20-12).
+
+**Fora do escopo:** reordenação da página e remoção de blocos (Story 27.3); o 13º (Story 27.4).
+
+**Dependências:** Story 27.1.
+
+---
+
+### Story 27.3: Reorganização da Home (Nova Ordem, Hero Rebaixado e Radar Fora)
+
+As a citizen,  
+I want the home to open by how the city is doing and only then show the accounts,  
+So that I get the answer first and the technical detail only if I ask for it.
+
+**Origem:** sessão de 2026-11-09 (mockups A e C).
+
+**Acceptance Criteria:**
+- **Given** a home em `apps/web/app/[portalSlug]/page.tsx`
+- **When** a story termina
+- **Then** a página segue a ordem: abertura compacta (`PageEyebrow` "Situação da cidade", `h1` com o nome do município vindo do portal e **uma linha** com a frase e o período em texto "Dados de {ano}, atualizados em {data}", a 32px da primeira seção; entre as demais seções, 48px no celular e 64px no desktop), "Como está a cidade hoje" (Story 27.2), espaço reservado ao bloco "Dinheiro que entra na cidade" (Story 27.4), "Para onde vai o dinheiro público" e "Mais detalhes".
+- **And** **não existe seletor de ano** no conteúdo da home (o do sidebar e o do header continuam).
+- **And** "Para onde vai o dinheiro público" traz o total arrecadado e o percentual da previsão em barra quadrada (`ThresholdMeter`, o hero fiscal rebaixado) e o saldo em caixa com a frase "Saldo disponível nas contas da Prefeitura", mais "Ver detalhes" para a página de orçamento. O valor principal segue a regra de **um `stat-value-lg` por página** do `DESIGN.md` (a decisão de qual valor ganha o `stat-value-lg` é conferida com o Julio no início da story).
+- **And** o `RadarCivicoFeed` **sai da home** (componente e rota `/radar` permanecem) e o `PipelineExecucao` sai da home (continua na página de orçamento).
+- **And** "Mais detalhes" lista atalhos para Despesas ("Em que a Prefeitura gastou"), Licitações ("Compras e contratações") e Pessoal ("Servidores e folha de pagamento"), no padrão de lista do `DESIGN.md`. **Confirmar com o Julio no início da story** que esses atalhos substituem os `CardsSecundariosVisaoGeral` (os cards com números de despesas, licitações e pessoal saem da home).
+- **And** o `h1` é único, os níveis de título não se pulam e não há `h5` nem `h6` (`EXPERIENCE.md`).
+- **And** `apps/web/public/llms.txt` e `apps/web/public/llms-full.txt` descrevem a nova home e o que mudou (Regra 12), sem detalhe interno de código.
+- **And** `page.spec.tsx`, `view-model.spec.ts` e o `opengraph-image.tsx` da home continuam passando, sem município, UF ou ano fixos no texto (Regra 23: município vazio mostra "Municípios Integrados").
+- **And** `pnpm typecheck` e `pnpm test` passam; `CHANGELOG.md` registra a mudança.
+
+**Fora do escopo:** o bloco do 13º (27.4); feed de novidades; assistência social.
+
+**Dependências:** Story 27.2.
+
+---
+
+### Story 27.4: Dinheiro que Entra na Cidade (13º Salário, Sazonal)
+
+As a local shop owner,  
+I want to know whether the city hall has started paying the 13th salary,  
+So that I can plan my sales for the weeks when that money reaches the city.
+
+**Origem:** sessão de 2026-11-09. O 13º interessa ao comerciante, não ao servidor. **Tem relógio:** a janela é novembro e dezembro; perder dezembro significa esperar um ano. **Pode andar em paralelo** às Stories 27.2 e 27.3 (só o encaixe na página depende da 27.3). Entra no release se ficar pronta a tempo.
+
+**Decisões de 2026-11-09/10 (Julio):** (1) sem lei municipal nem seed por município (manter a lei de cada cidade não escala): a janela é regra única do portal, novembro e dezembro do ano corrente; (2) o card mostra só o **valor pago acumulado no ano**, sem percentual nem barra, porque o dado é anual, o empenhado ainda é parcial em novembro e municípios como Natividade pagam a primeira parcela em junho (2026: R$ 1,2 mi pago de R$ 1,2 mi empenhado, 100%); (3) o filtro do 13º no mart é corrigido; (4) a "folha do mês" **não entra**: ver "Fora do escopo".
+
+**Por que "acumulado no ano":** o dado existente (`getExecucaoDecimoTerceiroMetrics`) é anual e não tem data de pagamento. A fonte não traz data de pagamento em nenhum dos municípios. A tela diz isso.
+
+**Acceptance Criteria:**
+
+*Correção do 13º no mart (`fct_pessoal_folha_metricas`):*
+- **Given** o `pago_13` e o `empenhado_13` de hoje somam encargos e falsos positivos (em 2025, elemento 13 = R$ 85 mil em Natividade e R$ 650 mil em Porciúncula, cerca de 12% do `pago_13` dela; "DFD Nº 213" casa com `%13%`)
+- **When** o mart é recalculado
+- **Then** o 13º conta só os elementos de despesa **01, 03, 04, 11, 16 e 96** e **exclui o elemento 13** (obrigações patronais, multa e juros); aposentados e pensionistas (01 e 03) **entram**; o padrão de texto deixa de ser `%13%` solto e passa a ser "13º", "décimo terceiro" e "13 salário" com `unaccent` (Regra 11), mantendo as exclusões já existentes (anulação e tipo `AN`).
+- **And** a mudança altera o `pago_13` também em `/pessoal`; os testes de paridade do mart e da página de pessoal são atualizados e o texto do `DecimoTerceiroCard` não promete "servidores" quando o valor inclui aposentados (Regra 15: dbt só no banco local; `make db/test/build` isolado, sem exportar a `DATABASE_URL` do banco local).
+
+*Bloco "Dinheiro que entra na cidade" (card do 13º):*
+- **Given** o ano ativo é o ano corrente e a data de hoje está em novembro ou dezembro (regra única do portal na camada de dados, sem seed, sem config por município e sem lei citada; Regra 23)
+- **When** há dado do 13º para o portal
+- **Then** a home mostra "Dinheiro que entra na cidade" (`h2`) entre "Como está a cidade hoje" e "Para onde vai o dinheiro público", com a pergunta "Quanto do 13º a Prefeitura já pagou este ano?", o valor pago acumulado em `stat-value` (sem percentual nem barra) e a frase "Valor pago acumulado no ano, inclusive parcelas pagas antes de novembro. Ainda não temos a data de cada pagamento." A descrição diz "servidores e aposentados".
+- **And** fora da janela, ou sem dado do 13º, **a seção inteira some** (sem espaço reservado).
+- **And** com `pago` igual a zero dentro da janela o texto é "Ainda sem informação de pagamento", **nunca** "atrasado" nem "não pagou" (dado não publicado não é dado de não pagamento).
+- **And** "pago" é o estágio **pago** (não empenhado nem liquidado, `contador-publico`) e a leitura é um indício derivado, dito como tal na tela (Regra 27).
+- **And** o loader da home passa a trazer o 13º para o ano ativo; esta story é dona desse dado e **não depende da Story 27.1**.
+- **And** o texto "informados até dd/mm" não aparece: a única data disponível é a de extração do portal, já exibida na abertura.
+- **And** o agregado é só da folha total, **sem dado individual de servidor** (LGPD).
+- **And** o `contador-publico` valida os elementos de despesa e os estágios; o `editor-cidadao` valida os textos; `llms.txt`, `llms-full.txt` e `CHANGELOG.md` são atualizados (Regra 12).
+- **And** `pnpm typecheck` e `pnpm test` passam, com testes: 13º dentro e fora da janela, sem dado, `pago` zerado; mart com e sem encargos (elemento 13) e com "DFD Nº 213".
+
+**Fora do escopo:**
+- **Folha do mês (salário pago no mês atual, último mês pago integralmente):** descartada em 2026-11-10 por fragilidade do dado. A fonte não traz data de pagamento, só o mês do empenho e o pago acumulado. Natividade empenha, liquida e paga junto (empenhado de folha dos ativos ÷ holerite entre 0,94 e 1,01 em 19 de 21 meses), mas Porciúncula empenha a folha em lotes de vários meses (razão de 0,03 a 3,97) e o holerite do mês corrente ainda não existe. Só volta com fonte de data de pagamento ou com empenho mensal nos municípios.
+- Data de pagamento por competência, salário individual de servidor e previdência.
+
+**Dependências:** nenhuma de dados. Só o encaixe na página depende da Story 27.3. Edita o mesmo `loader.ts` e o mesmo `view-model` da Story 27.1; se as duas andarem em paralelo, o conflito se resolve no merge. Altera o `pago_13` de `/pessoal`.
+
+---
+
+### Story 27.5: Ajustes da Home e do Layout (Resumo nos Atalhos, Compartilhar a Página, Sidebar Recolhível)
+
+As a citizen,  
+I want the home shortcuts to tell me what is behind each link, the card share to send the page itself, and the desktop sidebar to get out of the way,  
+So that I decide where to go without guessing, the person I share with sees the page preview, and the content has more room.
+
+**Origem:** pedidos do Julio em 2026-11-10, depois da revisão visual da home entregue nas Stories 27.2 a 27.4.
+
+**Acceptance Criteria:**
+
+*Resumo nos atalhos de "Mais detalhes"*
+- **Given** a seção "Mais detalhes" da home
+- **When** o cidadão a vê
+- **Then** cada atalho (Despesas, Licitações e Contratos, Pessoal) mostra, na linha de baixo (`caption`), um **resumo do ano ativo em uma frase com número**, no lugar da descrição genérica atual (ex.: "R$ 48,1 mi pagos em {ano}", "{N} contratações em {ano}", "{N} servidores na folha de {mês}"). Os textos finais passam pelo `editor-cidadao`.
+- **And** os números vêm das **mesmas queries** das páginas de destino em `@transparencia/db` (Regra 2), carregados no loader da home; nada é recalculado na tela.
+- **And** sem dado para um atalho, a linha volta à descrição genérica atual (nunca "R$ 0" ou "0 servidores" como se fosse fato); ano em andamento marca o valor como parcial no próprio texto.
+- **And** ano, mês e município são dinâmicos (Regra 23).
+
+*Exemplos de remédio no card de Saúde*
+- **And** os remédios de exemplo abaixo da busca viram **chips com borda** (`border-line`, raio de controle do `DESIGN.md`, altura de 32px, `gap-2`), no lugar dos links soltos de 44px que quebram linha com espaço sobrando. Alvo de toque de pelo menos 24px (WCAG 2.2 AA, 2.5.8). Decisão do Julio em 2026-11-10, entre linha corrida, chips e faixa com rolagem.
+
+*Compartilhar do card = compartilhar a página*
+- **And** o "Compartilhar" de cada card de situação usa o **mesmo comportamento do compartilhar global** (`ShareButton` do `packages/ui`: compartilhamento nativo do celular e, sem ele, cópia do link), passando a **URL da página de detalhe** do card (`/saude`, `/obras`, `/educacao`, com o ano ativo quando houver), para que quem recebe veja a imagem de prévia (open graph) daquela página.
+- **And** o envio direto para `wa.me` com texto montado sai; o `textoCompartilhar` do modelo é removido se não tiver outro uso; o evento `situacao_card_compartilhado` continua, com `area` e `method`.
+
+*Sidebar recolhível no desktop*
+- **Given** o desktop (a partir do breakpoint em que a sidebar é fixa)
+- **When** o cidadão aciona o botão de recolher a sidebar
+- **Then** ela vira uma **faixa só de ícones** da navegação (Visão geral, Radar, Farmácia, temas e administrativo), **sem os filtros** (município, exercício, entidade) nem os controles do rodapé da sidebar; cada ícone tem nome acessível e dica (tooltip) com o nome da página; o item ativo continua marcado.
+- **And** o conteúdo **e o rodapé global** passam a ocupar a largura liberada.
+- **And** o botão de expandir fica visível na faixa; o estado **não é lembrado** entre visitas (decisão do Julio em 2026-11-10): toda visita abre expandida.
+- **And** o celular não muda (header e menu atuais).
+
+*Rótulo de "Reportar erro"*
+- **And** o link "Reportar erro" do rodapé passa a deixar claro que serve **para sugestão ou erro** (proposta: "Sugestão ou erro"; texto final pelo `editor-cidadao`), e o título do `feedback-modal` acompanha.
+- **And** a Story 23.5 (Epic 23, backlog) é atualizada para usar o mesmo rótulo por indicador. Verificado em 2026-11-10: não existia story de renomear; a 23.5 trata de levar o botão a cada indicador.
+
+*Qualidade*
+- **And** `pnpm typecheck` e `pnpm test` passam, com testes: resumo com e sem dado; card compartilhando a URL da página; sidebar recolhida sem filtros e com rodapé em largura total; `CHANGELOG.md`, `llms.txt` e `llms-full.txt` atualizados no que muda para o cidadão (Regra 12).
+
+**Fora do escopo:** "Reportar erro" por indicador e "Direito de resposta" (Stories 23.5 e 23.6); lembrar a sidebar recolhida; mudanças no menu do celular.
+
+**Dependências:** Stories 27.2 e 27.3 (done).
 
 ---
 
@@ -4106,3 +4315,34 @@ So that infrastructure code is in English and domain terms stay in Portuguese ev
 
 **Dependências:** nenhuma. Recomenda-se rodar depois do fim da Epic 20 para a medição pegar o código já migrado.
 
+
+### Story TD.2: Gasto com Pessoal pelo Número Oficial do RGF (12 Meses)
+
+As a citizen checking whether the Prefeitura respects the personnel spending limit,  
+I want the percentage on `/pessoal` to be the official one from the Relatório de Gestão Fiscal (RGF),  
+So that the comparison with the LRF limits (teto, prudencial e alerta) is the same one the Tribunal de Contas makes.
+
+**Origem:** revisão do `contador-publico` em 2026-11-10, ao promover o "Gasto com Pessoal (LRF)" a destaque de `/pessoal`. Achados:
+1. O percentual (`packages/db/src/queries/pessoal-metrics.ts`) divide a despesa com pessoal acumulada no ano pela receita corrente líquida acumulada no ano. A LRF mede 12 meses corridos (mês de referência mais os 11 anteriores, art. 18 §2 e art. 19): em ano fechado as janelas coincidem; no ano em andamento, não.
+2. A receita corrente líquida vem de `fct_fontes_receita_metricas` e é estimada (descrição do mart), não a RCL publicada no RGF.
+3. Quando `despesa_total_pessoal_lrf` vem zerada, a query usa `total_folha` no lugar, sem aviso.
+4. `rclProxy` e `receitaCorrenteLiquida` são o mesmo valor com dois nomes.
+
+**Paliativo já feito (commit `e61b0782`):** no ano em andamento a página não compara com o ano anterior nem dá veredito de limite, e sempre diz que o número é cálculo do portal com a receita corrente líquida estimada.
+
+**Acceptance Criteria:**
+- **Given** o RGF do Poder Executivo publicado no SICONFI (Anexo 1, Demonstrativo da Despesa com Pessoal)
+- **When** o pipeline roda
+- **Then** a despesa total com pessoal e a RCL ajustada de 12 meses de cada período publicado (quadrimestre ou semestre) ficam num mart com `portal_slug`, ano e período, sem literal de município, UF ou ano (CLAUDE.md §23), seguindo o desenho de schema por fonte da Epic 26.
+- **And** `/pessoal` mostra o percentual oficial do último período publicado do ano selecionado, com o período (a API do SICONFI não devolve a data de publicação; decisão de 2026-11-11), e só ele recebe veredito contra os limites, que continuam vindo de `seed_constantes_fiscais`.
+- **And** quando o RGF do período ainda não saiu, a página mostra a estimativa atual com o aviso de estimativa, sem veredito.
+- **And** a troca de `despesa_total_pessoal_lrf` por `total_folha` ou deixa de existir ou aparece na tela como estimativa; `rclProxy` e `receitaCorrenteLiquida` viram um campo só, com nome que diga se é oficial ou estimado (regras 9 e 18).
+- **And** o bloco oficial é autocontido: despesa com pessoal de 12 meses, RCL, percentual, período e data de publicação vêm todos do RGF; o total pago em folha do portal fica em bloco separado, com nota de que não é o número do RGF (competência, 12 meses, encargos); a diferença entre os dois só aparece em "Ver detalhes" e nunca se mistura numerador de uma fonte com denominador de outra.
+- **And** a comparação com o ano anterior usa o mesmo período do RGF dos dois anos (por exemplo, 2º quadrimestre contra 2º quadrimestre).
+- **And** os textos passam pelo `editor-cidadao` e a citação da LRF pelo `jurista-fiscal`, com link oficial (regra 20); `llms.txt` e `llms-full.txt` são atualizados.
+
+**Fora do escopo:** Poder Legislativo (a página não cita a Câmara por ora) e o limite consolidado do município (60%).
+
+**Implementação (2026-11-11):** extrator `elt/extract/siconfi_rgf.py` (RGF Anexo 01, Executivo municipal; periodicidade e período vêm da resposta da API), tabela `siconfi_rgf` no schema raw do portal, `fct_pessoal_rgf_metricas` (despesa de 12 meses, RCL ajustada e percentual do mesmo período), `getFolhaVsServicosMetrics` com `rgf` e `rgfAnoAnteriorMesmoPeriodo` (`rclProxy` removido, sem fallback para `total_folha`, comparadores `>`). Pendente: carga e conferência com dados reais (Porciúncula 2024, 3º quadrimestre: 53,46% sobre RCL ajustada de R$ 132,2 mi); confirmar com a API se Natividade 2024 realmente não tem RGF; revisão de texto pelo `editor-cidadao` e da citação pelo `jurista-fiscal`; migração para `raw_siconfi` na Story 26.5.
+
+**Dependências:** confirmar com o `jurista-fiscal` a redação da janela de 12 meses e qual periodicidade (quadrimestral ou semestral) vale para cada município; Epic 26 para o padrão de schema por fonte.

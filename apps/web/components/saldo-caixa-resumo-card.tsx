@@ -57,7 +57,7 @@ function CabecalhoDisponibilidade({
         <h3>Disponibilidade em Caixa e Bancos</h3>
         {action}
       </div>
-      {description && <p className="mt-1 text-mute2 text-xs">{description}</p>}
+      {description && <p className="text-mute2 mt-1 text-xs">{description}</p>}
     </header>
   );
 }
@@ -78,16 +78,16 @@ export function SaldoCaixaResumoCard({
         <CabecalhoDisponibilidade
           description="Contas bancárias e aplicações homologadas pelo Tesouro Nacional (SICONFI MSC)"
           action={
-            <span className="inline-flex items-center rounded-full border border-line px-3 py-1 font-medium text-mute2 text-xs">
+            <span className="border-line text-mute2 inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium">
               Visão Consolidada
             </span>
           }
         />
 
-        <div className="flex items-start gap-3 border-line border-y py-4 text-ink text-xs">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+        <div className="border-line text-ink flex items-start gap-3 border-y py-4 text-xs">
+          <Info className="text-brand mt-0.5 h-4 w-4 shrink-0" />
           <div className="leading-relaxed">
-            <span className="font-semibold text-ink">
+            <span className="text-ink font-semibold">
               Disponibilidade contábil exibida na visão consolidada municipal.
             </span>{" "}
             A disponibilidade em caixa do Tesouro Nacional reflete o montante
@@ -117,16 +117,16 @@ export function SaldoCaixaResumoCard({
           }
         />
 
-        <div className="flex flex-col items-center justify-center border-line border-y p-6 text-center">
-          <AlertCircle className="mb-2 h-6 w-6 text-mute3" />
-          <p className="font-medium text-ink text-sm">
+        <div className="border-line flex flex-col items-center justify-center border-y p-6 text-center">
+          <AlertCircle className="text-mute3 mb-2 h-6 w-6" />
+          <p className="text-ink text-sm font-medium">
             Aguardando homologação da remessa MSC pelo Tesouro Nacional para o
             exercício de {ano}.
           </p>
           <div className="mt-3">
             <Link
               href={detailUrl}
-              className="inline-flex items-center gap-1 font-semibold text-brand text-xs hover:underline"
+              className="text-brand inline-flex items-center gap-1 text-xs font-semibold hover:underline"
             >
               <span>Ver execução orçamentária municipal</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -167,7 +167,7 @@ export function SaldoCaixaResumoCard({
       className={className}
     >
       <CabecalhoDisponibilidade
-        description="Recursos em contas e aplicações homologadas pelo Tesouro Nacional (SICONFI MSC)"
+        description="Saldo disponível nas contas da Prefeitura, conforme o Tesouro Nacional (SICONFI MSC)"
         action={
           <ExternalLinkPill
             href={FONTES_OFICIAIS.siconfi.url}
@@ -185,13 +185,13 @@ export function SaldoCaixaResumoCard({
           </span>
           <p className="sr-only">Total em Caixa Municipal</p>
           <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <p className="font-bold font-sans text-3xl text-ink tracking-tight">
+            <p className="text-ink font-sans text-3xl font-bold tracking-tight">
               {fmtCompact(totalCaixaGeral)}
             </p>
             {posicaoFinanceira.variacaoAnualPercentual !== undefined &&
               posicaoFinanceira.variacaoAnualPercentual !== null && (
                 <span
-                  className={`font-semibold text-xs ${getVariacaoTextClass(
+                  className={`text-xs font-semibold ${getVariacaoTextClass(
                     posicaoFinanceira.variacaoAnualPercentual,
                   )}`}
                 >
@@ -206,7 +206,7 @@ export function SaldoCaixaResumoCard({
 
         <div className="space-y-2 md:pt-6">
           <div
-            className="flex h-2 w-full gap-0.5 overflow-hidden bg-track"
+            className="bg-track flex h-2 w-full gap-0.5 overflow-hidden"
             role="progressbar"
             aria-valuenow={Math.round(pctLivres)}
             aria-valuemin={0}
@@ -229,16 +229,16 @@ export function SaldoCaixaResumoCard({
             />
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-mute2 text-xs">
+          <div className="text-mute2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs">
             <p>
               Livres (Ordinários):{" "}
-              <strong className="font-semibold text-ink">
+              <strong className="text-ink font-semibold">
                 {fmtCompact(totalRecursosLivres)} ({fmtPercent(pctLivres)})
               </strong>
             </p>
             <p>
               Vinculados:{" "}
-              <strong className="font-semibold text-ink">
+              <strong className="text-ink font-semibold">
                 {fmtCompact(totalRecursosVinculados)} (
                 {fmtPercent(pctVinculados)})
               </strong>
@@ -251,7 +251,7 @@ export function SaldoCaixaResumoCard({
           </p>
           <Link
             href={detailUrl}
-            className="inline-flex items-center gap-1 font-medium text-brand text-xs hover:underline"
+            className="text-brand inline-flex items-center gap-1 text-xs font-medium hover:underline"
           >
             <span>Ver detalhamento por entidade em Execução Orçamentária</span>
             <ArrowRight className="h-3.5 w-3.5" />

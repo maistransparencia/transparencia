@@ -213,7 +213,7 @@ export function ShowYourWorkButton({
           type="button"
           onClick={handleDownload}
           disabled={isDownloading}
-          className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-left text-sm underline focus:outline-none focus:ring-2 focus:ring-line disabled:cursor-not-allowed disabled:opacity-60"
+          className="focus:ring-line inline-flex min-h-11 cursor-pointer items-center gap-2 text-left text-sm underline focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isDownloading ? (
             <Loader2
@@ -247,7 +247,7 @@ export function ShowYourWorkButton({
           setIsOpen((prev) => !prev);
           setErrorMessage(null);
         }}
-        className="flex size-7 min-h-7 min-w-7 cursor-pointer items-center justify-center rounded-lg text-mute3 transition-colors hover:bg-line2 hover:text-mute focus:outline-none focus:ring-2 focus:ring-line"
+        className="text-mute3 hover:bg-line2 hover:text-mute focus:ring-line flex size-7 min-h-7 min-w-7 cursor-pointer items-center justify-center rounded-lg transition-colors focus:ring-2 focus:outline-none"
         aria-label="Opções de auditoria"
         aria-haspopup="menu"
         aria-expanded={isOpen}
@@ -261,7 +261,7 @@ export function ShowYourWorkButton({
         createPortal(
           <div
             ref={menuRef}
-            className="fixed z-50 min-w-60 rounded-lg border border-line bg-page p-2 shadow-lg"
+            className="border-line bg-page fixed z-50 min-w-60 rounded-lg border p-2 shadow-lg"
             style={{
               top: posicaoMenu?.top ?? 0,
               right: posicaoMenu?.right ?? 0,
@@ -269,12 +269,12 @@ export function ShowYourWorkButton({
             }}
             role="menu"
           >
-            <div className="mb-1 border-line2 border-b px-2 pb-1.5">
-              <span className="font-semibold text-[10px] text-mute3 uppercase tracking-wider">
+            <div className="border-line2 mb-1 border-b px-2 pb-1.5">
+              <span className="text-mute3 text-[10px] font-semibold tracking-wider uppercase">
                 Auditoria Cívica
               </span>
               {tituloContexto && (
-                <p className="truncate font-medium text-mute text-xs">
+                <p className="text-mute truncate text-xs font-medium">
                   {tituloContexto}
                 </p>
               )}
@@ -284,28 +284,28 @@ export function ShowYourWorkButton({
               type="button"
               onClick={handleDownload}
               disabled={isDownloading}
-              className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-line2 focus:bg-line2 disabled:cursor-not-allowed disabled:opacity-60"
+              className="hover:bg-line2 focus:bg-line2 flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               role="menuitem"
             >
               {isDownloading ? (
-                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-brand-text" />
+                <Loader2 className="text-brand-text h-4 w-4 shrink-0 animate-spin" />
               ) : (
-                <FileSpreadsheet className="h-4 w-4 shrink-0 text-ok-text" />
+                <FileSpreadsheet className="text-ok-text h-4 w-4 shrink-0" />
               )}
               <div className="flex flex-col">
-                <span className="font-medium text-ink text-xs">
+                <span className="text-ink text-xs font-medium">
                   {isDownloading
                     ? "Gerando planilha..."
                     : "Baixar registros (CSV)"}
                 </span>
-                <span className="text-[10px] text-mute3">
+                <span className="text-mute3 text-[10px]">
                   Planilha empenho a empenho
                 </span>
               </div>
             </button>
 
             {errorMessage && (
-              <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-danger-fill/30 bg-danger-fill/10 p-2 text-danger-text text-xs">
+              <div className="border-danger-fill/30 bg-danger-fill/10 text-danger-text mt-1.5 flex items-start gap-1.5 rounded-lg border p-2 text-xs">
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>{errorMessage}</span>
               </div>

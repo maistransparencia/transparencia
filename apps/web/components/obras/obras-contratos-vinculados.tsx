@@ -1,7 +1,7 @@
 "use client";
 
 import { BProgress } from "@bprogress/core";
-import { AlertBox, cn } from "@transparencia/ui";
+import { AlertBox, Badge } from "@transparencia/ui";
 import { ArrowRight, Calendar, FileText } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
@@ -32,7 +32,7 @@ export function ObrasContratosVinculados({
           <span>Contratos e Licitações Vinculados</span>
         </h4>
         {contratos.length > 0 && (
-          <span className="rounded-sm bg-line2 px-2 py-0.5 font-medium text-mute text-xs">
+          <span className="bg-line2 text-mute rounded-sm px-2 py-0.5 text-xs font-medium">
             {contratos.length}{" "}
             {contratos.length === 1 ? "contrato" : "contratos"}
           </span>
@@ -60,27 +60,22 @@ export function ObrasContratosVinculados({
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold text-ink text-sm">
+                    <span className="text-ink text-sm font-bold">
                       Contrato nº {contrato.contratoNumero}
                     </span>
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-sm border px-2 py-0.5 font-semibold text-xs",
-                        contrato.statusBadgeClasses,
-                      )}
-                    >
+                    <Badge variant={contrato.statusBadgeVariant}>
                       {contrato.statusLabel}
-                    </span>
+                    </Badge>
                   </div>
-                  <p className="font-medium text-ink text-xs">
+                  <p className="text-ink text-xs font-medium">
                     {contrato.fornecedorNome}
                   </p>
                   <p className="text-mute2 text-xs">
                     Documento: {contrato.fornecedorCpfCnpjMascarado}
                   </p>
                   {(contrato.dataInicio || contrato.vencimentoAtual) && (
-                    <div className="flex flex-wrap items-center gap-2 pt-0.5 text-mute2 text-xs">
-                      <Calendar className="h-3 w-3 text-mute2" />
+                    <div className="text-mute2 flex flex-wrap items-center gap-2 pt-0.5 text-xs">
+                      <Calendar className="text-mute2 h-3 w-3" />
                       <span>
                         Vigência: {contrato.dataInicioFormatada} até{" "}
                         {contrato.vencimentoAtualFormatado}
@@ -91,22 +86,22 @@ export function ObrasContratosVinculados({
 
                 <div className="sm:text-right">
                   <span className="text-mute2 text-xs">Valor Contratado</span>
-                  <p className="font-bold text-ink text-sm">
+                  <p className="text-ink text-sm font-bold">
                     {contrato.valorContratoFormatado}
                   </p>
-                  <span className="rounded-sm bg-line2 px-2 py-0.5 font-medium text-mute text-xs">
+                  <span className="bg-line2 text-mute rounded-sm px-2 py-0.5 text-xs font-medium">
                     {contrato.modalidadeLabel}
                   </span>
                 </div>
               </div>
 
               {/* Ações e deep links */}
-              <div className="mt-3 flex flex-wrap items-center gap-3 border-line border-t pt-3 text-xs">
+              <div className="border-line mt-3 flex flex-wrap items-center gap-3 border-t pt-3 text-xs">
                 <Link
                   href={contrato.linkContrato}
                   onClick={handleNavigation}
                   aria-label={`Ver detalhes do contrato nº ${contrato.contratoNumero}`}
-                  className="inline-flex items-center gap-1 font-semibold text-brand-text hover:underline"
+                  className="text-brand-text inline-flex items-center gap-1 font-semibold hover:underline"
                 >
                   <FileText className="h-3.5 w-3.5" />
                   <span>Ver detalhes do contrato</span>
@@ -118,7 +113,7 @@ export function ObrasContratosVinculados({
                     href={contrato.linkLicitacao}
                     onClick={handleNavigation}
                     aria-label={`Ver licitação ${contrato.licitacaoNumero} vinculada ao contrato nº ${contrato.contratoNumero}`}
-                    className="inline-flex items-center gap-1 font-medium text-mute hover:text-ink hover:underline"
+                    className="text-mute hover:text-ink inline-flex items-center gap-1 font-medium hover:underline"
                   >
                     <span>Ver licitação ({contrato.licitacaoNumero})</span>
                     <ArrowRight className="h-3 w-3" />

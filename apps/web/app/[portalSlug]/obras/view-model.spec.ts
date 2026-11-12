@@ -19,21 +19,21 @@ describe("obras/view-model", () => {
       const visual = getSituacaoVisual("em_execucao");
       expect(visual.label).toBe("Em Execução");
       expect(visual.corPreenchimento).toBe("var(--brand-fill)");
-      expect(visual.badgeClass).toContain("text-brand-text");
+      expect(visual.badgeVariant).toBe("accent");
     });
 
     it("mapeia 'paralisada' para estilo vermelho e rótulo 'Paralisada'", () => {
       const visual = getSituacaoVisual("paralisada");
       expect(visual.label).toBe("Paralisada");
       expect(visual.corPreenchimento).toBe("var(--danger-fill)");
-      expect(visual.badgeClass).toContain("text-danger-text");
+      expect(visual.badgeVariant).toBe("danger");
     });
 
     it("mapeia 'concluida' para estilo verde e rótulo 'Concluída'", () => {
       const visual = getSituacaoVisual("concluida");
       expect(visual.label).toBe("Concluída");
       expect(visual.corPreenchimento).toBe("var(--ok-fill)");
-      expect(visual.badgeClass).toContain("text-ok-text");
+      expect(visual.badgeVariant).toBe("success");
     });
 
     it("mapeia 'cadastrada' e 'cancelada' com rótulos e estilos adequados", () => {
@@ -529,7 +529,7 @@ describe("obras/view-model", () => {
       expect(c.valorContratoFormatado).toContain("450.000");
       expect(c.modalidadeLabel).toBe("Concorrência Eletrônica");
       expect(c.statusLabel).toBe("Vigente");
-      expect(c.statusBadgeClasses).toContain("text-ok-text");
+      expect(c.statusBadgeVariant).toBe("success");
       expect(c.linkContrato).toBe(
         "/porciuncula_prefeitura/contratos?numero=001%2F2024",
       );
@@ -567,7 +567,7 @@ describe("obras/view-model", () => {
       expect(vm.fornecedorNome).toBe("CONSTRUTORA EXEMPLO");
       expect(vm.fornecedorCpfCnpjMascarado).toBe("11.***.***/0001-44");
       expect(vm.statusLabel).toBe("Vigente");
-      expect(vm.statusBadgeClasses).toContain("text-ok-text");
+      expect(vm.statusBadgeVariant).toBe("success");
       expect(vm.modalidadeLabel).toBe("Dispensa de Licitação");
       expect(vm.linkContrato).toBe(
         "/porciuncula_prefeitura/contratos?numero=CTR-99%2F2024",
@@ -617,7 +617,7 @@ describe("obras/view-model", () => {
 
       expect(vm.fornecedorCpfCnpjMascarado).toBe("123.***.***-00");
       expect(vm.statusLabel).toBe("Encerrado");
-      expect(vm.statusBadgeClasses).toContain("text-mute");
+      expect(vm.statusBadgeVariant).toBe("default");
       expect(vm.linkLicitacao).toBeNull();
     });
 
@@ -661,7 +661,7 @@ describe("obras/view-model", () => {
         "porciuncula_prefeitura",
       );
       expect(vmSuspenso.statusLabel).toBe("Suspenso");
-      expect(vmSuspenso.statusBadgeClasses).toContain("text-warn-text");
+      expect(vmSuspenso.statusBadgeVariant).toBe("warning");
 
       const cancelado: ObraContratoDTO = {
         ...suspenso,
@@ -674,7 +674,7 @@ describe("obras/view-model", () => {
         "porciuncula_prefeitura",
       );
       expect(vmCancelado.statusLabel).toBe("Cancelado");
-      expect(vmCancelado.statusBadgeClasses).toContain("text-danger-text");
+      expect(vmCancelado.statusBadgeVariant).toBe("danger");
     });
   });
 

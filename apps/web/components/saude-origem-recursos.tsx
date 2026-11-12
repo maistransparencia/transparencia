@@ -22,7 +22,7 @@ export function SaudeOrigemRecursos({
 }: SaudeOrigemRecursosProps) {
   if (fontes.totalEntrada <= 0) {
     return (
-      <p className={cn("border-line border-y py-4 text-mute", className)}>
+      <p className={cn("border-line text-mute border-y py-4", className)}>
         Sem lançamentos de receita do Fundo em {ano}.
       </p>
     );
@@ -62,7 +62,7 @@ export function SaudeOrigemRecursos({
   return (
     <div className={cn("space-y-6", className)}>
       <div
-        className="flex h-3 w-full gap-0.5 overflow-hidden bg-track"
+        className="bg-track flex h-3 w-full gap-0.5 overflow-hidden"
         role="img"
         aria-label={origens
           .map((origem) => `${origem.nome} ${origem.percentual}%`)

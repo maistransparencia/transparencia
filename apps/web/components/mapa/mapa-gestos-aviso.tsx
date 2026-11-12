@@ -14,7 +14,7 @@ export function MapaGestosAviso({ tipo, isMac, testId }: MapaGestosAvisoProps) {
       aria-live="polite"
       className="pointer-events-none absolute inset-0 z-1000 flex items-center justify-center bg-black/45 backdrop-blur-[2px] transition-opacity duration-200"
     >
-      <div className="rounded-md bg-ink/90 px-4 py-2.5 text-center font-medium text-onink text-sm">
+      <div className="bg-ink/90 text-onink rounded-md px-4 py-2.5 text-center text-sm font-medium">
         {tipo === "desktop" ? (
           <>
             Use{" "}

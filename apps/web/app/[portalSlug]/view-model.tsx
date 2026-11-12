@@ -1,8 +1,10 @@
 import type { GrauSeveridade, RadarCivicoAlertaDTO } from "@transparencia/db";
 import {
+  type BadgeVariant,
   buildNavUrl,
   fmtCompact,
   fmtCurrency,
+  fmtDate,
   fmtNumber,
   fmtPercent,
   getPartialYearPeriod,
@@ -17,6 +19,7 @@ import {
   buildExemplosFarmacia,
   buildRequerimentoFiscalizacao,
   buildTextoWhatsApp,
+  ID_SECAO_INDICE,
 } from "./farmacia/view-model";
 import type { loadVisaoGeralData } from "./loader";
 
@@ -136,6 +139,46 @@ function buildEducacaoResumoCard(resumo: ResumoEducacaoRaw, exercicio: number) {
   };
 }
 
+/** Resumos dos atalhos de "Mais detalhes"; sem dado devolve `null` (vale a descrição genérica). */
+function buildResumoDespesas(
+  totalPago: number,
+  year: number,
+  isCurrentYear: boolean,
+): string | null {
+  if (!(totalPago > 0)) return null;
+  const valor = fmtCompact(totalPago);
+  return isCurrentYear
+    ? `${valor} pagos em ${year} até agora`
+    : `${valor} pagos em ${year}`;
+}
+
+function buildResumoContratacoes(
+  total: number,
+  year: number,
+  isCurrentYear: boolean,
+): string | null {
+  if (!(total > 0)) return null;
+  const quantidade = `${fmtNumber(total)} ${total === 1 ? "contratação" : "contratações"}`;
+  return isCurrentYear
+    ? `${quantidade} em ${year} até agora`
+    : `${quantidade} em ${year}`;
+}
+
+function buildResumoPessoal(
+  total: number,
+  mesReferencia: number,
+  year: number,
+): string | null {
+  if (!(total > 0)) return null;
+  const quantidade = `${fmtNumber(total)} ${total === 1 ? "servidor" : "servidores"}`;
+  const mes = getMesNome(mesReferencia);
+  return mes
+    ? `${quantidade} na folha de ${mes}/${year}`
+    : `${quantidade} na folha de ${year}`;
+}
+
+const RAIO_GRUPO_OBRAS_GRAUS = 0.01;
+
 function buildObrasMiniMap(obrasPreview: VisaoGeralRawData["obrasPreview"]) {
   const obrasComCoordenadas = (obrasPreview ?? []).filter(
     (obra) =>
@@ -156,14 +199,40 @@ function buildObrasMiniMap(obrasPreview: VisaoGeralRawData["obrasPreview"]) {
 
   const mediana = (valores: number[]) =>
     [...valores].sort((a, b) => a - b)[Math.floor(valores.length / 2)];
+  const media = (valores: number[]) =>
+    valores.reduce((soma, valor) => soma + valor, 0) / valores.length;
 
-  const obrasMapCenter: [number, number] | undefined =
-    obrasComCoordenadas.length === 0
-      ? undefined
-      : [
-          mediana(obrasComCoordenadas.map((obra) => obra.latitude as number)),
-          mediana(obrasComCoordenadas.map((obra) => obra.longitude as number)),
-        ];
+  const emAndamento = obrasMiniMapMarkers.filter(
+    (obra) => obra.situacao === "em_execucao",
+  );
+  // A altura do mini-mapa (zoom 13) cobre ~0,023°: um grupo de ±0,01° ao redor de
+  // uma obra em andamento cabe inteiro na imagem.
+  const vizinhas = (centro: (typeof emAndamento)[number]) =>
+    emAndamento.filter(
+      (obra) =>
+        Math.abs(obra.latitude - centro.latitude) <= RAIO_GRUPO_OBRAS_GRAUS &&
+        Math.abs(obra.longitude - centro.longitude) <= RAIO_GRUPO_OBRAS_GRAUS,
+    );
+  const maiorGrupo = emAndamento
+    .map(vizinhas)
+    .reduce<typeof emAndamento>(
+      (maior, grupo) => (grupo.length > maior.length ? grupo : maior),
+      [],
+    );
+
+  const obrasMapCenter = ((): [number, number] | undefined => {
+    if (maiorGrupo.length > 0) {
+      return [
+        media(maiorGrupo.map((obra) => obra.latitude)),
+        media(maiorGrupo.map((obra) => obra.longitude)),
+      ];
+    }
+    if (obrasMiniMapMarkers.length === 0) return undefined;
+    return [
+      mediana(obrasMiniMapMarkers.map((obra) => obra.latitude)),
+      mediana(obrasMiniMapMarkers.map((obra) => obra.longitude)),
+    ];
+  })();
 
   return { obrasMiniMapMarkers, obrasMapCenter };
 }
@@ -391,6 +460,48 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const periodText = `VISÃO GERAL · EXERCÍCIO ${selectedYear}${
     isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""
   }`;
+  const dataAtualizacao = fmtDate(
+    raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
+  );
+  const periodLabel =
+    dataAtualizacao === "N/D"
+      ? `Dados de ${selectedYear}`
+      : `Dados de ${selectedYear}, atualizados em ${dataAtualizacao}`;
+  const detailShortcuts = [
+    {
+      label: "Despesas",
+      title: "Em que a Prefeitura gastou",
+      url: routeUrl("/despesas"),
+      summary: buildResumoDespesas(
+        execSummary.totalPago,
+        selectedYear,
+        isCurrentYear,
+      ),
+    },
+    {
+      label: "Licitações e Contratos",
+      title: "Compras e contratações",
+      url: routeUrl("/licitacoes"),
+      summary: buildResumoContratacoes(
+        raw.totalContratacoes,
+        selectedYear,
+        isCurrentYear,
+      ),
+    },
+    {
+      label: "Pessoal",
+      title: "Servidores e folha de pagamento",
+      url: routeUrl("/pessoal"),
+      summary: buildResumoPessoal(
+        raw.totalProfissionais,
+        raw.mesReferenciaPessoal,
+        selectedYear,
+      ),
+    },
+  ].map(({ summary, ...shortcut }) => ({
+    ...shortcut,
+    title: summary ?? shortcut.title,
+  }));
   const arrecadadoTitle = isCurrentYear
     ? "Arrecadado no ano até agora"
     : "Arrecadado no exercício";
@@ -450,6 +561,16 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
 
   return {
     portalName,
+    openingTitle: portalName || "Municípios Integrados",
+    // Ano encerrado não é "hoje": o texto acompanha o ano escolhido.
+    openingLead: isCurrentYear
+      ? "Como a cidade está hoje e para onde vai o dinheiro público."
+      : `Como a cidade ficou em ${selectedYear} e para onde foi o dinheiro público.`,
+    situacaoTitle: isCurrentYear
+      ? "Como está a cidade hoje"
+      : `Como a cidade ficou em ${selectedYear}`,
+    periodLabel,
+    detailShortcuts,
     periodText,
     arrecadadoTitle,
     heroHeadline,
@@ -475,7 +596,18 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       entidades: undefined,
     }),
     resumoObras: raw.resumoObras,
+    minimoSaude: raw.minimoSaude,
+    minimoEducacao: raw.minimoEducacao,
+    situacaoHome: raw.situacaoHome,
+    decimoTerceiroHome: raw.decimoTerceiro
+      ? {
+          pago: raw.decimoTerceiro.pago,
+          semPagamento: raw.decimoTerceiro.pago <= 0,
+        }
+      : null,
     farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",
+    farmaciaDataPosicao: raw.resumoFarmacia?.dataPosicaoMaisRecente ?? null,
+    isCurrentYear,
     farmaciaRequerimento:
       raw.resumoFarmacia?.status === "apagao" && portalName
         ? buildRequerimentoFiscalizacao({
@@ -494,6 +626,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
           })
         : undefined,
     farmaciaDetailUrl,
+    farmaciaIndiceUrl: `${farmaciaDetailUrl}#${ID_SECAO_INDICE}`,
     farmaciaExemplos:
       raw.resumoFarmacia?.status === "conforme"
         ? buildExemplosFarmacia(
@@ -502,6 +635,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
           )
         : [],
     educacaoDetailUrl: routeUrl("/educacao"),
+    saudeDetailUrl: routeUrl("/saude"),
     educacaoResumo: buildEducacaoResumoCard(raw.resumoEducacao, selectedYear),
     ...buildObrasMiniMap(raw.obrasPreview),
     hasEntityFilter: Boolean(
@@ -520,7 +654,7 @@ export interface RadarCivicoCardItem {
   badgeSeveridade?: {
     label: string;
     variant: GrauSeveridade;
-    colorClass: string;
+    badgeVariant: BadgeVariant;
   };
   metodologiaBadge: string;
   badgeMetodologia?: string;
@@ -589,7 +723,7 @@ export function getBadgeSeveridade(
 ): {
   label: string;
   variant: GrauSeveridade;
-  colorClass: string;
+  badgeVariant: BadgeVariant;
 } {
   if (
     alerta?.tipoAnomalia === "pico_despesa_homologa" &&
@@ -598,7 +732,7 @@ export function getBadgeSeveridade(
     return {
       label: "Aporte Relevante",
       variant: "alto",
-      colorClass: "bg-brand/10 text-brand border-brand/40",
+      badgeVariant: "accent",
     };
   }
 
@@ -606,20 +740,20 @@ export function getBadgeSeveridade(
     return {
       label: "Atenção Especial",
       variant: "critico",
-      colorClass: "bg-danger-fill/10 text-danger-text border-danger-text/40",
+      badgeVariant: "danger",
     };
   }
   if (grau === "alto") {
     return {
       label: "Atenção",
       variant: "alto",
-      colorClass: "bg-warn-fill/10 text-warn-text border-warn-text/40",
+      badgeVariant: "warning",
     };
   }
   return {
     label: "Acompanhamento",
     variant: "moderado",
-    colorClass: "bg-line2/40 text-mute2 border-line",
+    badgeVariant: "default",
   };
 }
 

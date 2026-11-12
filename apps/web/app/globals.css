@@ -188,6 +188,17 @@ h3,
  * Espaço é do contêiner. Utilities do Tailwind sobrescrevem estas regras.
  */
 @layer base {
+  /* Tailwind v4 tirou o cursor-pointer padrão de botões; todo controle clicável volta a ter. */
+  select:not(:disabled),
+  button:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+  select:disabled,
+  button:disabled {
+    cursor: not-allowed;
+  }
+
   h1,
   h2,
   h3,

@@ -91,10 +91,10 @@ function EmpenhoDescricaoCell({ descricao }: { descricao?: string | null }) {
   const isLong = descricao.length > 110;
 
   return (
-    <div className="space-y-1 py-0.5 text-ink text-xs">
+    <div className="text-ink space-y-1 py-0.5 text-xs">
       <p
         className={cn(
-          "break-words leading-relaxed",
+          "leading-relaxed break-words",
           !isExpanded && isLong && "line-clamp-3",
         )}
         title={descricao}
@@ -108,7 +108,7 @@ function EmpenhoDescricaoCell({ descricao }: { descricao?: string | null }) {
             ev.stopPropagation();
             setIsExpanded((prev) => !prev);
           }}
-          className="inline-flex cursor-pointer items-center gap-1 font-medium text-brand-text text-xs transition-colors hover:underline hover:underline focus:outline-none"
+          className="text-brand-text inline-flex cursor-pointer items-center gap-1 text-xs font-medium transition-colors hover:underline hover:underline focus:outline-none"
         >
           <span>
             {isExpanded ? "Recolher texto" : "Ler histórico completo"}
@@ -228,7 +228,7 @@ export function EmendasSection({
             <button
               type="button"
               onClick={() => setSelectedEmenda(row)}
-              className="cursor-pointer text-left font-bold text-ink transition-colors hover:text-brand-text hover:underline"
+              className="text-ink hover:text-brand-text cursor-pointer text-left font-bold transition-colors hover:underline"
               title="Clique para auditar notas de empenho vinculadas"
             >
               {toTitleCase(row.autor)}
@@ -385,23 +385,23 @@ export function EmendasSection({
                     <dl className="grid grid-cols-2 gap-4 sm:hidden">
                       <div className="col-span-2">
                         <dt className="eyebrow">Objeto</dt>
-                        <dd className="mt-1 text-ink">
+                        <dd className="text-ink mt-1">
                           {row.objeto || "Objeto não informado."}
                         </dd>
                       </div>
                       <div>
                         <dt className="eyebrow">Proposta</dt>
-                        <dd className="mt-1 text-ink">{row.numero || "—"}</dd>
+                        <dd className="text-ink mt-1">{row.numero || "—"}</dd>
                       </div>
                       <div>
                         <dt className="eyebrow">Destinação</dt>
-                        <dd className="mt-1 text-ink">
+                        <dd className="text-ink mt-1">
                           {row.destinacao ? toTitleCase(row.destinacao) : "—"}
                         </dd>
                       </div>
                       <div className="col-span-2">
                         <dt className="eyebrow">Empenhado no cadastro</dt>
-                        <dd className="mt-1 text-ink">
+                        <dd className="text-ink mt-1">
                           {fmtCurrency(row.empenhado ?? 0)}
                         </dd>
                       </div>
@@ -409,7 +409,7 @@ export function EmendasSection({
                     <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
                         <dt className="eyebrow">Receita correspondente</dt>
-                        <dd className="mt-1 text-ink">
+                        <dd className="text-ink mt-1">
                           {row.receitaDescricao
                             ? toTitleCase(row.receitaDescricao)
                             : "Nenhuma receita identificada para esta emenda."}
@@ -422,7 +422,7 @@ export function EmendasSection({
                       </div>
                       <div>
                         <dt className="eyebrow">Como foi identificada</dt>
-                        <dd className="mt-1 text-ink">
+                        <dd className="text-ink mt-1">
                           {row.receitaDescricao
                             ? confirmada
                               ? "Pelo valor e pelo número da proposta."
@@ -441,7 +441,7 @@ export function EmendasSection({
                       <button
                         type="button"
                         onClick={() => setSelectedEmenda(row)}
-                        className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
+                        className="text-brand-text inline-flex min-h-11 cursor-pointer items-center underline underline-offset-2"
                       >
                         Ver notas de empenho
                       </button>
@@ -466,17 +466,17 @@ export function EmendasSection({
                   resumo: (
                     <div className="space-y-1">
                       <div className="flex items-baseline justify-between gap-3">
-                        <span className="font-bold text-ink text-sm">
+                        <span className="text-ink text-sm font-bold">
                           {toTitleCase(row.autor)}
                         </span>
-                        <span className="shrink-0 font-bold text-ink text-sm tabular-nums">
+                        <span className="text-ink shrink-0 text-sm font-bold tabular-nums">
                           {fmtCurrency(row.valorAutorizado)}
                         </span>
                       </div>
-                      <p className="line-clamp-2 text-ink text-xs leading-snug">
+                      <p className="text-ink line-clamp-2 text-xs leading-snug">
                         {row.objeto || "Objeto não informado."}
                       </p>
-                      <div className="flex items-center justify-between gap-3 text-mute text-xs">
+                      <div className="text-mute flex items-center justify-between gap-3 text-xs">
                         <Badge variant="accent">
                           {row.origem || "Federal"}
                         </Badge>
@@ -484,7 +484,7 @@ export function EmendasSection({
                           <button
                             type="button"
                             onClick={() => setSelectedEmenda(row)}
-                            className="inline-flex min-h-11 cursor-pointer items-center text-brand-text underline underline-offset-2"
+                            className="text-brand-text inline-flex min-h-11 cursor-pointer items-center underline underline-offset-2"
                             title="Auditar notas de empenho e compras vinculadas"
                           >
                             {rastreio}
@@ -556,7 +556,7 @@ export function EmendasSection({
               {portalSlug && (
                 <Link
                   href={`/${portalSlug}/licitacoes?ano=${ano}#licitacoes-em-andamento`}
-                  className="inline-flex items-center gap-1 font-medium text-brand-text hover:underline hover:underline"
+                  className="text-brand-text inline-flex items-center gap-1 font-medium hover:underline hover:underline"
                 >
                   <span>Ver painel de compras e licitações</span>
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -567,24 +567,24 @@ export function EmendasSection({
         >
           <div className="space-y-6 py-2">
             {/* Bloco 1: Autor, Proposta, Esfera, Destinação e Ato Normativo */}
-            <div className="grid grid-cols-1 gap-4 border-line border-y bg-line2 p-4 sm:grid-cols-2 sm:gap-6">
+            <div className="border-line bg-line2 grid grid-cols-1 gap-4 border-y p-4 sm:grid-cols-2 sm:gap-6">
               <div>
-                <span className="font-semibold text-mute text-xs uppercase tracking-wider">
+                <span className="text-mute text-xs font-semibold tracking-wider uppercase">
                   Autor da Emenda
                 </span>
-                <p className="mt-0.5 font-semibold text-ink text-sm">
+                <p className="text-ink mt-0.5 text-sm font-semibold">
                   {toTitleCase(selectedEmenda.autor)}
                 </p>
                 {selectedEmenda.numero && (
-                  <p className="mt-0.5 text-mute text-xs">
+                  <p className="text-mute mt-0.5 text-xs">
                     Proposta / Registro:{" "}
                     <span className="text-ink">{selectedEmenda.numero}</span>
                   </p>
                 )}
                 {selectedEmenda.tipoEmenda && (
-                  <p className="mt-1 text-mute text-xs">
+                  <p className="text-mute mt-1 text-xs">
                     Tipo de Emenda:{" "}
-                    <span className="font-semibold text-ink">
+                    <span className="text-ink font-semibold">
                       {toTitleCase(selectedEmenda.tipoEmenda)}
                     </span>
                   </p>
@@ -592,24 +592,24 @@ export function EmendasSection({
               </div>
 
               <div>
-                <span className="font-semibold text-mute text-xs uppercase tracking-wider">
+                <span className="text-mute text-xs font-semibold tracking-wider uppercase">
                   Esfera e Destinação
                 </span>
-                <p className="mt-0.5 font-medium text-ink text-sm">
+                <p className="text-ink mt-0.5 text-sm font-medium">
                   {selectedEmenda.esferaOrigem
                     ? toTitleCase(selectedEmenda.esferaOrigem)
                     : "Federal"}
                 </p>
                 {selectedEmenda.destinacao && (
-                  <p className="mt-0.5 text-mute text-xs">
+                  <p className="text-mute mt-0.5 text-xs">
                     Destinação:{" "}
-                    <span className="font-semibold text-ink">
+                    <span className="text-ink font-semibold">
                       {toTitleCase(selectedEmenda.destinacao)}
                     </span>
                   </p>
                 )}
                 {selectedEmenda.atoNormativo && (
-                  <p className="mt-1 text-mute text-xs">
+                  <p className="text-mute mt-1 text-xs">
                     Ato Normativo:{" "}
                     <span className="text-ink">
                       {selectedEmenda.atoNormativo}
@@ -621,10 +621,10 @@ export function EmendasSection({
 
             {/* Bloco 2: Objeto Integral da Emenda */}
             <div className="min-w-0">
-              <span className="font-semibold text-mute text-xs uppercase tracking-wider">
+              <span className="text-mute text-xs font-semibold tracking-wider uppercase">
                 Objeto Integral da Emenda
               </span>
-              <div className="mt-1.5 whitespace-pre-wrap break-words border-line border-t pt-3.5 text-ink text-sm leading-relaxed [overflow-wrap:anywhere] [word-break:break-word] sm:pt-4">
+              <div className="border-line text-ink mt-1.5 border-t pt-3.5 text-sm leading-relaxed [overflow-wrap:anywhere] break-words [word-break:break-word] whitespace-pre-wrap sm:pt-4">
                 {selectedEmenda.objeto || "Objeto não informado."}
               </div>
             </div>
@@ -634,11 +634,11 @@ export function EmendasSection({
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3>Execução Orçamentária e Financeira</h3>
                 {selectedEmenda.valorAutorizado > 0 && (
-                  <div className="flex items-baseline gap-1.5 border border-brand-fill bg-brand-fill/15 px-3 py-1 text-right">
-                    <span className="font-semibold text-brand-text text-xs uppercase tracking-wider">
+                  <div className="border-brand-fill bg-brand-fill/15 flex items-baseline gap-1.5 border px-3 py-1 text-right">
+                    <span className="text-brand-text text-xs font-semibold tracking-wider uppercase">
                       Valor Autorizado:
                     </span>
-                    <span className="font-bold font-serif text-base text-brand-text sm:text-lg">
+                    <span className="text-brand-text font-serif text-base font-bold sm:text-lg">
                       {fmtCurrency(selectedEmenda.valorAutorizado)}
                     </span>
                   </div>
@@ -647,53 +647,53 @@ export function EmendasSection({
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                 <div className="border-line border-t pt-3.5">
-                  <span className="font-medium text-mute text-xs">
+                  <span className="text-mute text-xs font-medium">
                     Empenhado
                   </span>
-                  <p className="mt-1 font-semibold font-serif text-base text-ink sm:text-lg">
+                  <p className="text-ink mt-1 font-serif text-base font-semibold sm:text-lg">
                     {fmtCurrency(modalMetrics.totalEmpenhadoModal)}
                   </p>
                 </div>
 
                 <div className="border-line border-t pt-3.5">
-                  <span className="font-medium text-mute text-xs">
+                  <span className="text-mute text-xs font-medium">
                     Liquidado
                   </span>
-                  <p className="mt-1 font-semibold font-serif text-base text-ink sm:text-lg">
+                  <p className="text-ink mt-1 font-serif text-base font-semibold sm:text-lg">
                     {fmtCurrency(modalMetrics.totalLiquidadoModal)}
                   </p>
                 </div>
 
                 <div className="border-line border-t pt-3.5">
-                  <span className="font-medium text-mute text-xs">Pago</span>
-                  <p className="mt-1 font-semibold font-serif text-base text-ok-text sm:text-lg">
+                  <span className="text-mute text-xs font-medium">Pago</span>
+                  <p className="text-ok-text mt-1 font-serif text-base font-semibold sm:text-lg">
                     {fmtCurrency(modalMetrics.totalPagoModal)}
                   </p>
                 </div>
 
                 <div className="border-line border-t pt-3.5">
-                  <span className="font-medium text-mute text-xs">
+                  <span className="text-mute text-xs font-medium">
                     Saldo a Executar
                   </span>
-                  <p className="mt-1 font-semibold font-serif text-base text-warn-text sm:text-lg">
+                  <p className="text-warn-text mt-1 font-serif text-base font-semibold sm:text-lg">
                     {fmtCurrency(modalMetrics.saldoDisponivel)}
                   </p>
                 </div>
               </div>
 
               {/* Barra de Progresso e Percentual de Execução */}
-              <div className="mt-4 border-line border-y bg-line2 p-4">
+              <div className="border-line bg-line2 mt-4 border-y p-4">
                 <div className="mb-2 flex items-center justify-between text-xs">
-                  <span className="font-semibold text-ink">
+                  <span className="text-ink font-semibold">
                     Percentual Executado da Emenda
                   </span>
-                  <span className="font-semibold font-serif text-ink text-sm">
+                  <span className="text-ink font-serif text-sm font-semibold">
                     {fmtPercent(modalMetrics.percentualExecutado)}
                   </span>
                 </div>
-                <div className="h-3 w-full overflow-hidden bg-track">
+                <div className="bg-track h-3 w-full overflow-hidden">
                   <div
-                    className="h-full bg-ok-fill transition-all duration-300"
+                    className="bg-ok-fill h-full transition-all duration-300"
                     style={{
                       width: `${Math.min(100, Math.max(0, modalMetrics.percentualExecutado || 0))}%`,
                     }}
@@ -742,7 +742,7 @@ export function EmendasSection({
                     renderCell: (e) => (
                       <div>
                         <p
-                          className="line-clamp-1 font-semibold text-ink text-xs"
+                          className="text-ink line-clamp-1 text-xs font-semibold"
                           title={e.fornecedorNome}
                         >
                           {toTitleCase(e.fornecedorNome)}
@@ -768,14 +768,14 @@ export function EmendasSection({
                           {portalSlug ? (
                             <Link
                               href={`/${portalSlug}/licitacoes?ano=${ano}&numero=${encodeURIComponent(e.licitacaoNumero)}#licitacoes-em-andamento`}
-                              className="inline-flex items-center gap-1 font-medium text-brand-text underline decoration-brand-fill hover:underline"
+                              className="text-brand-text decoration-brand-fill inline-flex items-center gap-1 font-medium underline hover:underline"
                               title="Ver detalhes da licitação"
                             >
                               <span>{e.licitacaoNumero}</span>
                               <ExternalLink className="h-3 w-3 shrink-0" />
                             </Link>
                           ) : (
-                            <span className="font-medium text-ink">
+                            <span className="text-ink font-medium">
                               {e.licitacaoNumero}
                             </span>
                           )}
@@ -827,10 +827,10 @@ export function EmendasSection({
                 ]}
                 rowKey="empenhoId"
                 renderMobileCard={(e) => (
-                  <div className="space-y-3 border-line border-t pt-3.5">
-                    <div className="flex items-center justify-between gap-2 border-line border-b pb-2">
+                  <div className="border-line space-y-3 border-t pt-3.5">
+                    <div className="border-line flex items-center justify-between gap-2 border-b pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-ink text-xs">
+                        <span className="text-ink text-xs font-semibold">
                           Empenho #{e.empenhoId}
                         </span>
                         {e.dataEmpenho && (
@@ -843,24 +843,24 @@ export function EmendasSection({
                         (portalSlug ? (
                           <Link
                             href={`/${portalSlug}/licitacoes?ano=${ano}&numero=${encodeURIComponent(e.licitacaoNumero)}#licitacoes-em-andamento`}
-                            className="inline-flex items-center gap-1 rounded bg-line2 px-1.5 py-0.5 font-medium text-brand-text text-xs underline decoration-brand-fill hover:underline"
+                            className="bg-line2 text-brand-text decoration-brand-fill inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium underline hover:underline"
                             title="Ver detalhes da licitação"
                           >
                             <span>{e.licitacaoNumero}</span>
                             <ExternalLink className="h-2.5 w-2.5 shrink-0" />
                           </Link>
                         ) : (
-                          <span className="rounded bg-line2 px-1.5 py-0.5 font-medium text-ink text-xs">
+                          <span className="bg-line2 text-ink rounded px-1.5 py-0.5 text-xs font-medium">
                             {e.licitacaoNumero}
                           </span>
                         ))}
                     </div>
 
                     <div>
-                      <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+                      <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
                         Credor / Fornecedor
                       </span>
-                      <p className="font-semibold text-ink text-xs">
+                      <p className="text-ink text-xs font-semibold">
                         {toTitleCase(e.fornecedorNome)}
                       </p>
                       {e.fornecedorCpfCnpj && (
@@ -870,26 +870,26 @@ export function EmendasSection({
                       )}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 bg-line2 p-2 text-center">
+                    <div className="bg-line2 grid grid-cols-3 gap-2 p-2 text-center">
                       <div>
-                        <span className="block text-mute text-xs">
+                        <span className="text-mute block text-xs">
                           Empenhado
                         </span>
-                        <span className="font-semibold font-serif text-ink text-xs">
+                        <span className="text-ink font-serif text-xs font-semibold">
                           {fmtCurrency(e.valorEmpenhado)}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-mute text-xs">
+                        <span className="text-mute block text-xs">
                           Liquidado
                         </span>
-                        <span className="font-semibold font-serif text-ink text-xs">
+                        <span className="text-ink font-serif text-xs font-semibold">
                           {fmtCurrency(e.valorLiquidado)}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-mute text-xs">Pago</span>
-                        <span className="font-semibold font-serif text-ok-text text-xs">
+                        <span className="text-mute block text-xs">Pago</span>
+                        <span className="text-ok-text font-serif text-xs font-semibold">
                           {fmtCurrency(e.valorPago)}
                         </span>
                       </div>
@@ -897,7 +897,7 @@ export function EmendasSection({
 
                     {e.descricao && (
                       <div>
-                        <span className="font-semibold text-mute2 text-xs uppercase tracking-wider">
+                        <span className="text-mute2 text-xs font-semibold tracking-wider uppercase">
                           Histórico da Despesa
                         </span>
                         <EmpenhoDescricaoCell descricao={e.descricao} />

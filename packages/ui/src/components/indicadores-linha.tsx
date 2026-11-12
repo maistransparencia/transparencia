@@ -18,7 +18,7 @@ export function IndicadoresLinha({
   if (indicadores.length === 0) return null;
 
   return (
-    <dl className="flex flex-col divide-y divide-line border-line border-y sm:flex-row sm:divide-x sm:divide-y-0">
+    <dl className="flex flex-col sm:flex-row">
       {indicadores.map((indicador) => (
         <div
           key={indicador.codigo}
@@ -26,7 +26,7 @@ export function IndicadoresLinha({
         >
           <dt className="eyebrow">{indicador.rotulo}</dt>
           <dd
-            className={`font-bold font-sans text-[32px] ${indicador.destaque ? "text-brand" : "text-ink"}`}
+            className={`stat-value ${indicador.destaque ? "text-brand" : "text-ink"}`}
           >
             {indicador.valor}
           </dd>
@@ -40,7 +40,7 @@ export function IndicadoresLinha({
           {indicador.detalhe && (
             <dd>
               <details className="text-mute2 text-xs">
-                <summary className="cursor-pointer font-medium text-warn-text underline underline-offset-4">
+                <summary className="text-warn-text cursor-pointer font-medium underline underline-offset-4">
                   {indicador.detalhe.resumo}
                 </summary>
                 {indicador.detalhe.paragrafos.map((paragrafo) => (

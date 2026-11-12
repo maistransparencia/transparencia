@@ -44,3 +44,4 @@ export * from "./queries/saude-origem-recursos";
 export * from "./queries/saude-producao-sus";
 export * from "./queries/saude-rede-por-mil-moradores";
 export * from "./queries/siconfi-caixa-metrics";
+export * from "./queries/situacao-home";

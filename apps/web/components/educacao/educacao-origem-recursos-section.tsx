@@ -133,7 +133,7 @@ export function EducacaoOrigemRecursosSection({
       />
 
       {semReceitas ? (
-        <p className="border-line border-y py-4 text-mute">
+        <p className="border-line text-mute border-y py-4">
           Nenhuma receita registrada para a Educação no exercício.
         </p>
       ) : (
@@ -143,13 +143,13 @@ export function EducacaoOrigemRecursosSection({
               role="img"
               data-testid="composicao-recursos-bar"
               aria-label={`Composição do que entrou: ${segmentos.map((segmento) => `${segmento.rotulo} ${formatPercentualInteiro(segmento.percentual)}`).join(", ")}`}
-              className="flex h-4 w-full bg-track"
+              className="bg-track flex h-4 w-full"
             >
               {segmentos.map((segmento) => (
                 <span
                   key={segmento.chave}
                   className={cn(
-                    "block h-full border-page border-r-2 last:border-r-0",
+                    "border-page block h-full border-r-2 last:border-r-0",
                     segmento.preenchimento,
                   )}
                   style={{ width: `${Math.max(0, segmento.percentual)}%` }}

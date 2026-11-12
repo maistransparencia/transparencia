@@ -347,11 +347,11 @@ export function PwaInstaller({
   return (
     <>
       {waitingWorker && (
-        <div className="fixed bottom-5 left-5 z-50 flex max-w-md items-center gap-3.5 rounded-md border border-line bg-page p-4 text-ink shadow-2xl">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-line2 font-bold text-base text-brand">
+        <div className="border-line bg-page text-ink fixed bottom-5 left-5 z-50 flex max-w-md items-center gap-3.5 rounded-md border p-4 shadow-2xl">
+          <div className="bg-line2 text-brand flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base font-bold">
             <Rocket className="h-4 w-4" aria-hidden="true" />
           </div>
-          <div className="flex-1 font-medium text-ink text-sm">
+          <div className="text-ink flex-1 text-sm font-medium">
             Nova versão da aplicação disponível!
           </div>
           <button
@@ -366,11 +366,11 @@ export function PwaInstaller({
 
       {/* Prompt flutuante clássico (ativo apenas se explicitamente requisitado via prop) */}
       {!isStandalone && !isDismissed && installPrompt && showFloatingPrompt && (
-        <div className="fixed right-5 bottom-20 z-50 flex max-w-md items-center gap-3.5 rounded-md border border-line bg-page p-4 text-ink shadow-2xl md:bottom-5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-line2 font-bold text-base text-brand">
+        <div className="border-line bg-page text-ink fixed right-5 bottom-20 z-50 flex max-w-md items-center gap-3.5 rounded-md border p-4 shadow-2xl md:bottom-5">
+          <div className="bg-line2 text-brand flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base font-bold">
             <Smartphone className="h-4 w-4" aria-hidden="true" />
           </div>
-          <div className="flex-1 font-medium text-ink text-sm">
+          <div className="text-ink flex-1 text-sm font-medium">
             Instale o App {env.NEXT_PUBLIC_PROJECT_NAME} no seu dispositivo
           </div>
           <button
@@ -383,7 +383,7 @@ export function PwaInstaller({
           <button
             type="button"
             onClick={handleDismissClick}
-            className="px-1 font-bold text-mute2 text-xs transition-colors hover:text-ink"
+            className="text-mute2 hover:text-ink px-1 text-xs font-bold transition-colors"
             title="Fechar"
             aria-label="Fechar"
           >
@@ -401,10 +401,10 @@ export function PwaInstaller({
         canShowMobilePrompt && (
           <aside
             aria-label="Instalação do aplicativo"
-            className="fixed right-3 bottom-20 left-3 z-50 flex items-center justify-between gap-3 rounded-md border border-line bg-page p-3.5 text-ink shadow-xl md:hidden"
+            className="border-line bg-page text-ink fixed right-3 bottom-20 left-3 z-50 flex items-center justify-between gap-3 rounded-md border p-3.5 shadow-xl md:hidden"
           >
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-line2 text-brand shadow-xs">
+              <div className="bg-line2 text-brand flex h-10 w-10 shrink-0 items-center justify-center rounded-md shadow-xs">
                 <Smartphone
                   className="h-4 w-4"
                   strokeWidth={1.8}
@@ -412,10 +412,10 @@ export function PwaInstaller({
                 />
               </div>
               <div className="min-w-0">
-                <p className="truncate font-semibold text-ink text-xs">
+                <p className="text-ink truncate text-xs font-semibold">
                   Instale o {env.NEXT_PUBLIC_PROJECT_NAME}
                 </p>
-                <p className="truncate text-mute2 text-xs">
+                <p className="text-mute2 truncate text-xs">
                   Acesso rápido e direto da tela de início
                 </p>
               </div>
@@ -431,7 +431,7 @@ export function PwaInstaller({
               <button
                 type="button"
                 onClick={handleDismissClick}
-                className="p-1.5 text-mute2 transition-colors hover:text-ink"
+                className="text-mute2 hover:text-ink p-1.5 transition-colors"
                 aria-label="Dispensar aviso de instalação"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -562,7 +562,7 @@ export function PwaInstallButton({
         >
           <Smartphone
             strokeWidth={1.6}
-            className="h-4 w-4 shrink-0 text-mute2"
+            className="text-mute2 h-4 w-4 shrink-0"
             aria-hidden="true"
           />
           <span>Instalar Aplicativo</span>
@@ -570,20 +570,20 @@ export function PwaInstallButton({
         {showIosInstructions && (
           <div
             role="status"
-            className="absolute right-0 bottom-full left-0 z-50 mb-2 rounded-md border border-line bg-page p-3 text-ink text-xs shadow-lg"
+            className="border-line bg-page text-ink absolute right-0 bottom-full left-0 z-50 mb-2 rounded-md border p-3 text-xs shadow-lg"
           >
             <div className="flex items-start justify-between gap-2">
-              <p className="font-semibold text-xs">Instalar no iPhone/iPad:</p>
+              <p className="text-xs font-semibold">Instalar no iPhone/iPad:</p>
               <button
                 type="button"
                 onClick={() => setShowIosInstructions(false)}
-                className="text-mute2 transition-colors hover:text-ink"
+                className="text-mute2 hover:text-ink transition-colors"
                 aria-label="Fechar instruções"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
-            <p className="mt-1 text-mute text-xs leading-relaxed">
+            <p className="text-mute mt-1 text-xs leading-relaxed">
               No Safari, toque no botão <strong>Compartilhar</strong> (ícone na
               barra inferior) e escolha{" "}
               <strong>Adicionar à Tela de Início</strong>.
@@ -601,7 +601,7 @@ export function PwaInstallButton({
         onClick={handleClick}
         className={
           className ??
-          "cursor-pointer text-mute2 text-xs hover:text-ink hover:underline"
+          "text-mute2 hover:text-ink cursor-pointer text-xs hover:underline"
         }
       >
         Instalar Aplicativo
@@ -609,20 +609,20 @@ export function PwaInstallButton({
       {showIosInstructions && (
         <div
           role="status"
-          className="fixed right-4 bottom-16 z-50 max-w-xs rounded-md border border-line bg-page p-3 text-ink text-xs shadow-lg"
+          className="border-line bg-page text-ink fixed right-4 bottom-16 z-50 max-w-xs rounded-md border p-3 text-xs shadow-lg"
         >
           <div className="flex items-start justify-between gap-2">
-            <p className="font-semibold text-xs">Instalar no iPhone/iPad:</p>
+            <p className="text-xs font-semibold">Instalar no iPhone/iPad:</p>
             <button
               type="button"
               onClick={() => setShowIosInstructions(false)}
-              className="text-mute2 transition-colors hover:text-ink"
+              className="text-mute2 hover:text-ink transition-colors"
               aria-label="Fechar instruções"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
-          <p className="mt-1 text-mute text-xs leading-relaxed">
+          <p className="text-mute mt-1 text-xs leading-relaxed">
             No Safari, toque no botão <strong>Compartilhar</strong> (ícone na
             barra inferior) e escolha{" "}
             <strong>Adicionar à Tela de Início</strong>.

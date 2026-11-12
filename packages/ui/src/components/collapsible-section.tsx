@@ -65,7 +65,7 @@ export function CollapsibleSection({
         onToggle={(event) => setOpen(event.currentTarget.open)}
         className="group border-ink border-t-2"
       >
-        <summary className="flex min-h-11 cursor-pointer list-none items-start gap-3 py-4 focus-visible:outline-2 focus-visible:outline-focus-ring [&::-webkit-details-marker]:hidden">
+        <summary className="focus-visible:outline-focus-ring flex min-h-11 cursor-pointer list-none items-start gap-3 py-4 focus-visible:outline-2 [&::-webkit-details-marker]:hidden">
           <ChevronRight
             aria-hidden="true"
             className="mt-1.5 size-4 shrink-0 transition-transform group-open:rotate-90 motion-reduce:transition-none"
@@ -76,7 +76,7 @@ export function CollapsibleSection({
             ) : null}
             <h2>{title}</h2>
             {summary ? (
-              <span className="mt-1.5 block text-mute text-sm leading-relaxed">
+              <span className="text-mute mt-1.5 block text-sm leading-relaxed">
                 {summary}
               </span>
             ) : null}

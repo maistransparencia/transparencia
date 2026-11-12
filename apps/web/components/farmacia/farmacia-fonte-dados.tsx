@@ -16,7 +16,7 @@ export function FarmaciaFonteDados({
 }: FarmaciaFonteDadosProps) {
   return (
     <section
-      className="flex flex-col gap-3 border-ink border-t-2 pt-7"
+      className="border-ink flex flex-col gap-3 border-t-2 pt-7"
       aria-labelledby="farmacia-fonte-titulo"
     >
       <h2 id="farmacia-fonte-titulo">Fonte dos dados</h2>

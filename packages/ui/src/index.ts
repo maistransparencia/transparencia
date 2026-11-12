@@ -1,5 +1,6 @@
 export * from "./components/alert-box";
 export * from "./components/badge";
+export * from "./components/brand-logo";
 export * from "./components/button";
 export * from "./components/collapsible-section";
 export * from "./components/dense-table";
@@ -9,7 +10,6 @@ export * from "./components/indicator";
 export * from "./components/kpi-card";
 export * from "./components/modal-dialog";
 export * from "./components/multi-select";
-export * from "./components/ribbon";
 export * from "./components/section-header";
 export * from "./components/segmented-button";
 export * from "./components/share-button";

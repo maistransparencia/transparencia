@@ -159,10 +159,10 @@ function DecomposicaoDivida({
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between gap-4">
-        <p className="font-semibold text-ink text-xs">
+        <p className="text-ink text-xs font-semibold">
           Decomposição da dívida real
         </p>
-        <span className="text-right font-bold text-ink text-sm tabular-nums">
+        <span className="text-ink text-right text-sm font-bold tabular-nums">
           {fmtCurrency(linha.dividaReal)}
         </span>
       </div>
@@ -172,13 +172,13 @@ function DecomposicaoDivida({
             key={entidade.empresaId}
             className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 py-3"
           >
-            <span className="font-medium text-ink text-sm">
+            <span className="text-ink text-sm font-medium">
               {entidade.entidadeNome}
-              <span className="ml-2 text-mute2 text-xs">
+              <span className="text-mute2 ml-2 text-xs">
                 {formatarPercentual(entidade.percentual)}
               </span>
             </span>
-            <span className="text-right text-ink text-sm tabular-nums">
+            <span className="text-ink text-right text-sm tabular-nums">
               {fmtCurrency(entidade.valorDivida)}
             </span>
             <span className="col-span-full">
@@ -191,7 +191,7 @@ function DecomposicaoDivida({
         ))}
       </ul>
       {baixarRegistros}
-      <p className="max-w-[70ch] text-mute2 text-xs leading-relaxed">
+      <p className="text-mute2 max-w-[70ch] text-xs leading-relaxed">
         A dívida real compreende empenhos liquidados do exercício ainda não
         pagos, somados aos Restos a Pagar de anos anteriores.
       </p>
@@ -209,14 +209,14 @@ function VariacaoBadge({
   const { variacaoPercentual, tendencia } = linha;
   if (variacaoPercentual === null) {
     return (
-      <span className="shrink-0 whitespace-nowrap rounded-sm bg-pill px-2.5 py-0.5 font-medium text-mute2 text-xs">
+      <span className="bg-pill text-mute2 shrink-0 rounded-sm px-2.5 py-0.5 text-xs font-medium whitespace-nowrap">
         Sem histórico
       </span>
     );
   }
   if (tendencia === "aumento") {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-sm border border-warn-text px-2.5 py-0.5 font-semibold text-warn-text text-xs">
+      <span className="border-warn-text text-warn-text inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap">
         <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />+
         {variacaoPercentual}% vs {anoAnterior}
       </span>
@@ -224,7 +224,7 @@ function VariacaoBadge({
   }
   if (tendencia === "economia") {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-sm border border-ok-text px-2.5 py-0.5 font-semibold text-ok-text text-xs">
+      <span className="border-ok-text text-ok-text inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap">
         <TrendingDown className="h-3.5 w-3.5" aria-hidden="true" />
         {variacaoPercentual}% vs {anoAnterior}
       </span>
@@ -232,7 +232,7 @@ function VariacaoBadge({
   }
   const sinal = variacaoPercentual > 0 ? "+" : "";
   return (
-    <span className="shrink-0 whitespace-nowrap rounded-sm bg-pill px-2.5 py-0.5 font-medium text-mute2 text-xs">
+    <span className="bg-pill text-mute2 shrink-0 rounded-sm px-2.5 py-0.5 text-xs font-medium whitespace-nowrap">
       {sinal}
       {variacaoPercentual}% vs {anoAnterior}
     </span>
@@ -244,7 +244,7 @@ function ValorDivida({ valor }: { valor: number }) {
     return <span className="text-mute2 text-xs">Nada pendente</span>;
   }
   return (
-    <span className="font-bold text-warn-text tabular-nums">
+    <span className="text-warn-text font-bold tabular-nums">
       {fmtCompact(valor)}
     </span>
   );
@@ -308,10 +308,10 @@ export function RadarGastosSensiveis({
     const Icone = ICONES[linha.icone] ?? Fuel;
     return (
       <div className="flex items-center gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-line">
-          <Icone className="h-4 w-4 text-brand" aria-hidden="true" />
+        <span className="border-line flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border">
+          <Icone className="text-brand h-4 w-4" aria-hidden="true" />
         </span>
-        <span className="min-w-0 flex-1 whitespace-normal font-bold text-ink text-sm">
+        <span className="text-ink min-w-0 flex-1 text-sm font-bold whitespace-normal">
           {linha.titulo}
         </span>
       </div>
@@ -337,7 +337,7 @@ export function RadarGastosSensiveis({
             percentual={linha.larguraBarra}
             className="bg-brand-fill"
           />
-          <span className="min-w-10 text-right text-ink tabular-nums">
+          <span className="text-ink min-w-10 text-right tabular-nums">
             {formatarPercentual(linha.percentualPago)}
           </span>
         </div>
@@ -358,7 +358,7 @@ export function RadarGastosSensiveis({
       align: "right",
       className: "whitespace-nowrap",
       renderCell: (linha) => (
-        <span className="font-medium text-ink tabular-nums">
+        <span className="text-ink font-medium tabular-nums">
           {linha.valorPago > 0 ? fmtCompact(linha.valorPago) : "R$ 0"}
         </span>
       ),
@@ -420,7 +420,7 @@ export function RadarGastosSensiveis({
               </div>
               <div className="flex items-baseline justify-between gap-3 pl-11 text-xs">
                 <span className="text-mute2">Pago no ano</span>
-                <span className="font-medium text-ink tabular-nums">
+                <span className="text-ink font-medium tabular-nums">
                   {linha.valorPago > 0 ? fmtCompact(linha.valorPago) : "R$ 0"}
                 </span>
               </div>

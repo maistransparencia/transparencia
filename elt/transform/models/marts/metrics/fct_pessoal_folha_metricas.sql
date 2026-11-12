@@ -1,6 +1,21 @@
 {{ config(materialized='table') }}
 
-with despesas_folha as (
+with despesas_marcadas as (
+    select
+        *,
+        -- 13º pago ao servidor (ativos, aposentados e pensionistas): obrigações patronais
+        -- (elemento 13), multa e juros não são 13º, e "Nº 213" não casa com "13º".
+        (
+            elemento != '13'
+            and tipo_empenho != 'AN'
+            and {{ target.schema }}.unaccent(lower(descricao)) !~ 'anula'
+            and {{ target.schema }}.unaccent(lower(descricao)) ~ '(^|[^0-9])13 *(º|°|o([^a-z]|$)|sal)|decimo terceiro'
+        ) as eh_decimo_terceiro
+    from {{ ref('fct_despesas') }}
+    where elemento in ('01', '03', '04', '11', '13', '16', '96')
+),
+
+despesas_folha as (
     select
         portal_slug,
         ano,
@@ -21,74 +36,33 @@ with despesas_folha as (
         ) as despesa_total_pessoal_lrf,
         sum(
             case
-                when (
-                    descricao ilike '%13%'
-                    or descricao ilike '%decimo terceiro%'
-                    or descricao ilike '%décimo terceiro%'
-                )
-                and descricao not ilike '%anula%'
-                and descricao not ilike '%136%'
-                and descricao not ilike '%137%'
-                and descricao not ilike '%138%'
-                and descricao not ilike '%139%'
-                and tipo_empenho != 'AN'
+                when eh_decimo_terceiro
                 then coalesce(empenhado_liquido, 0)
                 else 0
             end
         ) as empenhado_13,
         sum(
             case
-                when (
-                    descricao ilike '%13%'
-                    or descricao ilike '%decimo terceiro%'
-                    or descricao ilike '%décimo terceiro%'
-                )
-                and descricao not ilike '%anula%'
-                and descricao not ilike '%136%'
-                and descricao not ilike '%137%'
-                and descricao not ilike '%138%'
-                and descricao not ilike '%139%'
-                and tipo_empenho != 'AN'
+                when eh_decimo_terceiro
                 then coalesce(empenhado, 0)
                 else 0
             end
         ) as empenhado_bruto_13,
         sum(
             case
-                when (
-                    descricao ilike '%13%'
-                    or descricao ilike '%decimo terceiro%'
-                    or descricao ilike '%décimo terceiro%'
-                )
-                and descricao not ilike '%anula%'
-                and descricao not ilike '%136%'
-                and descricao not ilike '%137%'
-                and descricao not ilike '%138%'
-                and descricao not ilike '%139%'
-                and tipo_empenho != 'AN'
+                when eh_decimo_terceiro
                 then coalesce(liquidado, 0)
                 else 0
             end
         ) as liquidado_13,
         sum(
             case
-                when (
-                    descricao ilike '%13%'
-                    or descricao ilike '%decimo terceiro%'
-                    or descricao ilike '%décimo terceiro%'
-                )
-                and descricao not ilike '%anula%'
-                and descricao not ilike '%136%'
-                and descricao not ilike '%137%'
-                and descricao not ilike '%138%'
-                and descricao not ilike '%139%'
-                and tipo_empenho != 'AN'
+                when eh_decimo_terceiro
                 then coalesce(pago, 0)
                 else 0
             end
         ) as pago_13
-    from {{ ref('fct_despesas') }}
-    where elemento in ('01', '03', '04', '11', '13', '16', '96')
+    from despesas_marcadas
     group by portal_slug, ano, coalesce(nullif(ltrim(empresa_id, '0'), ''), '0')
 ),
 

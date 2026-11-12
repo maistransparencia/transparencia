@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ExecucaoOrgaosTable } from "@/components/execucao-orgaos-table";
 import { FunnelExecucaoHorizontal } from "@/components/funil-execucao-horizontal";
 import { GastoPorFuncaoBars } from "@/components/gasto-por-funcao-bars";
+import { PageEyebrow } from "@/components/page-eyebrow";
 import { SaldoCaixaEntidadesSection } from "@/components/saldo-caixa-entidades-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadOrcamentoData } from "./loader";
@@ -60,10 +61,10 @@ export default async function OrcamentoPage({
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <p className="eyebrow text-brand-text!">
-          ADMINISTRATIVO · EXERCÍCIO {selectedYear}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </p>
+        <PageEyebrow>
+          Administrativo · Exercício {selectedYear}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </PageEyebrow>
         <h1>Execução Orçamentária</h1>
         <p className="text-mute2 text-sm leading-relaxed">
           Todo ano a prefeitura tem um orçamento: o limite do que pode gastar.

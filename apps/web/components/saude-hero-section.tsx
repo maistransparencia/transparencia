@@ -67,7 +67,7 @@ export function SaudeHeroSection({
             role="note"
             className="caption border-brand-fill border-l-[3px] pl-3"
           >
-            <strong className="font-semibold text-ink">
+            <strong className="text-ink font-semibold">
               Ano em andamento:
             </strong>{" "}
             os números são parciais e não dá para compará-los com anos já
@@ -143,7 +143,7 @@ export function SaudeHeroSection({
       />
 
       <p className="caption" data-testid="saude-resumo-fiscalizar">
-        <strong className="font-semibold text-ink">Para fiscalizar:</strong>{" "}
+        <strong className="text-ink font-semibold">Para fiscalizar:</strong>{" "}
         {resumoFiscalizacao.join(" · ")}{" "}
         <a href="#para-fiscalizar" className="font-semibold">
           Ver seção

@@ -75,8 +75,8 @@ const ObrasMapaInterativo = nextDynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full min-h-[580px] w-full animate-pulse items-center justify-center bg-line2">
-        <span className="font-medium text-mute2 text-sm">
+      <div className="bg-line2 flex h-full min-h-[580px] w-full animate-pulse items-center justify-center">
+        <span className="text-mute2 text-sm font-medium">
           Carregando mapa interativo...
         </span>
       </div>
@@ -140,6 +140,12 @@ export function ObrasInteractiveSection({
   const [_isPending, startTransition] = useTransition();
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardListRef = useRef<HTMLDivElement | null>(null);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    };
+  }, []);
 
   const [selectedStatus, setSelectedStatus] = useState<SituacaoObraFiltro>(
     viewModel.filtros.status,
@@ -297,7 +303,8 @@ export function ObrasInteractiveSection({
       if (!nextId) return;
 
       // Scroll suave do item na lista ou carrossel se selecionado pelo mapa
-      setTimeout(() => {
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => {
         const el = document.getElementById(`obra-item-${idProjeto}`);
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -398,7 +405,10 @@ export function ObrasInteractiveSection({
   })();
 
   return (
-    <section id="secao-mapa-obras" className="space-y-4">
+    <section
+      id="secao-mapa-obras"
+      className="scroll-mt-20 space-y-4 lg:scroll-mt-4"
+    >
       <SectionHeader
         title="Onde estão as obras"
         description={subtextoTerritorio}
@@ -408,7 +418,7 @@ export function ObrasInteractiveSection({
         {/* Controles à Direita: Mobile Toggle [Mapa | Lista] ou Desktop Selector [Área urbana | Todo o território] */}
         <div>
           {/* Mobile Toggle: [Mapa | Lista] (apenas em telas < lg) */}
-          <div className="grid grid-cols-2 gap-1 rounded-md border border-line bg-line2 p-1 lg:hidden">
+          <div className="border-line bg-line2 grid grid-cols-2 gap-1 rounded-md border p-1 lg:hidden">
             <button
               type="button"
               onClick={() => {
@@ -417,9 +427,9 @@ export function ObrasInteractiveSection({
                   window.dispatchEvent(new Event("resize"));
                 }, 50);
               }}
-              className={`cursor-pointer rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                 mobileTab === "mapa"
-                  ? "border border-line bg-page text-ink"
+                  ? "border-line bg-page text-ink border"
                   : "text-mute hover:bg-track hover:text-ink"
               }`}
             >
@@ -428,9 +438,9 @@ export function ObrasInteractiveSection({
             <button
               type="button"
               onClick={() => setMobileTab("lista")}
-              className={`cursor-pointer rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                 mobileTab === "lista"
-                  ? "border border-line bg-page text-ink"
+                  ? "border-line bg-page text-ink border"
                   : "text-mute hover:bg-track hover:text-ink"
               }`}
             >
@@ -466,10 +476,10 @@ export function ObrasInteractiveSection({
                   aria-selected={isSelected}
                   type="button"
                   onClick={() => handleStatusChange(f.id)}
-                  className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-xs transition-colors sm:justify-start ${
+                  className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:justify-start ${
                     isSelected
-                      ? "border border-ink bg-ink text-onink"
-                      : "border border-line bg-page text-mute hover:bg-line2"
+                      ? "border-ink bg-ink text-onink border"
+                      : "border-line bg-page text-mute hover:bg-line2 border"
                   }`}
                 >
                   {f.dotColor && !isSelected && (
@@ -485,13 +495,13 @@ export function ObrasInteractiveSection({
           </div>
 
           {/* Desktop Selector: Área Urbana / Todo o Território (apenas em telas lg+) */}
-          <div className="hidden shrink-0 items-center space-x-1 rounded-md border border-line bg-line2 p-1 lg:flex">
+          <div className="border-line bg-line2 hidden shrink-0 items-center space-x-1 rounded-md border p-1 lg:flex">
             <button
               type="button"
               onClick={() => setViewMode("urbana")}
-              className={`cursor-pointer rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                 viewMode === "urbana"
-                  ? "border border-line bg-page text-ink"
+                  ? "border-line bg-page text-ink border"
                   : "text-mute hover:bg-track hover:text-ink"
               }`}
             >
@@ -500,9 +510,9 @@ export function ObrasInteractiveSection({
             <button
               type="button"
               onClick={() => setViewMode("territorio")}
-              className={`cursor-pointer rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                 viewMode === "territorio"
-                  ? "border border-line bg-page text-ink"
+                  ? "border-line bg-page text-ink border"
                   : "text-mute hover:bg-track hover:text-ink"
               }`}
             >
@@ -512,32 +522,32 @@ export function ObrasInteractiveSection({
         </div>
 
         {/* Área Principal Integrada: Lista na Esquerda | Mapa na Direita */}
-        <div className="grid min-h-[580px] grid-cols-1 overflow-hidden rounded-md border border-line bg-page lg:grid-cols-12">
+        <div className="border-line bg-page grid min-h-[580px] grid-cols-1 overflow-hidden rounded-md border lg:grid-cols-12">
           {/* Coluna de Lista:
               - No desktop (lg+): sempre visível ocupando 5 colunas com borda à direita
               - No mobile (< lg): visível apenas se mobileTab === "lista", ocupando largura total (100%)
           */}
           <div
-            className={`flex-col border-line lg:col-span-5 lg:flex lg:border-r ${
+            className={`border-line flex-col lg:col-span-5 lg:flex lg:border-r ${
               mobileTab === "lista" ? "flex w-full" : "hidden"
             }`}
           >
             {/* Campo de Busca */}
-            <div className="relative w-full border-line border-b">
+            <div className="border-line relative w-full border-b">
               <input
                 type="text"
                 value={buscaText}
                 onChange={handleBuscaChange}
                 placeholder="Buscar obra ou órgão"
                 aria-label="Buscar obras públicas"
-                className="w-full bg-page py-3 pr-10 pl-4 text-ink text-xs placeholder:text-mute2 focus-visible:outline-2 focus-visible:outline-brand-fill focus-visible:-outline-offset-2"
+                className="bg-page text-ink placeholder:text-mute2 focus-visible:outline-brand-fill w-full py-3 pr-10 pl-4 text-xs focus-visible:outline-2 focus-visible:-outline-offset-2"
               />
               {buscaText.length > 0 && (
                 <button
                   type="button"
                   onClick={handleClearBusca}
                   aria-label="Limpar busca"
-                  className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded p-0.5 text-mute2 hover:text-mute"
+                  className="text-mute2 hover:text-mute absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded p-0.5"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -545,7 +555,7 @@ export function ObrasInteractiveSection({
             </div>
 
             {/* Sub-cabeçalho da Lista */}
-            <div className="flex items-center justify-between border-line border-b px-4 py-2.5 text-mute2 text-xs">
+            <div className="border-line text-mute2 flex items-center justify-between border-b px-4 py-2.5 text-xs">
               <span className="font-medium tabular-nums">
                 {filteredObras.length} de {viewModel.obras.length} obras
               </span>
@@ -555,15 +565,15 @@ export function ObrasInteractiveSection({
             {/* Lista Scrollável de Obras */}
             <div
               ref={cardListRef}
-              className="max-h-[580px] flex-1 divide-y divide-line overflow-y-auto"
+              className="divide-line max-h-[580px] flex-1 divide-y overflow-y-auto"
             >
               {filteredObras.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <MapPinOff className="mb-2 h-7 w-7 text-mute2" />
-                  <p className="font-medium text-mute text-xs">
+                  <MapPinOff className="text-mute2 mb-2 h-7 w-7" />
+                  <p className="text-mute text-xs font-medium">
                     Nenhuma obra encontrada
                   </p>
-                  <p className="mt-0.5 text-mute2 text-xs">
+                  <p className="text-mute2 mt-0.5 text-xs">
                     Tente alterar os filtros de situação ou o termo de busca.
                   </p>
                 </div>
@@ -594,18 +604,18 @@ export function ObrasInteractiveSection({
                                 backgroundColor: obra.situacaoCorPreenchimento,
                               }}
                             />
-                            <div className="line-clamp-2 font-bold text-ink text-xs leading-snug sm:text-sm">
+                            <div className="text-ink line-clamp-2 text-xs leading-snug font-bold sm:text-sm">
                               {obra.nomeObra}
                             </div>
                           </div>
 
-                          <span className="shrink-0 font-bold text-ink text-xs tabular-nums sm:text-sm">
+                          <span className="text-ink shrink-0 text-xs font-bold tabular-nums sm:text-sm">
                             {fmtCompact(obra.valorInvestimentoPrevisto)}
                           </span>
                         </div>
 
                         {/* Linha 2: Situação · Órgão Executor à Esquerda | Percentual à Direita */}
-                        <div className="mt-1 flex items-center justify-between pl-4 text-mute2 text-xs">
+                        <div className="text-mute2 mt-1 flex items-center justify-between pl-4 text-xs">
                           <span className="truncate">
                             {obra.situacaoLabel} ·{" "}
                             {obra.executorNome || obra.orgaoResponsavel}
@@ -619,7 +629,7 @@ export function ObrasInteractiveSection({
 
                         {/* Linha 3: Barra de Progresso Físico */}
                         <div className="mt-2 pl-4">
-                          <div className="h-1 w-full overflow-hidden bg-line2">
+                          <div className="bg-line2 h-1 w-full overflow-hidden">
                             <div
                               style={{
                                 width: `${Math.min(100, Math.max(0, pct))}%`,
@@ -633,7 +643,7 @@ export function ObrasInteractiveSection({
 
                       {/* BOX EXPANDIDO DE DETALHES (quando selecionado) */}
                       {isSelected && (
-                        <div className="relative mt-3 ml-4 space-y-2.5 border border-line bg-page p-3.5 pr-8 text-xs">
+                        <div className="border-line bg-page relative mt-3 ml-4 space-y-2.5 border p-3.5 pr-8 text-xs">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -641,26 +651,26 @@ export function ObrasInteractiveSection({
                               handleSelectObra(obra.idProjeto);
                             }}
                             aria-label="Fechar detalhes da obra"
-                            className="absolute top-2.5 right-2.5 cursor-pointer rounded p-1 text-mute2 hover:bg-line2 hover:text-mute"
+                            className="text-mute2 hover:bg-line2 hover:text-mute absolute top-2.5 right-2.5 cursor-pointer rounded p-1"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
 
                           <div>
-                            <span className="block font-semibold text-mute2 text-xs uppercase tracking-wider">
+                            <span className="text-mute2 block text-xs font-semibold tracking-wider uppercase">
                               Órgão Executor
                             </span>
-                            <span className="font-medium text-ink text-xs">
+                            <span className="text-ink text-xs font-medium">
                               {obra.executorNome || obra.orgaoResponsavel}
                             </span>
                           </div>
 
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <span className="block font-semibold text-mute2 text-xs uppercase tracking-wider">
+                              <span className="text-mute2 block text-xs font-semibold tracking-wider uppercase">
                                 Previsão
                               </span>
-                              <span className="font-medium text-ink text-xs">
+                              <span className="text-ink text-xs font-medium">
                                 {formatarPrevisao(
                                   obra.dataInicioPrevista,
                                   obra.dataFimPrevista,
@@ -668,21 +678,21 @@ export function ObrasInteractiveSection({
                               </span>
                             </div>
                             <div>
-                              <span className="block font-semibold text-mute2 text-xs uppercase tracking-wider">
+                              <span className="text-mute2 block text-xs font-semibold tracking-wider uppercase">
                                 Última Medição
                               </span>
-                              <span className="font-medium text-ink text-xs">
+                              <span className="text-ink text-xs font-medium">
                                 {obra.dataUltimaMedicaoFormatada || "N/D"}
                               </span>
                             </div>
                           </div>
 
                           {/* Ações: Detalhes da Obra + Link Oficial ObrasGov */}
-                          <div className="flex flex-wrap items-center justify-between gap-2 border-line border-t pt-2.5">
+                          <div className="border-line flex flex-wrap items-center justify-between gap-2 border-t pt-2.5">
                             <button
                               type="button"
                               onClick={() => handleOpenDetalheModal(obra)}
-                              className="inline-flex cursor-pointer items-center gap-1 font-semibold text-brand-text text-xs hover:underline"
+                              className="text-brand-text inline-flex cursor-pointer items-center gap-1 text-xs font-semibold hover:underline"
                             >
                               <span>Ver detalhes</span>
                               <span aria-hidden="true">&rarr;</span>
@@ -692,7 +702,7 @@ export function ObrasInteractiveSection({
                               href={urlObraCipi(obra.idProjeto)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 font-medium text-mute2 text-xs hover:text-ink hover:underline"
+                              className="text-mute2 hover:text-ink inline-flex items-center gap-1 text-xs font-medium hover:underline"
                             >
                               <span>Ver no Cadastro de Obras</span>
                               <ExternalLink className="h-3 w-3" />
@@ -717,7 +727,7 @@ export function ObrasInteractiveSection({
             }`}
           >
             {/* Container do Mapa Leaflet */}
-            <div className="relative h-[380px] w-full sm:h-[450px] lg:h-full lg:min-h-[580px]">
+            <div className="relative h-[65svh] min-h-[380px] w-full sm:h-[450px] lg:h-full lg:min-h-[580px]">
               {/* Botão flutuante toggle no mapa (visível no mobile para alternar área urbana / território) */}
               <div className="absolute top-3 left-15 z-10 lg:hidden">
                 <button
@@ -727,7 +737,7 @@ export function ObrasInteractiveSection({
                       prev === "urbana" ? "territorio" : "urbana",
                     )
                   }
-                  className="cursor-pointer rounded-md border border-line bg-page/95 px-3 py-1.5 font-semibold text-ink text-xs backdrop-blur-xs"
+                  className="border-line bg-page/95 text-ink cursor-pointer rounded-md border px-3 py-1.5 text-xs font-semibold backdrop-blur-xs"
                 >
                   {viewMode === "urbana"
                     ? "Ver todo o território"
@@ -747,14 +757,14 @@ export function ObrasInteractiveSection({
             </div>
 
             {/* Carrossel Horizontal Mobile de Cards (apenas no mobile quando o mapa está ativo) */}
-            <div className="border-line border-t bg-line2 p-4 lg:hidden">
+            <div className="border-line bg-line2 border-t p-4 lg:hidden">
               <div
                 ref={mobileCarouselRef}
-                className="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2"
+                className="flex snap-x snap-mandatory scrollbar-none gap-3 overflow-x-auto pb-2"
               >
                 {filteredObras.length === 0 ? (
-                  <div className="w-full border border-line bg-page p-6 text-center">
-                    <p className="font-medium text-mute text-xs">
+                  <div className="border-line bg-page w-full border p-6 text-center">
+                    <p className="text-mute text-xs font-medium">
                       Nenhuma obra encontrada
                     </p>
                   </div>
@@ -767,9 +777,9 @@ export function ObrasInteractiveSection({
                       <div
                         key={obra.idProjeto}
                         id={`mobile-card-${obra.idProjeto}`}
-                        className={`w-[85%] max-w-[320px] shrink-0 snap-center border bg-page p-4 transition-all ${
+                        className={`bg-page w-[85%] max-w-[320px] shrink-0 snap-center border p-4 transition-all ${
                           isSelected
-                            ? "border-brand-fill ring-2 ring-brand-fill"
+                            ? "border-brand-fill ring-brand-fill ring-2"
                             : "border-line"
                         }`}
                       >
@@ -780,7 +790,7 @@ export function ObrasInteractiveSection({
                         >
                           {/* Topo do Card: Dot + Status | Contador X/Total */}
                           <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-1.5 font-medium text-mute">
+                            <div className="text-mute flex items-center gap-1.5 font-medium">
                               <span
                                 className="h-2 w-2 rounded-full"
                                 style={{
@@ -801,20 +811,20 @@ export function ObrasInteractiveSection({
                           </h3>
 
                           {/* Órgão Executor */}
-                          <p className="mt-1 truncate text-mute2 text-xs">
+                          <p className="text-mute2 mt-1 truncate text-xs">
                             {obra.executorNome || obra.orgaoResponsavel}
                           </p>
 
                           {/* Barra de Progresso Físico */}
                           <div className="mt-3">
-                            <div className="mb-1 flex items-center justify-end text-mute2 text-xs">
+                            <div className="text-mute2 mb-1 flex items-center justify-end text-xs">
                               <span>
                                 {obra.percentualExecucaoFisica !== null
                                   ? `${Math.round(pct)}% físico`
                                   : "Sem medição"}
                               </span>
                             </div>
-                            <div className="h-1.5 w-full overflow-hidden bg-line2">
+                            <div className="bg-line2 h-1.5 w-full overflow-hidden">
                               <div
                                 style={{
                                   width: `${Math.min(100, Math.max(0, pct))}%`,
@@ -828,8 +838,8 @@ export function ObrasInteractiveSection({
                         </button>
 
                         {/* Rodapé: Valor à esquerda + Link Detalhes à direita */}
-                        <div className="mt-3.5 flex items-center justify-between border-line border-t pt-3">
-                          <span className="font-bold text-ink text-sm tabular-nums">
+                        <div className="border-line mt-3.5 flex items-center justify-between border-t pt-3">
+                          <span className="text-ink text-sm font-bold tabular-nums">
                             {fmtCompact(obra.valorInvestimentoPrevisto)}
                           </span>
                           <button
@@ -838,7 +848,7 @@ export function ObrasInteractiveSection({
                               e.stopPropagation();
                               handleOpenDetalheModal(obra);
                             }}
-                            className="inline-flex cursor-pointer items-center gap-1 font-semibold text-brand-text text-xs"
+                            className="text-brand-text inline-flex cursor-pointer items-center gap-1 text-xs font-semibold"
                           >
                             <span>Ver detalhes</span>
                             <span aria-hidden="true">&rarr;</span>
@@ -851,7 +861,7 @@ export function ObrasInteractiveSection({
               </div>
 
               {/* Legenda de apoio */}
-              <p className="mt-2 text-center text-mute2 text-xs">
+              <p className="text-mute2 mt-2 text-center text-xs">
                 Deslize os cards ou toque num ponto do mapa
               </p>
             </div>

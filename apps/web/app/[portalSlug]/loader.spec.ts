@@ -9,6 +9,10 @@ const {
   getFarmaciaSentinelasMock,
   getResumoFarmaciaSusMock,
   getResumoObrasPorPortalMock,
+  getSaudeMinimoConstitucionalMock,
+  getEducacaoSiopeMock,
+  getDecimoTerceiroHomeMock,
+  calcularSituacaoHomeMock,
   notFoundMock,
 } = vi.hoisted(() => ({
   getEntidadesMock: vi.fn(),
@@ -19,6 +23,10 @@ const {
   getFarmaciaSentinelasMock: vi.fn(),
   getResumoFarmaciaSusMock: vi.fn().mockResolvedValue(null),
   getResumoObrasPorPortalMock: vi.fn(),
+  getSaudeMinimoConstitucionalMock: vi.fn().mockResolvedValue(null),
+  getEducacaoSiopeMock: vi.fn().mockResolvedValue(null),
+  getDecimoTerceiroHomeMock: vi.fn().mockResolvedValue(null),
+  calcularSituacaoHomeMock: vi.fn().mockReturnValue({ sentinela: true }),
   notFoundMock: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
@@ -49,6 +57,17 @@ vi.mock("@transparencia/db", () => ({
   getFarmaciaSentinelas: getFarmaciaSentinelasMock,
   getResumoFarmaciaSus: getResumoFarmaciaSusMock,
   getLicitacoesEmAndamentoMetrics: vi.fn().mockResolvedValue([]),
+  getDistribucaoModalidadesMetrics: vi
+    .fn()
+    .mockResolvedValue([{ quantidade: 4 }, { quantidade: 3 }]),
+  getPessoalRegimeMetrics: vi.fn().mockResolvedValue([
+    { totalProfissionais: 100, mesReferencia: 5 },
+    { totalProfissionais: 20, mesReferencia: 6 },
+  ]),
+  getSaudeMinimoConstitucional: getSaudeMinimoConstitucionalMock,
+  getEducacaoSiope: getEducacaoSiopeMock,
+  getDecimoTerceiroHome: getDecimoTerceiroHomeMock,
+  calcularSituacaoHome: calcularSituacaoHomeMock,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -243,6 +262,108 @@ describe("loadVisaoGeralData", () => {
       expect(result.sentinelasFarmacia.totalUnidadesAtivas).toBe(0);
       expect(result.sentinelasFarmacia.sentinelas).toEqual([]);
       expect(result.resumoFarmacia).toEqual({ status: "conforme" });
+    });
+  });
+
+  it("soma contratações e servidores das mesmas queries das páginas de destino", async () => {
+    const result = await loadVisaoGeralData("porciuncula", { ano: "2024" });
+    expect(result.totalContratacoes).toBe(7);
+    expect(result.totalProfissionais).toBe(120);
+    expect(result.mesReferenciaPessoal).toBe(6);
+  });
+
+  describe("contrato de situação da home", () => {
+    const minimoSaude = {
+      limite: 15,
+      percentualAplicado: 18.2,
+      resultado: "cumpriu",
+      comparavel: true,
+      mesesCobertos: null,
+      baseLegal: "LC 141/2012",
+      urlBaseLegal: "https://example.test/lc141",
+    };
+    const minimoEducacao = {
+      limite: 25,
+      percentualAplicado: 27.1,
+      resultado: "cumpriu",
+      baseLegal: "CF/88 Art. 212",
+      urlBaseLegal: "https://example.test/cf212",
+    };
+
+    it("traz o 13º da camada de dados para o ano ativo", async () => {
+      const decimoTerceiro = { pago: 10, percentual_pago: 0.5 };
+      getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+      getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+      getDecimoTerceiroHomeMock.mockResolvedValue(decimoTerceiro);
+
+      const result = await loadVisaoGeralData("porciuncula", { ano: "2020" });
+
+      expect(getDecimoTerceiroHomeMock).toHaveBeenCalledWith(
+        "porciuncula",
+        2020,
+        { empresaIds: expect.anything() },
+      );
+      expect(result.decimoTerceiro).toBe(decimoTerceiro);
+      getDecimoTerceiroHomeMock.mockResolvedValue(null);
+    });
+
+    it("traz os mínimos das mesmas queries das páginas internas, sem recalcular", async () => {
+      getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+      getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+      getSaudeMinimoConstitucionalMock.mockResolvedValue({
+        minimo: minimoSaude,
+      });
+      getEducacaoSiopeMock.mockResolvedValue({
+        minimos: { mde: minimoEducacao },
+      });
+
+      const result = await loadVisaoGeralData("porciuncula", { ano: "2020" });
+
+      expect(getSaudeMinimoConstitucionalMock).toHaveBeenCalledWith(
+        expect.objectContaining({ portalSlug: "porciuncula", ano: 2020 }),
+      );
+      expect(getEducacaoSiopeMock).toHaveBeenCalledWith({
+        portalSlug: "porciuncula",
+        ano: 2020,
+      });
+      expect(result.minimoSaude).toBe(minimoSaude);
+      expect(result.minimoEducacao).toBe(minimoEducacao);
+      expect(calcularSituacaoHomeMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          anoFechado: true,
+          minimoSaude,
+          minimoEducacao,
+        }),
+      );
+      expect(result.situacaoHome).toEqual({ sentinela: true });
+    });
+
+    it("não derruba a página quando uma fonte falha: área indisponível", async () => {
+      getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+      getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+      getSaudeMinimoConstitucionalMock.mockRejectedValue(new Error("falhou"));
+      getEducacaoSiopeMock.mockRejectedValue(new Error("falhou"));
+
+      const result = await loadVisaoGeralData("porciuncula", { ano: "2020" });
+
+      expect(result.minimoSaude).toBeNull();
+      expect(result.minimoEducacao).toBeNull();
+      expect(calcularSituacaoHomeMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ minimoSaude: null, minimoEducacao: null }),
+      );
+    });
+
+    it("trata o ano corrente como não fechado", async () => {
+      getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
+      getPosicaoFiscalMetricsMock.mockResolvedValue(null);
+      getSaudeMinimoConstitucionalMock.mockResolvedValue(null);
+      getEducacaoSiopeMock.mockResolvedValue(null);
+
+      await loadVisaoGeralData("porciuncula", {});
+
+      expect(calcularSituacaoHomeMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ anoFechado: false }),
+      );
     });
   });
 });

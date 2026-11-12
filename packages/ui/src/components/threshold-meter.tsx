@@ -54,7 +54,7 @@ export function ThresholdMeter({
       aria-valuetext={valueText}
       className={cn("relative block", className)}
     >
-      <span className="block h-4 w-full bg-track">
+      <span className="bg-track block h-4 w-full">
         <span
           data-testid="threshold-meter-fill"
           className={cn("block h-full", FILL_CLASS[tone])}
@@ -65,7 +65,7 @@ export function ThresholdMeter({
         <span
           data-testid="threshold-meter-secondary-marker"
           aria-hidden="true"
-          className="absolute top-[-0.25rem] bottom-[-0.25rem] block w-0.5 bg-warn-fill"
+          className="bg-warn-fill absolute top-[-0.25rem] bottom-[-0.25rem] block w-0.5"
           style={{ left: `${emPercentual(secondaryThreshold, max)}%` }}
         />
       )}
@@ -73,7 +73,7 @@ export function ThresholdMeter({
         <span
           data-testid="threshold-meter-marker"
           aria-hidden="true"
-          className="absolute top-[-0.25rem] bottom-[-0.25rem] block w-0.5 bg-ink"
+          className="bg-ink absolute top-[-0.25rem] bottom-[-0.25rem] block w-0.5"
           style={{ left: `${posicaoMarcador}%` }}
         />
       )}

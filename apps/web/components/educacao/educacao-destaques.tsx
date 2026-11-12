@@ -17,7 +17,7 @@ type MinimoKind = "mde" | "fundebProfissionais";
 
 interface MinimoTexts {
   testId: string;
-  titulo: string;
+  pergunta: (ano: number, parcial: boolean) => string;
   rotuloAplicado: string;
   rotuloLimite: string;
   nomeAcessivel: string;
@@ -27,7 +27,8 @@ interface MinimoTexts {
 const MINIMO_TEXTS: Record<MinimoKind, MinimoTexts> = {
   mde: {
     testId: "destaque-minimo",
-    titulo: "Aplicação mínima exigida em ensino",
+    pergunta: (ano, parcial) =>
+      `A Prefeitura ${parcial ? "aplica" : "aplicou"} o mínimo em educação em ${ano}?`,
     rotuloAplicado: "Aplicado",
     rotuloLimite: "Exigido por lei",
     nomeAcessivel: "Aplicado em ensino (MDE)",
@@ -38,7 +39,8 @@ const MINIMO_TEXTS: Record<MinimoKind, MinimoTexts> = {
   },
   fundebProfissionais: {
     testId: "indicador-fundeb",
-    titulo: "Fundeb para profissionais da educação",
+    pergunta: (ano, parcial) =>
+      `Quanto do Fundeb ${parcial ? "vai" : "foi"} para o salário dos profissionais da educação em ${ano}?`,
     rotuloAplicado: "Destinado",
     rotuloLimite: "Mínimo legal",
     nomeAcessivel: "Parte do Fundeb paga aos profissionais da educação",
@@ -49,6 +51,11 @@ const MINIMO_TEXTS: Record<MinimoKind, MinimoTexts> = {
   },
 };
 
+// Lado a lado (md+), os blocos dividem as linhas do grid pai: título, número,
+// barra e legenda ficam na mesma altura mesmo quando uma pergunta quebra.
+const CLASSE_LINHAS_ALINHADAS =
+  "grid content-start gap-3 md:row-span-4 md:grid-rows-subgrid";
+
 /** Rótulos acima da barra: o valor medido à esquerda e a régua à direita. */
 function BarLabels({
   esquerda,
@@ -58,7 +65,7 @@ function BarLabels({
   direita?: string;
 }) {
   return (
-    <p className="flex flex-wrap items-baseline justify-between gap-x-4 font-semibold text-sm tabular-nums">
+    <p className="flex flex-wrap items-baseline justify-between gap-x-4 text-sm font-semibold tabular-nums">
       <span>{esquerda}</span>
       {direita && <span>{direita}</span>}
     </p>
@@ -74,7 +81,7 @@ export function DestaqueMinimo({
   kind?: MinimoKind;
 }) {
   const minimo = view[kind];
-  const { ano, parcial, periodo } = view;
+  const { ano, parcial, anoEmAndamento, periodo } = view;
   const textos = MINIMO_TEXTS[kind];
   const { percentualAplicado, limite, resultado } = minimo;
   const periodoTexto =
@@ -84,8 +91,8 @@ export function DestaqueMinimo({
   const abaixo = resultado === "abaixo";
 
   return (
-    <div className="space-y-3" data-testid={textos.testId}>
-      <p className="eyebrow">{textos.titulo}</p>
+    <div className={CLASSE_LINHAS_ALINHADAS} data-testid={textos.testId}>
+      <h3>{textos.pergunta(ano, parcial || anoEmAndamento)}</h3>
       <p className="flex flex-wrap items-baseline gap-x-4">
         <span
           className={`stat-value-lg ${abaixo ? "text-warn-text" : "text-brand-text"}`}
@@ -93,7 +100,7 @@ export function DestaqueMinimo({
           {percentualAplicado === null ? "—" : fmtPercent(percentualAplicado)}
         </span>
         {resultado === "cumpriu" && (
-          <span className="inline-flex items-center gap-1 font-semibold text-ok-text">
+          <span className="text-ok-text inline-flex items-center gap-1 font-semibold">
             <CheckCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
             Cumprido
           </span>
@@ -161,12 +168,10 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
 
   return (
     <div
-      className="space-y-3"
+      className={CLASSE_LINHAS_ALINHADAS}
       data-testid={`destaque-ideb-${etapa.etapaEnsino}`}
     >
-      <p className="eyebrow">
-        IDEB{anoApuracao === null ? "" : ` ${anoApuracao}`} · {etapa.titulo}
-      </p>
+      <h3>{etapa.pergunta}</h3>
       <p className="stat-value-lg text-brand-text">
         {temNota ? (
           <>
@@ -191,11 +196,14 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
             valueText={`${formatarNota(notaIdeb)} de 10${mediaEstadual === null ? "" : `; ${etapa.mediaEstadualLabel} ${formatarNota(mediaEstadual)}`}${mediaNacional === null ? "" : `; ${etapa.mediaNacionalLabel} ${formatarNota(mediaNacional)}`}`}
           />
           <p className="caption space-y-0.5">
+            <span className="block">
+              Nota do IDEB {anoApuracao}, de 0 a 10.
+            </span>
             {mediaEstadual !== null && (
               <span className="flex items-center gap-x-2">
                 <span
                   aria-hidden="true"
-                  className="inline-block h-3 w-0.5 bg-ink"
+                  className="bg-ink inline-block h-3 w-0.5"
                 />
                 {etapa.mediaEstadualLabel}: {formatarNota(mediaEstadual)}
               </span>
@@ -204,7 +212,7 @@ export function DestaqueIdeb({ etapa }: { etapa: AprendizadoEtapa }) {
               <span className="flex items-center gap-x-2">
                 <span
                   aria-hidden="true"
-                  className="inline-block h-3 w-0.5 bg-warn-fill"
+                  className="bg-warn-fill inline-block h-3 w-0.5"
                 />
                 {etapa.mediaNacionalLabel}: {formatarNota(mediaNacional)}
               </span>

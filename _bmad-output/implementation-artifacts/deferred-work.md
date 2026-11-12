@@ -533,7 +533,24 @@ status: open
 - NÃO VERIFICADO: se o `pago` do mart inclui pagamentos de restos a pagar (empenho de anos anteriores pago no ano consultado). O título da tela diz "pagou em {ano}". Conferir em `fct_despesas` o ano usado para `pago`.
 - NÃO VERIFICADO: base legal dos parcelamentos (qual lei autoriza e em que condições), para `jurista-fiscal`. A tela não cita lei hoje.
 
-### DW-33: Teste da query de origem não exercita dados reais no banco de testes (vazio).
+## Deferred from: code review of spec-fix-farmacia-sentinela-insulina-nph-regular (2026-11-09)
+
+- NÃO VERIFICADO (medium): os prefixos do seed `seed_farmacia_medicamentos_sentinela` (`insulina humana nph`, `insulina humana regular`) podem não casar nomes reais como "INSULINA NPH 100 UI". Conferir em `raw.estoque` no banco local; se divergirem, o card `insulina` mostra estoque e NPH mostra "sem registro".
+- A lista de substâncias relacionadas (sem detemir e bifásicas) não cita fonte (RENAME/ANVISA). Validar com fonte oficial antes de ampliar.
+
+## Deferred from: code review (2026-11-09) — feature/general-refinements (e6a57a3f..HEAD)
+
+- Rodapé perdeu a atribuição de fonte "Dados extraídos do Portal da Transparência oficial da {portalName}" (antes no ribbon, em todas as páginas). Será resolvido na story 23-8 (decisão do Julio). `apps/web/components/global-footer.tsx`.
+- Topbar mobile (linha 2: seletor de município + exercício + slot do Consolidado) pode estourar em 320–360px. Severidade medium, não verificada: conferir no navegador em 320, 360 e 390px com nome longo de cidade. `packages/ui/src/components/sidebar.tsx` (~397-430).
+
+### DW-33: "N servidores na folha de mês" soma `total_profissionais` do mart de regime, que é `count(*)` de `fct_pessoal` (linhas mensais) por ano.
+origin: spec-deferred 0bacf7ce41ee
+location: apps/web/app/[portalSlug]/loader.ts:339
+source_spec: `spec-27-5-ajustes-da-home-e-do-layout-resumo-nos-atalhos-compartilhar-a-pagina-sidebar-recolhivel.md`
+reason: `fct_pessoal_regime_metricas` agrega por ano sem filtrar o mês; se a fonte tiver vários meses, o número é pessoa-mês, não servidores. A página `/pessoal` usa a mesma soma, então hoje os dois batem. Banco local não respondeu para confirmar a granularidade (`count(distinct mes)` por ano em `fct_pessoal`).
+status: open
+
+### DW-34: Teste da query de origem não exercita dados reais no banco de testes (vazio).
 origin: spec-deferred db26efc5a861
 location: packages/db/src/queries/__tests__/receitas-extra-metrics.spec.ts
 source_spec: `spec-23-7-origem-das-entradas-fora-do-orcamento-em-receitas.md`
@@ -541,7 +558,7 @@ severity: low
 reason: postgres_test é construído só com tabelas raw vazias (regra 21); a query foi validada contra o banco local 5544.
 status: open
 
-### DW-34: Não há spec de página para /receitas cobrindo o bloco.
+### DW-35: Não há spec de página para /receitas cobrindo o bloco.
 origin: spec-deferred f0a573b07673
 location: apps/web/app/[portalSlug]/receitas/page.spec.tsx
 source_spec: `spec-23-7-origem-das-entradas-fora-do-orcamento-em-receitas.md`

@@ -274,6 +274,12 @@ describe("educacao/view-model", () => {
 
     expect(vm.aprendizado.anosIniciais.notaIdeb).toBe(5.2);
     expect(vm.aprendizado.anosIniciais.anoApuracao).toBe(2021);
+    expect(vm.aprendizado.anosIniciais.pergunta).toBe(
+      "Como vai o ensino do 1º ao 5º ano?",
+    );
+    expect(vm.aprendizado.anosFinais.pergunta).toBe(
+      "Como vai o ensino do 6º ao 9º ano?",
+    );
   });
 
   it("agrega contratos por categoria", () => {
@@ -405,6 +411,11 @@ describe("buildMinimosLegais", () => {
     expect(view.semDadoSiope).toBe(true);
     expect(view.mde.resultado).toBe("sem_dado");
     expect(view.fundebProfissionais.resultado).toBe("sem_dado");
+  });
+
+  it("marca o ano em andamento mesmo sem dado do SIOPE", () => {
+    expect(buildMinimosLegais(null, 2024, true).anoEmAndamento).toBe(true);
+    expect(buildMinimosLegais(null, 2024, false).anoEmAndamento).toBe(false);
   });
 });
 

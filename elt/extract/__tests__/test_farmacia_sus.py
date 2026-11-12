@@ -13,16 +13,23 @@ def _resposta(corpo, status=200):
     return resp
 
 
+TAMANHO_PAGINA_CNES = 20
+
+
 def _sessao(estoque, cnes):
+    # Como na API real: `offset` é o número da página e o CNES ignora `limit` (20 por página).
     def get(url, params=None, **_):
-        fonte = estoque if "estoque-medicamentos" in url else cnes
+        e_estoque = "estoque-medicamentos" in url
+        fonte = estoque if e_estoque else cnes
         if isinstance(fonte, Exception):
             raise fonte
         if isinstance(fonte, int):
             return _resposta(None, fonte)
         lista = fonte.get("parametros", fonte.get("estabelecimentos", [])) if isinstance(fonte, dict) else fonte
-        chave = "parametros" if "estoque-medicamentos" in url else "estabelecimentos"
-        return _resposta({chave: lista[params["offset"] : params["offset"] + params["limit"]]})
+        chave = "parametros" if e_estoque else "estabelecimentos"
+        tamanho = params["limit"] if e_estoque else TAMANHO_PAGINA_CNES
+        inicio = params["offset"] * tamanho
+        return _resposta({chave: lista[inicio : inicio + tamanho]})
 
     sessao = MagicMock()
     sessao.get.side_effect = get
@@ -107,6 +114,19 @@ def test_extract_pagina_ate_o_fim_com_mais_de_uma_pagina():
 
     assert len(resultado["estoque_medicamentos"]) == 1484
     assert resultado["coletas"][0]["status_coleta"] == "sucesso"
+
+
+def test_cnes_pagina_ate_o_fim_mesmo_ignorando_limit():
+    extrator = FarmaciaSusExtractor(min_interval_seconds=0)
+    cnes = {
+        "estabelecimentos": [{"codigo_cnes": codigo, "nome_fantasia": f"Unidade {codigo}"} for codigo in range(1, 46)]
+    }
+    sessao = _sessao({"parametros": _linhas_estoque(1)}, cnes)
+    with patch("elt.extract.farmacia_sus.requests.Session", return_value=sessao):
+        resultado = extrator.extract("portal_x", 3304102)
+
+    nomes = {linha["codigo_cnes"]: linha["nome_estabelecimento"] for linha in resultado["estabelecimentos_cnes"]}
+    assert nomes["45"] == "Unidade 45"
 
 
 def test_lotes_distintos_nao_colapsam():

@@ -2,15 +2,20 @@
 
 Uso: uv run --project elt python elt/scripts/build_test_db.py
 
-Recria os schemas raw e analytics no banco apontado por DATABASE_URL (padrão: Postgres
+Recria os schemas raw e analytics no banco apontado por TEST_DATABASE_URL (padrão: Postgres
 efêmero local da porta 5545), cria as tabelas raw vazias a partir dos _sources.yml e
 materializa seeds + marts como tabelas. Resultado: tabelas fct_*/dim_* vazias (dados
 transacionais vêm de packages/db/tests/fixtures/seed.ts) e seeds estáticos populados.
 Local e CI executam exatamente este mesmo script.
+
+O script apaga schemas, então só roda em banco de teste comprovado: host local, porta 5545 e
+nenhuma tabela raw com dados. DATABASE_URL é ignorado de propósito, para que um .env com o banco
+de desenvolvimento (5544) ou de produção nunca chegue aqui.
 """
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -21,6 +26,34 @@ _ELT_DIR = Path(__file__).resolve().parent.parent
 _DBT_DIR = _ELT_DIR / "transform"
 _STAGING_DIR = _DBT_DIR / "models" / "staging"
 _DEFAULT_DATABASE_URL = "postgresql://postgres:postgres@localhost:5545/postgres"
+_HOSTS_LOCAIS = {"localhost", "127.0.0.1", "::1"}
+_PORTA_BANCO_TESTE = 5545
+
+
+def motivo_recusa_url(database_url: str) -> str | None:
+    """Diz por que a URL não é do banco de teste, ou None quando ela é."""
+    u = urlparse(database_url)
+    if u.hostname not in _HOSTS_LOCAIS:
+        return f"host {u.hostname!r} não é local (produção ou banco remoto)"
+    if u.port != _PORTA_BANCO_TESTE:
+        return f"porta {u.port} não é a do banco de teste ({_PORTA_BANCO_TESTE}); 5544 é o banco de desenvolvimento"
+    return None
+
+
+def tabelas_raw_com_dados(eng) -> list[str]:
+    """Lista tabelas raw com linhas. No banco de teste elas são sempre vazias."""
+    with eng.connect() as conn:
+        tabelas = conn.execute(
+            text(
+                "SELECT format('%I.%I', schemaname, tablename) FROM pg_tables "
+                "WHERE schemaname = 'raw' OR schemaname LIKE 'raw\\_%'"
+            )
+        ).scalars()
+        return [t for t in tabelas if conn.execute(text(f"SELECT EXISTS (SELECT 1 FROM {t})")).scalar()]
+
+
+def recusar(motivo: str) -> None:
+    sys.exit(f"build_test_db: recusado, {motivo}. Este script apaga schemas e só roda no banco de teste.")
 
 
 def create_raw_schema(eng) -> None:
@@ -105,8 +138,14 @@ def drop_previous_build(eng) -> None:
 
 
 def main() -> None:
-    database_url = os.environ.get("DATABASE_URL") or _DEFAULT_DATABASE_URL
+    database_url = os.environ.get("TEST_DATABASE_URL") or _DEFAULT_DATABASE_URL
+    motivo = motivo_recusa_url(database_url)
+    if motivo:
+        recusar(motivo)
     eng = create_engine(database_url.replace("postgresql://", "postgresql+psycopg2://", 1))
+    com_dados = tabelas_raw_com_dados(eng)
+    if com_dados:
+        recusar(f"há dados em {len(com_dados)} tabela(s) raw, por exemplo {com_dados[0]}")
     drop_previous_build(eng)
     create_raw_schema(eng)
     run_dbt(database_url, "deps")

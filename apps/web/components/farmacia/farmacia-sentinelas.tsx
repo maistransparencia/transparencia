@@ -6,7 +6,7 @@ import {
   ModalDialog,
   SegmentedButton,
 } from "@transparencia/ui";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ChevronDown, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
 import { useId, useRef, useState } from "react";
@@ -28,6 +28,8 @@ export interface FarmaciaSentinelaItem {
   rotuloSituacao?: string | null;
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
+  /** Aviso de substância relacionada com lote válido; só quando o essencial não está no estoque. */
+  avisoRelacionado?: string | null;
   href: string;
   /** Pedido de esclarecimento; só existe para essencial sem registro de estoque. */
   pedido?: {
@@ -74,7 +76,14 @@ function RotuloDisponibilidade({
     );
   }
   return (
-    <span className="text-[11px] text-warn-text">{rotuloDoStatus(item)}</span>
+    <>
+      <span className="text-warn-text text-[11px]">{rotuloDoStatus(item)}</span>
+      {item.avisoRelacionado && (
+        <span className="caption whitespace-nowrap">
+          {item.avisoRelacionado}
+        </span>
+      )}
+    </>
   );
 }
 
@@ -105,7 +114,7 @@ function PedidoEsclarecimentoConteudo({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2 text-mute text-sm leading-relaxed">
+      <div className="text-mute space-y-2 text-sm leading-relaxed">
         <p>
           O texto abaixo já está pronto e pode ser editado. Inclua seu nome e um
           contato: a lei pede a identificação de quem faz o pedido. Copie e
@@ -119,10 +128,10 @@ function PedidoEsclarecimentoConteudo({
       </div>
       <div className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
-          <label htmlFor={idTexto} className="font-semibold text-ink text-sm">
+          <label htmlFor={idTexto} className="text-ink text-sm font-semibold">
             Texto do pedido
           </label>
-          <span className="numeric text-left text-mute3 text-xs tabular-nums">
+          <span className="numeric text-mute3 text-left text-xs tabular-nums">
             {fmtNumber(texto.length)} caracteres
           </span>
         </div>
@@ -134,7 +143,7 @@ function PedidoEsclarecimentoConteudo({
             aoEditar();
           }}
           rows={9}
-          className="w-full resize-y rounded-md border border-line bg-line2 p-3 text-[14px] text-ink leading-[1.6]"
+          className="border-line bg-line2 text-ink w-full resize-y rounded-md border p-3 text-[14px] leading-[1.6]"
         />
         <p className="text-mute2 text-xs">
           Base legal:{" "}
@@ -151,7 +160,7 @@ function PedidoEsclarecimentoConteudo({
                     lei: lei.codigo,
                   })
                 }
-                className="inline-flex cursor-pointer items-center gap-1 text-brand underline"
+                className="text-brand inline-flex cursor-pointer items-center gap-1 underline"
               >
                 {lei.rotulo}
                 <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -176,7 +185,7 @@ function PedidoEsclarecimentoConteudo({
           })
         }
       />
-      <p className="border-line border-t pt-3 text-mute2 text-xs">
+      <p className="border-line text-mute2 border-t pt-3 text-xs">
         Pela Lei de Acesso à Informação, quando não responde na hora, o órgão
         tem até 20 dias. Pode prorrogar por mais 10 dias, com justificativa.
       </p>
@@ -226,7 +235,7 @@ export function PedidoEsclarecimento({
         type="button"
         aria-label={`Pedir esclarecimento sobre ${item.nomePrincipioAtivo}`}
         onClick={abrir}
-        className="inline-flex cursor-pointer items-center gap-1 py-1 font-semibold text-brand text-xs hover:underline"
+        className="text-brand inline-flex cursor-pointer items-center gap-1 py-1 text-xs font-semibold hover:underline"
       >
         Pedir esclarecimento
         <ArrowRight className="h-3 w-3" aria-hidden="true" />
@@ -240,7 +249,7 @@ export function PedidoEsclarecimento({
         badge={
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             {item.pedido.rotuloMunicipio && (
-              <span className="rounded-md bg-banbg px-2.5 py-1 font-semibold text-banfg">
+              <span className="bg-banbg text-banfg rounded-md px-2.5 py-1 font-semibold">
                 {item.pedido.rotuloMunicipio}
               </span>
             )}
@@ -276,22 +285,23 @@ export function FarmaciaSentinelas({
 
   return (
     <section
-      className="flex flex-col gap-5 border-ink border-t-2 pt-7"
+      className="border-ink flex flex-col gap-5 border-t-2 pt-7"
       aria-labelledby="farmacia-sentinelas-titulo"
     >
       <div className="space-y-1">
         <h2 id="farmacia-sentinelas-titulo">Remédios essenciais</h2>
-        <p className="text-[13px] text-mute2">
+        <p className="text-mute2 text-[13px]">
           Em quantas das {fmtNumber(totalUnidadesAtivas)} unidades cada remédio
           da lista nacional aparece no estoque. Clique para buscar.
         </p>
       </div>
 
-      <details className="border-line border-y px-1 py-3">
-        <summary className="cursor-pointer font-semibold text-[13px] text-ink">
-          Como ler esta lista
+      <details className="group border-line border-y px-1 py-3">
+        <summary className="text-ink flex cursor-pointer list-none items-center justify-between gap-2 text-[13px] font-semibold select-none [&::-webkit-details-marker]:hidden">
+          <span>Como ler esta lista</span>
+          <ChevronDown className="text-mute2 h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
         </summary>
-        <p className="mt-2.5 text-[13px] text-mute leading-[1.65]">
+        <p className="text-mute mt-2.5 text-[13px] leading-[1.65]">
           Remédios que o Ministério da Saúde considera essenciais, segundo a
           lista nacional (
           <a
@@ -335,19 +345,19 @@ export function FarmaciaSentinelas({
         ))}
       </fieldset>
 
-      <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-6 border-line border-t">
+      <ul className="border-line grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-6 border-t">
         {visiveis.map((item) => (
           <li key={item.codigoPrincipioAtivo} className="border-line border-b">
             {item.pedido ? (
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 py-3">
                 <Link
                   href={item.href}
-                  className="min-w-0 text-left hover:bg-line2"
+                  className="hover:bg-line2 min-w-0 text-left"
                 >
-                  <span className="block font-semibold text-ink text-sm">
+                  <span className="text-ink block text-sm font-semibold">
                     {item.nomePrincipioAtivo}
                   </span>
-                  <span className="block text-mute2 text-xs">
+                  <span className="text-mute2 block text-xs">
                     {item.rotuloCategoria}
                   </span>
                 </Link>
@@ -362,13 +372,13 @@ export function FarmaciaSentinelas({
             ) : (
               <Link
                 href={item.href}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 text-left hover:bg-line2"
+                className="hover:bg-line2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-3 text-left"
               >
                 <span className="min-w-0">
-                  <span className="block font-semibold text-ink text-sm">
+                  <span className="text-ink block text-sm font-semibold">
                     {item.nomePrincipioAtivo}
                   </span>
-                  <span className="block text-mute2 text-xs">
+                  <span className="text-mute2 block text-xs">
                     {item.rotuloCategoria}
                   </span>
                 </span>

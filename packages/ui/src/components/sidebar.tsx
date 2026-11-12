@@ -3,8 +3,9 @@
 import {
   ChevronDown,
   FileText,
-  Landmark,
   LayoutDashboard,
+  PanelLeftClose,
+  PanelLeftOpen,
   PieChart,
   Pill,
   Receipt,
@@ -15,13 +16,17 @@ import {
 } from "lucide-react";
 import {
   type ComponentType,
+  type FocusEvent,
+  type PointerEvent,
   type ReactNode,
   useEffect,
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../utils/cn";
 import { buildNavUrl, buildTemasNavItems } from "../utils/nav";
+import { BrandLogo } from "./brand-logo";
 import { MultiSelect, type MultiSelectOption } from "./multi-select";
 import { ShareButton } from "./share-button";
 import { ThemeToggle } from "./theme-toggle";
@@ -49,7 +54,6 @@ export interface PortalOption {
   displayName: string;
   uf?: string;
   portalUrl?: string;
-  brasaoAsset?: string;
   anoInicial?: number;
   dataExtracao?: string;
   previdencia?: PrevidenciaNavConfig;
@@ -60,12 +64,27 @@ export interface LinkComponentProps {
   onClick?: () => void;
   className?: string;
   children?: ReactNode;
+  title?: string;
+  "aria-label"?: string;
 }
 
 export type LinkComponent = ComponentType<LinkComponentProps>;
 
-const DefaultLink: LinkComponent = ({ href, onClick, className, children }) => (
-  <a href={href} onClick={onClick} className={className}>
+const DefaultLink: LinkComponent = ({
+  href,
+  onClick,
+  className,
+  children,
+  title,
+  "aria-label": ariaLabel,
+}) => (
+  <a
+    href={href}
+    onClick={onClick}
+    className={className}
+    title={title}
+    aria-label={ariaLabel}
+  >
     {children}
   </a>
 );
@@ -74,13 +93,11 @@ export interface SidebarProps {
   linkComponent?: LinkComponent;
   currentPathname?: string | null;
   portalName?: string;
-  stateUF?: string;
   portalTitle?: string;
   anoInicial?: number;
   entidades?: MultiSelectOption[];
   lastExtractionDate?: string;
   officialPortalUrl?: string;
-  brasaoAsset?: string;
   selectedExercice?: string;
   onExerciceChange?: (year: string) => void;
   selectedEntidades?: string[];
@@ -89,6 +106,7 @@ export interface SidebarProps {
   portais?: PortalOption[];
   onPortalChange?: (portalSlug: string) => void;
   onOpenNewsletter?: () => void;
+  brandName?: string;
   mobileHeaderRightSlot?: React.ReactNode;
   mobileHeaderActionSlot?: React.ReactNode;
   mobileShareSlot?: React.ReactNode;
@@ -98,6 +116,13 @@ export interface SidebarProps {
   onMobileOpenChange?: (open: boolean) => void;
   radarAlertCount?: number;
   previdencia?: PrevidenciaNavConfig;
+}
+
+const cityNamePrefix = /^Prefeitura( Municipal)? (de|do|da|dos|das)\s+/i;
+
+function toCityLabel({ displayName, uf }: PortalOption) {
+  const cityName = displayName.replace(cityNamePrefix, "");
+  return uf ? `${cityName} · ${uf}` : cityName;
 }
 
 function YearSelect({
@@ -113,19 +138,19 @@ function YearSelect({
 }) {
   if (variant === "compact") {
     return (
-      <div className="relative w-fit border-line border-b transition-colors focus-within:border-ink hover:border-mute3">
+      <div className="border-line focus-within:border-ink hover:border-mute3 relative w-fit border-b transition-colors">
         <select
           id="exercice-select"
           aria-label="Selecionar Exercício"
           value={selectedYear}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[24px] w-full min-w-[50px] cursor-pointer appearance-none pr-4 pl-0 font-medium text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5 sm:text-xs"
+          className="text-ink min-h-[24px] w-full min-w-[50px] cursor-pointer appearance-none pr-4 pl-0 text-xs font-medium shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5 sm:text-xs"
         >
           {years.map((yr) => (
             <option
               key={yr}
               value={yr}
-              className="bg-page py-2 font-medium text-base text-ink sm:text-sm"
+              className="bg-page text-ink py-2 text-base font-medium sm:text-sm"
             >
               {yr}
             </option>
@@ -133,7 +158,7 @@ function YearSelect({
         </select>
         <ChevronDown
           strokeWidth={1.6}
-          className="pointer-events-none absolute top-1/2 right-0.5 h-4 w-4 -translate-y-1/2 text-mute2"
+          className="text-mute2 pointer-events-none absolute top-1/2 right-0.5 h-4 w-4 -translate-y-1/2"
         />
       </div>
     );
@@ -145,13 +170,13 @@ function YearSelect({
         id="exercice-select"
         value={selectedYear}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-line bg-page px-3 py-2.5 font-medium text-ink text-sm shadow-xs transition-colors hover:border-mute3 focus:border-ink focus:outline-none sm:min-h-0 sm:py-2 sm:text-xs"
+        className="border-line bg-page text-ink hover:border-mute3 focus:border-ink min-h-[44px] w-full cursor-pointer appearance-none rounded-md border px-2.5 py-2 pr-8 text-xs font-medium transition-colors focus:outline-none sm:min-h-0"
       >
         {years.map((yr) => (
           <option
             key={yr}
             value={yr}
-            className="bg-page py-2 font-medium text-base text-ink sm:text-sm"
+            className="bg-page text-ink py-2 text-base font-medium sm:text-sm"
           >
             {yr}
           </option>
@@ -159,7 +184,7 @@ function YearSelect({
       </select>
       <ChevronDown
         strokeWidth={1.6}
-        className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-mute2"
+        className="text-mute2 pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2"
       />
     </div>
   );
@@ -178,27 +203,27 @@ export function PortalSelect({
 }) {
   if (variant === "compact") {
     return (
-      <div className="relative w-fit max-w-[200px] border-line border-b transition-colors focus-within:border-ink hover:border-mute3">
+      <div className="border-line focus-within:border-ink hover:border-mute3 relative w-fit max-w-[200px] border-b transition-colors">
         <select
           id="portal-select-mobile"
           aria-label="Selecionar Município"
           value={selectedSlug}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[24px] w-full cursor-pointer appearance-none truncate pr-5 pl-0 font-bold font-serif text-ink text-xs shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5"
+          className="text-ink min-h-[24px] w-full cursor-pointer appearance-none truncate pr-5 pl-0 font-serif text-xs font-bold shadow-xs transition-colors focus:outline-none sm:min-h-0 sm:py-0.5"
         >
           {portais.map((p) => (
             <option
               key={p.portalSlug}
               value={p.portalSlug}
-              className="bg-page py-2 font-medium font-sans text-base text-ink sm:text-sm"
+              className="bg-page text-ink py-2 font-sans text-base font-medium sm:text-sm"
             >
-              {p.displayName}
+              {toCityLabel(p)}
             </option>
           ))}
         </select>
         <ChevronDown
           strokeWidth={1.6}
-          className="pointer-events-none absolute top-1/2 right-0.5 h-4 w-4 -translate-y-1/2 text-mute2"
+          className="text-mute2 pointer-events-none absolute top-1/2 right-0.5 h-4 w-4 -translate-y-1/2"
         />
       </div>
     );
@@ -211,21 +236,21 @@ export function PortalSelect({
         aria-label="Selecionar Município"
         value={selectedSlug}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-[44px] w-full cursor-pointer appearance-none rounded-md border border-line bg-page py-1.5 pr-8 pl-2.5 font-bold font-serif text-ink text-sm shadow-xs transition-colors hover:border-mute3 focus:border-ink focus:outline-none"
+        className="border-line bg-page text-ink hover:border-mute3 focus:border-ink min-h-[44px] w-full cursor-pointer appearance-none rounded-md border py-1.5 pr-8 pl-2.5 font-serif text-sm font-bold shadow-xs transition-colors focus:outline-none"
       >
         {portais.map((p) => (
           <option
             key={p.portalSlug}
             value={p.portalSlug}
-            className="bg-page py-2 font-medium font-sans text-base text-ink sm:text-sm"
+            className="bg-page text-ink py-2 font-sans text-base font-medium sm:text-sm"
           >
-            {p.displayName}
+            {toCityLabel(p)}
           </option>
         ))}
       </select>
       <ChevronDown
         strokeWidth={1.6}
-        className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-mute2"
+        className="text-mute2 pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2"
       />
     </div>
   );
@@ -233,11 +258,9 @@ export function PortalSelect({
 
 export function Sidebar({
   portalName,
-  stateUF,
   portalTitle,
   anoInicial,
   entidades = [],
-  brasaoAsset,
   selectedExercice,
   onExerciceChange,
   selectedEntidades,
@@ -245,6 +268,7 @@ export function Sidebar({
   portalSlug,
   portais,
   onPortalChange,
+  brandName,
   mobileHeaderRightSlot,
   mobileHeaderActionSlot,
   mobileShareSlot,
@@ -260,8 +284,58 @@ export function Sidebar({
   const currentYear = new Date().getFullYear();
   const [internalExercice, setInternalExercice] = useState(String(currentYear));
   const [internalEntidades, setInternalEntidades] = useState<string[]>([]);
-  const [imgError, setImgError] = useState(false);
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  // Só no desktop e sem persistência: toda visita abre expandida.
+  // `isNarrow` anima a largura; `isCollapsed` troca o layout para só ícones. Com o layout completo,
+  // o conteúdo tem largura fixa e a sidebar o recorta: ao expandir, o layout completo entra logo e a
+  // largura o revela deslizando; ao recolher, ele vai sendo coberto e só no fim vira só ícones.
+  const [isNarrow, setIsNarrow] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [tooltip, setTooltip] = useState<{
+    text: string;
+    top: number;
+    left: number;
+  } | null>(null);
+  const hideWhenCollapsed = isCollapsed ? "md:hidden" : "";
+  const collapsedLinkClass = isCollapsed ? "md:justify-center md:px-0" : "";
+  const collapsedLinkProps = (name: string) =>
+    isCollapsed ? { "aria-label": name } : {};
+
+  const toggleCollapsed = () => {
+    setTooltip(null);
+    if (isNarrow) {
+      setIsCollapsed(false);
+      setIsNarrow(false);
+      return;
+    }
+    setIsNarrow(true);
+  };
+
+  useEffect(() => {
+    if (!isNarrow || isCollapsed) return;
+    const timer = window.setTimeout(() => setIsCollapsed(true), 200);
+    return () => window.clearTimeout(timer);
+  }, [isNarrow, isCollapsed]);
+
+  // Tooltip do design system no lugar do `title` nativo: ícones do menu recolhido e o botão de
+  // recolher. Vai para o body porque a área com rolagem cortaria o balão.
+  const showTooltip = (
+    event: PointerEvent<HTMLElement> | FocusEvent<HTMLElement>,
+  ) => {
+    if (!window.matchMedia("(min-width: 768px)").matches) return;
+    const selector = isCollapsed
+      ? "a[aria-label], [data-sidebar-tooltip]"
+      : "[data-sidebar-tooltip]";
+    const target = (event.target as HTMLElement).closest<HTMLElement>(selector);
+    const text = target?.getAttribute("aria-label");
+    if (!target || !text) {
+      setTooltip(null);
+      return;
+    }
+    const rect = target.getBoundingClientRect();
+    setTooltip({ text, top: rect.top + rect.height / 2, left: rect.right + 8 });
+  };
+  const hideTooltip = () => setTooltip(null);
 
   const isMobileOpen = controlledMobileOpen ?? internalMobileOpen;
   const backdropMountedAt = useRef(0);
@@ -317,11 +391,6 @@ export function Sidebar({
     { length: Math.max(1, maxYear - minYear + 1) },
     (_, i) => String(maxYear - i),
   );
-
-  const normalizedBrasao = (() => {
-    if (!brasaoAsset) return null;
-    return brasaoAsset.startsWith("/") ? brasaoAsset : `/${brasaoAsset}`;
-  })();
 
   const visaoGeralHref = buildNavUrl({
     path: "/",
@@ -390,22 +459,23 @@ export function Sidebar({
       {/* Top Header Móvel (< md) */}
       <div
         data-cabecalho-movel
-        className="sticky top-0 z-30 w-full border-line border-b bg-page px-4 py-2 shadow-xs md:hidden"
+        className="border-line bg-page sticky top-0 z-30 w-full border-b px-4 py-2 shadow-xs md:hidden"
       >
         <div className="flex w-full items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line p-0.5">
-              {!imgError && normalizedBrasao ? (
-                <img
-                  src={normalizedBrasao}
-                  alt={`Brasão de ${portalName}`}
-                  className="h-full w-full object-contain"
-                  onError={() => setImgError(true)}
-                />
-              ) : (
-                <Landmark strokeWidth={1.6} className="h-4 w-4 text-mute" />
-              )}
-            </div>
+          <span className="text-ink flex min-w-0 items-center gap-2 font-serif text-sm leading-snug font-bold">
+            <BrandLogo variant="header" className="h-6 w-6 shrink-0" />
+            <span className="truncate">{brandName}</span>
+          </span>
+          <div className="flex shrink-0 items-center gap-2">
+            {mobileHeaderActionSlot}
+            {mobileShareSlot ?? (
+              <ShareButton variant="compact" onShare={onShare} />
+            )}
+          </div>
+        </div>
+
+        <div className="border-line text-mute mt-2 flex items-center gap-3 border-t pt-1.5 text-xs">
+          <div className="flex min-w-0 items-center gap-2">
             {portais && portais.length > 0 && onPortalChange ? (
               <PortalSelect
                 portais={portais}
@@ -414,18 +484,12 @@ export function Sidebar({
                 variant="compact"
               />
             ) : (
-              <span className="truncate font-bold font-serif text-ink text-sm leading-none">
+              <span className="text-ink truncate font-serif text-sm leading-none font-bold">
                 {displayTitle}
               </span>
             )}
           </div>
-
-          {mobileHeaderActionSlot && (
-            <div className="shrink-0">{mobileHeaderActionSlot}</div>
-          )}
-        </div>
-
-        <div className="mt-2 flex items-center justify-between gap-2 border-line border-t pt-1.5 text-mute text-xs">
+          <span aria-hidden="true" className="bg-line h-4 w-px shrink-0" />
           <div className="flex items-center gap-3">
             <YearSelect
               years={years}
@@ -434,11 +498,6 @@ export function Sidebar({
               variant="compact"
             />
             {mobileHeaderRightSlot}
-          </div>
-          <div className="shrink-0">
-            {mobileShareSlot ?? (
-              <ShareButton variant="compact" onShare={onShare} />
-            )}
           </div>
         </div>
       </div>
@@ -459,76 +518,99 @@ export function Sidebar({
       {/* Conteúdo da Sidebar (Desktop + Drawer Móvel com Animação de Slide) */}
       <aside
         className={cn(
-          "select-none border-line border-r bg-page md:bg-transparent",
+          "border-line bg-page border-r select-none md:bg-transparent",
           "fixed inset-y-0 left-0 z-60 flex w-72 flex-col justify-between transition-[translate,visibility] duration-300 ease-in-out",
-          "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-[266px] md:shrink-0 md:translate-x-0 md:shadow-none md:transition-none",
+          "md:sticky md:top-0 md:z-auto md:flex md:h-screen md:shrink-0 md:translate-x-0 md:shadow-none md:transition-[width] md:duration-200 md:ease-out md:motion-reduce:transition-none",
+          "md:overflow-hidden",
+          isNarrow ? "md:w-14" : "md:w-[266px]",
+          !isCollapsed && "md:*:w-[265px] md:*:shrink-0",
           isMobileOpen
             ? "pointer-events-auto visible translate-x-0 shadow-2xl"
             : "pointer-events-none invisible -translate-x-full shadow-none md:pointer-events-auto md:visible",
         )}
+        onPointerOver={showTooltip}
+        onPointerLeave={hideTooltip}
+        onFocus={showTooltip}
+        onBlur={hideTooltip}
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {/* Marca Superior / Brasão Municipal */}
-          <div className="border-line border-b p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line p-1">
-                  {!imgError && normalizedBrasao ? (
-                    <img
-                      src={normalizedBrasao}
-                      alt={`Brasão de ${portalName}`}
-                      className="h-full w-full object-contain"
-                      onError={() => setImgError(true)}
-                    />
-                  ) : (
-                    <Landmark strokeWidth={1.6} className="h-5 w-5 text-mute" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  {portais && portais.length > 0 && onPortalChange ? (
-                    <div className="space-y-1 md:space-y-0.5">
-                      <h1 className="sr-only">{displayTitle}</h1>
-                      <PortalSelect
-                        portais={portais}
-                        selectedSlug={
-                          portalSlug || (portais[0]?.portalSlug ?? "")
-                        }
-                        onChange={onPortalChange}
-                        variant="compact"
-                      />
-                      <p className="text-[11px] text-mute2">
-                        Orçamento municipal · {stateUF}
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <h1>{displayTitle}</h1>
-                      <p className="text-[11px] text-mute2">
-                        Orçamento municipal · {stateUF}
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsMobileOpen(false)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-page text-mute2 transition-colors hover:text-ink md:hidden"
-                aria-label="Fechar menu"
-              >
-                <X strokeWidth={2} className="h-4 w-4" />
-              </button>
-            </div>
+        {/* Marca da plataforma: fora da área com rolagem, para a barra de rolagem não estreitar o nome */}
+        <div
+          className={cn(
+            "border-line flex shrink-0 items-center justify-between gap-2 border-b px-4 py-3",
+            isCollapsed && "md:justify-center md:px-2",
+          )}
+        >
+          <span
+            className={cn(
+              "text-ink flex min-w-0 items-center gap-2 font-serif text-base leading-snug font-bold",
+              hideWhenCollapsed,
+            )}
+          >
+            <BrandLogo variant="header" className="h-7 w-7 shrink-0" />
+            <span className="truncate">{brandName}</span>
+          </span>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            className="text-mute2 hover:bg-line2 hover:text-ink focus-visible:ring-brand -mr-1.5 hidden h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none md:flex"
+            aria-label={
+              isNarrow ? "Expandir menu lateral" : "Recolher menu lateral"
+            }
+            aria-expanded={!isNarrow}
+            data-sidebar-tooltip
+          >
+            {isNarrow ? (
+              <PanelLeftOpen strokeWidth={1.8} className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose strokeWidth={1.8} className="h-4 w-4" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen(false)}
+            className="border-line bg-page text-mute2 hover:text-ink flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition-colors md:hidden"
+            aria-label="Fechar menu"
+          >
+            <X strokeWidth={2} className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+          onScroll={hideTooltip}
+        >
+          {/* Município */}
+          {isCollapsed && (
+            <h1 className="sr-only hidden md:block">{displayTitle}</h1>
+          )}
+          <div className={cn("border-line border-b p-4", hideWhenCollapsed)}>
+            {portais && portais.length > 0 && onPortalChange ? (
+              <>
+                <h1 className="sr-only">{displayTitle}</h1>
+                <PortalSelect
+                  portais={portais}
+                  selectedSlug={portalSlug || (portais[0]?.portalSlug ?? "")}
+                  onChange={onPortalChange}
+                />
+              </>
+            ) : (
+              <h1>{displayTitle}</h1>
+            )}
           </div>
 
           {/* Seção de Filtros */}
-          <div className="space-y-2.5 border-line border-b px-4 py-3.5">
-            <p className="font-semibold text-[11px] text-mute2">Filtros</p>
+          <div
+            className={cn(
+              "border-line space-y-2.5 border-b px-4 py-3.5",
+              hideWhenCollapsed,
+            )}
+          >
+            <p className="text-mute2 text-[11px] font-semibold">Filtros</p>
             <div className="space-y-2">
               <div>
                 <label
                   htmlFor="exercice-select"
-                  className="mb-1 block font-medium text-[11px] text-mute"
+                  className="text-mute mb-1 block text-[11px] font-medium"
                 >
                   Exercício
                 </label>
@@ -539,8 +621,8 @@ export function Sidebar({
                 />
               </div>
               <div>
-                <span className="mb-1 block font-medium text-[11px] text-mute">
-                  Entidade
+                <span className="text-mute mb-1 block text-[11px] font-medium">
+                  Órgão
                 </span>
                 <MultiSelect
                   options={entidades}
@@ -552,17 +634,19 @@ export function Sidebar({
           </div>
 
           {/* Navegação Principal */}
-          <nav className="space-y-3 p-4">
+          <nav className={cn("space-y-3 p-4", isCollapsed && "md:p-2")}>
             {/* Opções principais isoladas no topo sem cabeçalho de grupo */}
             <div className="space-y-2">
               <Link
                 href={visaoGeralHref}
+                {...collapsedLinkProps("Visão geral")}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center gap-2.5 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  "flex min-h-[44px] items-center gap-2.5 border-l-2 px-3 py-2.5 text-xs font-medium transition-colors sm:min-h-0 md:py-1.5",
+                  collapsedLinkClass,
                   isVisaoGeralActive
-                    ? "border-ink font-semibold text-ink"
-                    : "border-transparent text-mute hover:text-ink",
+                    ? "border-ink text-ink font-semibold"
+                    : "text-mute hover:text-ink border-transparent",
                 )}
               >
                 <LayoutDashboard
@@ -572,17 +656,23 @@ export function Sidebar({
                     isVisaoGeralActive ? "text-ink" : "text-mute2",
                   )}
                 />
-                <span>Visão geral</span>
+                <span className={hideWhenCollapsed}>Visão geral</span>
               </Link>
 
               <Link
                 href={radarHref}
+                {...collapsedLinkProps(
+                  typeof radarAlertCount === "number" && radarAlertCount > 0
+                    ? `Radar Cívico, ${radarAlertCount} alertas críticos`
+                    : "Radar Cívico",
+                )}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center justify-between gap-2 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  "flex min-h-[44px] items-center justify-between gap-2 border-l-2 px-3 py-2.5 text-xs font-medium transition-colors sm:min-h-0 md:py-1.5",
+                  collapsedLinkClass,
                   isRadarActive
-                    ? "border-ink font-semibold text-ink"
-                    : "border-transparent text-mute hover:text-ink",
+                    ? "border-ink text-ink font-semibold"
+                    : "text-mute hover:text-ink border-transparent",
                 )}
               >
                 <div className="flex min-w-0 items-center gap-2.5">
@@ -593,17 +683,22 @@ export function Sidebar({
                       isRadarActive ? "text-ink" : "text-mute2",
                     )}
                   />
-                  <span className="truncate">Radar Cívico</span>
+                  <span className={cn("truncate", hideWhenCollapsed)}>
+                    Radar Cívico
+                  </span>
                 </div>
                 {typeof radarAlertCount === "number" && radarAlertCount > 0 && (
                   <span
                     role="status"
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-danger-text bg-page px-2 py-0.5 font-semibold text-[11px] text-danger-text"
+                    className={cn(
+                      "border-danger-text bg-page text-danger-text inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                      hideWhenCollapsed,
+                    )}
                     aria-label={`${radarAlertCount} alertas críticos apurados`}
                   >
                     <span
                       aria-hidden="true"
-                      className="h-1.5 w-1.5 rounded-full bg-danger-fill motion-safe:animate-pulse motion-reduce:animate-none"
+                      className="bg-danger-fill h-1.5 w-1.5 rounded-full motion-safe:animate-pulse motion-reduce:animate-none"
                     />
                     <span className="tabular-nums">{radarAlertCount}</span>
                   </span>
@@ -612,12 +707,14 @@ export function Sidebar({
 
               <Link
                 href={farmaciaHref}
+                {...collapsedLinkProps("Farmácia SUS")}
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
-                  "flex min-h-[44px] items-center gap-2.5 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                  "flex min-h-[44px] items-center gap-2.5 border-l-2 px-3 py-2.5 text-xs font-medium transition-colors sm:min-h-0 md:py-1.5",
+                  collapsedLinkClass,
                   isFarmaciaActive
-                    ? "border-ink font-semibold text-ink"
-                    : "border-transparent text-mute hover:text-ink",
+                    ? "border-ink text-ink font-semibold"
+                    : "text-mute hover:text-ink border-transparent",
                 )}
               >
                 <Pill
@@ -627,14 +724,19 @@ export function Sidebar({
                     isFarmaciaActive ? "text-ink" : "text-mute2",
                   )}
                 />
-                <span>Farmácia SUS</span>
+                <span className={hideWhenCollapsed}>Farmácia SUS</span>
               </Link>
             </div>
 
             {/* Demais Grupos de Navegação */}
             {navGroups.map((group) => (
               <div key={group.label} className="space-y-2">
-                <p className="mb-1.5 px-3 font-semibold text-[11px] text-mute2">
+                <p
+                  className={cn(
+                    "text-mute2 mb-1.5 px-3 text-[11px] font-semibold",
+                    hideWhenCollapsed,
+                  )}
+                >
                   {group.label}
                 </p>
                 {group.items.map((item) => {
@@ -668,12 +770,14 @@ export function Sidebar({
                     <Link
                       key={item.href}
                       href={itemHref}
+                      {...collapsedLinkProps(item.name)}
                       onClick={() => setIsMobileOpen(false)}
                       className={cn(
-                        "flex min-h-[44px] items-center justify-between gap-2 border-l-2 px-3 py-2.5 font-medium text-xs transition-colors sm:min-h-0 md:py-1.5",
+                        "flex min-h-[44px] items-center justify-between gap-2 border-l-2 px-3 py-2.5 text-xs font-medium transition-colors sm:min-h-0 md:py-1.5",
+                        collapsedLinkClass,
                         isActive
-                          ? "border-ink font-semibold text-ink"
-                          : "border-transparent text-mute hover:text-ink",
+                          ? "border-ink text-ink font-semibold"
+                          : "text-mute hover:text-ink border-transparent",
                       )}
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
@@ -684,7 +788,9 @@ export function Sidebar({
                             isActive ? "text-ink" : "text-mute2",
                           )}
                         />
-                        <span className="truncate">{item.name}</span>
+                        <span className={cn("truncate", hideWhenCollapsed)}>
+                          {item.name}
+                        </span>
                       </div>
                     </Link>
                   );
@@ -695,7 +801,12 @@ export function Sidebar({
         </div>
 
         {/* Rodapé: compartilhar e alternador de tema */}
-        <div className="space-y-2 border-line border-t p-4 md:p-3">
+        <div
+          className={cn(
+            "border-line space-y-2 border-t p-4 md:p-3",
+            hideWhenCollapsed,
+          )}
+        >
           <div className="hidden md:block">
             {desktopShareSlot ?? (
               <ShareButton variant="sidebar" onShare={onShare} />
@@ -704,6 +815,18 @@ export function Sidebar({
           <ThemeToggle />
         </div>
       </aside>
+
+      {tooltip &&
+        createPortal(
+          <div
+            role="tooltip"
+            className="bg-ink text-onink pointer-events-none fixed z-70 -translate-y-1/2 rounded-lg px-2.5 py-1.5 font-sans text-xs whitespace-nowrap shadow-xl"
+            style={{ top: tooltip.top, left: tooltip.left }}
+          >
+            {tooltip.text}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

@@ -28,7 +28,6 @@ import { env } from "@/env";
 import { formatBaseUrl } from "@/lib/metadata";
 import { scriptAntiFlashTema } from "@/lib/tema-script";
 import { ExtractionNotificationBanner } from "../components/extraction-notification-banner";
-import { RibbonWrapper } from "./components/ribbon-wrapper";
 import { SidebarWrapper } from "./components/sidebar-wrapper";
 import "./globals.css";
 
@@ -191,7 +190,6 @@ export default async function RootLayout({
     displayName: p.displayName,
     uf: p.uf,
     portalUrl: p.portalUrl,
-    brasaoAsset: p.brasaoAsset,
     anoInicial: p.anoInicial,
     dataExtracao: p.dataExtracao,
     previdencia: p.previdencia,
@@ -227,14 +225,13 @@ export default async function RootLayout({
         <JsonLd schema={governmentOrganizationSchema} />
         <JsonLd schema={dataCatalogSchema} />
       </head>
-      <body className="flex min-h-screen flex-col bg-page font-sans text-ink antialiased md:flex-row">
+      <body className="bg-page text-ink flex min-h-screen flex-col font-sans antialiased md:flex-row">
         <ProgressProvider>
           <NuqsAdapter>
             <MobileNavProvider>
               <Suspense fallback={null}>
                 <SidebarWrapper
                   portalName={portalConfig?.displayName}
-                  stateUF={portalConfig?.uf}
                   portalTitle={
                     portalConfig
                       ? `Contas da ${portalConfig.displayName}`
@@ -253,10 +250,6 @@ export default async function RootLayout({
                 />
               </Suspense>
               <div className="flex min-w-0 flex-1 flex-col">
-                <RibbonWrapper
-                  portais={portalOptions}
-                  portalName={portalConfig?.displayName}
-                />
                 <Suspense fallback={null}>
                   <NewsletterFeedbackBanner />
                 </Suspense>
@@ -266,7 +259,7 @@ export default async function RootLayout({
                   portalSlug={portalConfig?.portalSlug}
                   portais={portalOptions}
                 />
-                <main className="mx-auto w-full max-w-[1000px] flex-1 overflow-x-clip px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
+                <main className="mx-auto w-full max-w-[1120px] flex-1 overflow-x-clip px-4 pt-4 pb-24 sm:px-6 md:px-10 md:py-8">
                   {children}
                 </main>
                 <GlobalFooter

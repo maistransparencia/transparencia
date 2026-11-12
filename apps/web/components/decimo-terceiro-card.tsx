@@ -38,9 +38,9 @@ export function DecimoTerceiroCard({
         </div>
       </dl>
 
-      <div className="h-3 w-full overflow-hidden bg-track">
+      <div className="bg-track h-3 w-full overflow-hidden">
         <div
-          className="h-full bg-ok-fill transition-all duration-500"
+          className="bg-ok-fill h-full transition-all duration-500"
           style={{ width: `${pctInt}%` }}
         />
       </div>

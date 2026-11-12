@@ -378,58 +378,77 @@ describe("Sidebar Component", () => {
     ).toBeTruthy();
   });
 
-  it("renderiza ícone cívico neutro sem brasão e sem img de brasão fixo", () => {
-    const { container } = render(
-      <Sidebar portalName="Portal" portalSlug="portal_teste" />,
-    );
-    expect(
-      container.querySelector('img[src*="brasao-porciuncula"]'),
-    ).toBeNull();
-    expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector("svg.lucide-landmark")).not.toBeNull();
-  });
-
-  it("renderiza img do brasao quando brasaoAsset e informado", () => {
-    const { container } = render(
-      <Sidebar
-        currentPathname="/porciuncula_prefeitura"
-        portalName="Portal"
-        portalSlug="portal_teste"
-        brasaoAsset="brasao-teste.svg"
-      />,
-    );
-    expect(container.querySelector("img")).not.toBeNull();
-  });
-
-  it("volta ao ícone cívico quando o brasão falha ao carregar", () => {
-    const { container } = render(
-      <Sidebar
-        portalName="Portal"
-        portalSlug="portal_teste"
-        brasaoAsset="brasao-teste.svg"
-      />,
-    );
-    const imagens = Array.from(container.querySelectorAll("img"));
-    expect(imagens.length).toBeGreaterThan(0);
-    fireEvent.error(imagens[0]);
-    expect(container.querySelector("img")).toBeNull();
-  });
-
   it("não marca nenhum item como ativo sem currentPathname", () => {
     render(<Sidebar portalName="Portal" portalSlug="portal_teste" />);
     const visaoGeral = screen.getByRole("link", { name: /Visão geral/i });
     expect(visaoGeral).not.toHaveClass("border-ink");
   });
 
-  it("drawer móvel desliza (transform) sempre e não anima em md", () => {
+  it("drawer móvel desliza (transform) sempre e em md só anima a largura", () => {
     const { container } = render(
       <Sidebar portalName="Portal" portalSlug="portal_teste" />,
     );
     const aside = container.querySelector("aside");
     expect(aside).toHaveClass(
       "transition-[translate,visibility]",
-      "md:transition-none",
+      "md:transition-[width]",
     );
     expect(aside).not.toHaveClass("motion-reduce:transition-none");
+  });
+
+  it("recolhido, mostra o tooltip do design system em vez do title nativo", async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true });
+    render(<Sidebar portalName="Portal" portalSlug="portal_teste" />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Recolher menu lateral" }),
+    );
+
+    // O layout só de ícones entra no fim da animação de largura.
+    const link = screen.getByRole("link", { name: "Visão geral" });
+    await waitFor(() => expect(link).toHaveAttribute("aria-label"));
+    expect(link).not.toHaveAttribute("title");
+    fireEvent.pointerOver(link);
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Visão geral");
+  });
+
+  it("exibe o nome da marca no topo do sidebar e da topbar mobile", () => {
+    render(<Sidebar portalSlug="porciuncula_prefeitura" brandName="MarcaX" />);
+
+    expect(screen.getAllByText("MarcaX")).toHaveLength(2);
+  });
+
+  it("mostra o nome da cidade e o estado nas opções do seletor de municípios", () => {
+    render(
+      <Sidebar
+        portalSlug="porciuncula_prefeitura"
+        portalName="Porciúncula"
+        onPortalChange={vi.fn()}
+        portais={[
+          {
+            portalSlug: "porciuncula_prefeitura",
+            displayName: "Prefeitura Municipal de Porciúncula",
+            uf: "RJ",
+          },
+          {
+            portalSlug: "sao_fidelis_prefeitura",
+            displayName: "Prefeitura de São Fidélis",
+            uf: "RJ",
+          },
+          {
+            portalSlug: "natividade_prefeitura",
+            displayName: "Natividade",
+            uf: "RJ",
+          },
+        ]}
+      />,
+    );
+
+    const opcoes = screen
+      .getAllByRole("option")
+      .map((opcao) => opcao.textContent);
+    expect(opcoes).toContain("Porciúncula · RJ");
+    expect(opcoes).toContain("São Fidélis · RJ");
+    expect(opcoes).toContain("Natividade · RJ");
+    expect(opcoes.some((texto) => texto?.includes("Prefeitura"))).toBe(false);
   });
 });

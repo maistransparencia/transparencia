@@ -272,7 +272,7 @@ export function ObrasMapaInterativo({
     <div
       data-testid="obras-mapa-container"
       className={cn(
-        "mapa-tema relative z-9 h-full w-full overflow-hidden bg-line",
+        "mapa-tema bg-line relative z-9 h-full w-full overflow-hidden",
         className,
       )}
     >
@@ -285,8 +285,8 @@ export function ObrasMapaInterativo({
         />
       )}
       {markers.length === 0 && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-page/75 backdrop-blur-xs">
-          <p className="font-medium text-mute2 text-sm">
+        <div className="bg-page/75 pointer-events-none absolute inset-0 flex items-center justify-center backdrop-blur-xs">
+          <p className="text-mute2 text-sm font-medium">
             Nenhuma obra com localização cadastrada para os filtros
             selecionados.
           </p>

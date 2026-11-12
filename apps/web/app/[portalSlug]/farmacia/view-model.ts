@@ -82,6 +82,7 @@ export type StatusEssencial =
   | "sem_registro";
 
 export const ROTULO_SEM_LOTE_VALIDO = "Sem lote dentro da validade na lista";
+export const AVISO_RELACIONADO_VALIDO = "Há um parecido com lote válido";
 
 export interface FarmaciaEssencialItem {
   codigoPrincipioAtivo: string;
@@ -93,6 +94,8 @@ export interface FarmaciaEssencialItem {
   rotuloSituacao: string | null;
   unidadesComRegistro: number;
   unidadesSomenteCombinacao: number;
+  /** Aviso quando outra substância relacionada tem lote válido; nulo nos demais. */
+  avisoRelacionado: string | null;
   href: string;
   pedido: {
     texto: string;
@@ -147,6 +150,10 @@ function buildEssenciais(
         status === "somente_vencido" ? ROTULO_SEM_LOTE_VALIDO : null,
       unidadesComRegistro: item.unidadesComRegistro,
       unidadesSomenteCombinacao: item.unidadesSomenteCombinacao,
+      avisoRelacionado:
+        status !== "no_estoque" && item.unidadesComRelacionadoValido > 0
+          ? AVISO_RELACIONADO_VALIDO
+          : null,
       href: buildFarmaciaHref(portalSlug, item.nomePrincipioAtivo),
       pedido:
         status === "sem_registro" || status === "somente_vencido"
@@ -183,10 +190,7 @@ export interface FarmaciaIndicador {
   detalhe?: { resumo: string; paragrafos: string[] } | null;
 }
 
-function buildIndicadoresEstoque(
-  raw: FarmaciaRawData,
-  dataAtualizacao: string | null,
-): FarmaciaIndicador[] {
+function buildIndicadoresEstoque(raw: FarmaciaRawData): FarmaciaIndicador[] {
   const { sentinelas } = raw;
   const { indicadores, totalUnidadesAtivas } = sentinelas;
   if (totalUnidadesAtivas === 0) return [];
@@ -221,15 +225,6 @@ function buildIndicadoresEstoque(
               ? partesNotaEssenciais.join(" · ")
               : "Todos aparecem na lista de estoque",
           notaAtencao: partesNotaEssenciais.length > 0,
-        }
-      : null,
-    dataAtualizacao
-      ? {
-          codigo: "ultima_atualizacao",
-          rotulo: "Lista de estoque mais recente",
-          valor: fmtDate(dataAtualizacao),
-          nota: null,
-          notaAtencao: false,
         }
       : null,
   ];
@@ -284,12 +279,9 @@ function buildIndicadorLotesAVencer(
   ];
 }
 
-function buildIndicadores(
-  raw: FarmaciaRawData,
-  dataAtualizacao: string | null,
-): FarmaciaIndicador[] {
+function buildIndicadores(raw: FarmaciaRawData): FarmaciaIndicador[] {
   return [
-    ...buildIndicadoresEstoque(raw, dataAtualizacao),
+    ...buildIndicadoresEstoque(raw),
     ...buildIndicadorLotesAVencer(raw.lotesAVencer),
   ];
 }
@@ -697,7 +689,7 @@ export function buildFarmaciaViewModel(raw: FarmaciaRawData) {
         }),
       }),
     ),
-    indicadores: buildIndicadores(raw, dataAtualizacao),
+    indicadores: buildIndicadores(raw),
     resumoBusca: buildResumoBusca({
       totalApresentacoes: farmacia.totalApresentacoes,
       totalUnidades: farmacia.totalUnidades,
