@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: stg_coletas__registro_coletas
+    description: "Registro de coletas por fonte com coletado_em convertido para timestamptz"
+    columns:
+      - name: portal_slug
+        tests:
+          - not_null
+      - name: fonte
+        tests:
+          - not_null
+      - name: coletado_em
+        tests:
+          - not_null

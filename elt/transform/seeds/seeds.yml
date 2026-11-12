@@ -245,3 +245,26 @@ seeds:
           - accepted_values:
               arguments:
                 values: [receita, despesa]
+
+  - name: seed_fontes_coleta
+    description: "Catálogo único das fontes coletadas, com a frequência esperada de atualização. O carregador (`elt/load/coletas.py`) lê este arquivo ao gravar `raw_coletas.registro_coletas`. `monitoramento` = `monitorado` quando a carga da fonte grava registro de coleta; `nao_monitorado` quando ainda não grava (frescor nunca presumido)."
+    config:
+      column_types:
+        fonte: text
+        frequencia_esperada: text
+        monitoramento: text
+    columns:
+      - name: fonte
+        tests:
+          - not_null
+          - unique
+      - name: frequencia_esperada
+        tests:
+          - accepted_values:
+              arguments:
+                values: [diaria, semanal, mensal, anual, sob_demanda]
+      - name: monitoramento
+        tests:
+          - accepted_values:
+              arguments:
+                values: [monitorado, nao_monitorado]

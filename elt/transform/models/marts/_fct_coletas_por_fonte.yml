@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: fct_coletas_por_fonte
+    description: "Última coleta de cada fonte por portal, com a frequência esperada do catálogo seed_fontes_coleta. `situacao_monitoramento`: `monitorado` (há registro de coleta), `sem_registro` (fonte monitorada sem coleta registrada) ou `nao_monitorado` (a carga da fonte ainda não grava registro; frescor nunca presumido)."
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - portal_slug
+              - fonte
+    columns:
+      - name: id_registro
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: fonte
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: frequencia_esperada
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - accepted_values:
+              arguments:
+                values: [diaria, semanal, mensal, anual, sob_demanda]
+      - name: situacao_monitoramento
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - accepted_values:
+              arguments:
+                values: [monitorado, sem_registro, nao_monitorado]
+      - name: ultima_coleta_em
+        data_type: timestamp with time zone
+      - name: total_coletas
+        data_type: integer
+        constraints:
+          - type: not_null

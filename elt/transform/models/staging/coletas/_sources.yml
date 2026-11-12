@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: raw_coletas
+    schema: raw_coletas
+    description: "Registro de coletas por fonte, gravado pelo carregador ao fim de cada carga (elt/load/coletas.py)"
+    tables:
+      - name: registro_coletas
+        description: "Uma linha por (portal_slug, fonte, coletado_em); a frequência esperada vem de seed_fontes_coleta.csv"
+        meta:
+          primary_key: [portal_slug, fonte, coletado_em]
+        columns:
+          - name: portal_slug
+          - name: fonte
+          - name: coletado_em
+          - name: frequencia_esperada

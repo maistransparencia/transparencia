@@ -16,6 +16,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from elt.core.config import PortalConfig
 from elt.core.db import get_engine
 from elt.extract.base import EndpointConfig
+from elt.load.coletas import record_collections
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -135,6 +136,15 @@ def _upsert_raw(engine, schema: str, table: str, rows: list[dict], key_cols: lis
     return len(deduped)
 
 
+def _farmacia_collection_succeeded(directory: Path) -> bool:
+    """Coleta com falha da Farmácia SUS também gera arquivos; só a com sucesso conta como coleta da fonte."""
+    coletas_file = directory / "coletas.json"
+    if not coletas_file.exists():
+        return False
+    rows = json.loads(coletas_file.read_text(encoding="utf-8"))
+    return any(row.get("status_coleta") == "sucesso" for row in rows)
+
+
 def main() -> None:
     load_dotenv()
 
@@ -163,11 +173,13 @@ def main() -> None:
         extraction_dt = datetime.strptime(run_dir.name, "%Y%m%d_%H%M%S")
         extraction_date = extraction_dt.isoformat(sep=" ")
     except ValueError:
+        extraction_dt = None
         extraction_date = None
 
     engine = get_engine()
 
     farmacia_dirs_carregados: set[Path] = set()
+    fontes_carregadas: set[str] = set()
     for json_file in sorted(run_dir.rglob("*.json")):
         table = json_file.parent.name
         config = next((c for c in endpoint_configs if c.table == table), None)
@@ -184,6 +196,7 @@ def main() -> None:
                     count,
                     schema,
                 )
+                fontes_carregadas.add("siconfi_msc")
                 continue
             if table == "siconfi_rgf":
                 from elt.load.siconfi import ensure_siconfi_rgf_table, load_siconfi_rgf
@@ -192,6 +205,7 @@ def main() -> None:
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
                 count = load_siconfi_rgf(engine, rows, schema=schema)
                 logger.info("Loaded siconfi_rgf (%s) → %d rows into %s.siconfi_rgf", json_file.name, count, schema)
+                fontes_carregadas.add("siconfi_rgf")
                 continue
             if table == "pncp":
                 from elt.load.pncp import (
@@ -212,6 +226,7 @@ def main() -> None:
                 elif json_file.name == "itens_resultados.json":
                     count = load_pncp_itens_resultados(engine, raw_data)
                     logger.info("Loaded pncp/itens_resultados.json → %d rows into raw_pncp.itens_resultados", count)
+                fontes_carregadas.add("pncp")
                 continue
             if table == "obrasgov":
                 from elt.load.obrasgov import (
@@ -248,6 +263,7 @@ def main() -> None:
                         "Loaded obrasgov/empenhos.json → %d rows into raw_obrasgov.empenhos",
                         count,
                     )
+                fontes_carregadas.add("obrasgov")
                 continue
             if table == "farmacia_sus":
                 if json_file.parent not in farmacia_dirs_carregados:
@@ -256,6 +272,8 @@ def main() -> None:
                     farmacia_dirs_carregados.add(json_file.parent)
                     count = load_farmacia_sus_dir(engine, json_file.parent, portal.slug)
                     logger.info("Loaded farmacia_sus (%s) → %d rows into raw_farmacia_sus", json_file.parent, count)
+                    if _farmacia_collection_succeeded(json_file.parent):
+                        fontes_carregadas.add("farmacia_sus")
                 continue
             logger.warning("No endpoint config for table: %s", table)
             continue
@@ -272,6 +290,7 @@ def main() -> None:
         normalised = _normalize(rows, year, empresa_id, config.post_process)
         count = _upsert_raw(engine, schema, target_table, normalised, key_cols)
         logger.info("Loaded %s / %s / %d → %d rows into %s.%s", table, empresa_id, year, count, schema, target_table)
+        fontes_carregadas.add(portal.provider)
 
     if extraction_date:
         _upsert_raw(
@@ -282,6 +301,12 @@ def main() -> None:
             ["portal_slug", "key"],
         )
         logger.info("Set extraction date: %s", extraction_date)
+
+    if extraction_dt:
+        count = record_collections(engine, portal.slug, fontes_carregadas, extraction_dt.astimezone())
+        logger.info("Recorded %d collection(s) in raw_coletas.registro_coletas: %s", count, sorted(fontes_carregadas))
+    else:
+        logger.warning("Run directory %s has no timestamp; collections not recorded", run_dir.name)
 
     logger.info("Load complete → schema: %s", schema)
 
