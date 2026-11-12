@@ -90,3 +90,24 @@ describe("SituacaoCidadeSection compartilhar", () => {
     expect(link.className).toContain("underline");
   });
 });
+
+describe("SituacaoCidadeSection mini mapa de obras", () => {
+  it("leva direto à seção do mapa, e 'Ver detalhes' abre a página do topo", () => {
+    render(
+      <SituacaoCidadeSection
+        {...propsBase}
+        obrasCenter={[-21, -42]}
+        obrasMarkers={[]}
+      />,
+    );
+    expect(
+      screen.getByRole("link", {
+        name: "Ver no mapa interativo de obras públicas",
+      }),
+    ).toHaveAttribute("href", "/p/obras?ano=2024#secao-mapa-obras");
+    const detalhes = screen
+      .getAllByRole("link", { name: /Ver detalhes/ })
+      .map((link) => link.getAttribute("href"));
+    expect(detalhes).toContain("/p/obras?ano=2024");
+  });
+});

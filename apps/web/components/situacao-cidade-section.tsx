@@ -119,8 +119,9 @@ function MiniMapaObras({
       ),
     }));
   return (
+    // Quem toca no mini mapa espera ver o mapa, não o topo da página
     <Link
-      href={detailUrl}
+      href={`${detailUrl}#secao-mapa-obras`}
       aria-label="Ver no mapa interativo de obras públicas"
       className="group bg-track relative block h-36 w-full overflow-hidden"
     >
