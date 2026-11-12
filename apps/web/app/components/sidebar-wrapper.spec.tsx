@@ -46,9 +46,9 @@ vi.mock("posthog-js", () => ({
 vi.mock("nuqs", () => ({
   parseAsString: {
     withDefault: () => ({
-      withOptions: () => ({}),
+      withOptions: (options: object) => options,
     }),
-    withOptions: () => ({}),
+    withOptions: (options: object) => options,
   },
   useQueryState: vi.fn(),
 }));
@@ -94,6 +94,32 @@ describe("SidebarWrapper Component", () => {
     expect(radar.className).toContain("border-ink");
     const visaoGeral = screen.getByRole("link", { name: /Visão geral/ });
     expect(visaoGeral.className).toContain("border-transparent");
+  });
+
+  it("roda a troca de ano e de órgão em transição, para a barra de progresso acompanhar o recarregamento", () => {
+    mockUseQueryState.mockImplementation((() => [
+      null,
+      vi.fn(),
+    ]) as unknown as typeof useQueryState);
+
+    render(
+      <MobileNavProvider>
+        <SidebarWrapper
+          portalName="Porciúncula"
+          portalSlug="porciuncula_prefeitura"
+        />
+      </MobileNavProvider>,
+    );
+
+    for (const key of ["ano", "entidades"]) {
+      expect(mockUseQueryState).toHaveBeenCalledWith(
+        key,
+        expect.objectContaining({
+          shallow: false,
+          startTransition: expect.any(Function),
+        }),
+      );
+    }
   });
 
   it("deve repassar radarAlertCount correspondente ao ano selecionado a partir de radarAlertsCountByYear", () => {

@@ -12,6 +12,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
+import { useEffect, useTransition } from "react";
 import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
 import { useMobileNav } from "@/components/mobile-nav-context";
 import { env } from "@/env";
@@ -53,14 +54,31 @@ export function SidebarWrapper({
   const isRootPage = !pathname || pathname === "/";
   const searchParams = useSearchParams();
   const currentYear = String(new Date().getFullYear());
+  // O nuqs atualiza a URL na hora e só depois o servidor devolve a página;
+  // a transição fica pendente até o novo conteúdo chegar, e a barra acompanha.
+  const [isReloadingFilters, startFiltersTransition] = useTransition();
   const [ano, setAno] = useQueryState(
     "ano",
-    parseAsString.withDefault(currentYear).withOptions({ shallow: false }),
+    parseAsString.withDefault(currentYear).withOptions({
+      shallow: false,
+      startTransition: startFiltersTransition,
+    }),
   );
   const [entidadesParam, setEntidadesParam] = useQueryState(
     "entidades",
-    parseAsString.withOptions({ shallow: false }),
+    parseAsString.withOptions({
+      shallow: false,
+      startTransition: startFiltersTransition,
+    }),
   );
+
+  useEffect(() => {
+    if (!isReloadingFilters) return;
+    BProgress.start();
+    return () => {
+      BProgress.done();
+    };
+  }, [isReloadingFilters]);
 
   const selectedEntidades = entidadesParam
     ? entidadesParam.split(",").filter(Boolean)

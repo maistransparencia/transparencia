@@ -131,6 +131,48 @@ function RouteChangeListener() {
     };
   }, [startWithFallbackTimeout]);
 
+  // Formulários GET de navegação (ex.: busca da farmácia via next/form) não
+  // passam pelo detector de links. Escuta na captura porque o next/form cancela
+  // o envio nativo antes de o evento borbulhar; só conta form com `action`
+  // explícita, para não pegar formulários tratados em JS (newsletter, feedback).
+  useEffect(() => {
+    const handleDocumentSubmit = (e: SubmitEvent) => {
+      const form = e.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      if (!form.hasAttribute("action")) return;
+      if (form.method.toLowerCase() !== "get") return;
+
+      const formTarget = form.getAttribute("target");
+      if (formTarget && formTarget !== "_self") return;
+
+      try {
+        const targetUrl = new URL(form.action, window.location.href);
+        const currentUrl = new URL(window.location.href);
+        if (targetUrl.origin !== currentUrl.origin) return;
+
+        const formData = new FormData(form, e.submitter);
+        targetUrl.search = new URLSearchParams(
+          [...formData.entries()].map(([key, value]) => [key, String(value)]),
+        ).toString();
+        if (
+          targetUrl.pathname === currentUrl.pathname &&
+          targetUrl.search === currentUrl.search
+        ) {
+          return;
+        }
+
+        startWithFallbackTimeout();
+      } catch {
+        // Fallback para actions que não puderem ser parseadas
+      }
+    };
+
+    document.addEventListener("submit", handleDocumentSubmit, true);
+    return () => {
+      document.removeEventListener("submit", handleDocumentSubmit, true);
+    };
+  }, [startWithFallbackTimeout]);
+
   return null;
 }
 
@@ -144,7 +186,6 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
       height="3px"
       color="var(--brand-fill)"
       options={{ showSpinner: false }}
-      shallowRouting
     >
       <Suspense fallback={null}>
         <RouteChangeListener />

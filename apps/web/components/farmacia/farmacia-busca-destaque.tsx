@@ -1,6 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
+import Form from "next/form";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -20,8 +21,7 @@ export function FarmaciaBuscaDestaque({
 
   return (
     <div className="space-y-3">
-      <form
-        method="get"
+      <Form
         action={`${action}#resultados`}
         aria-label="Busca de remédios"
         className="border-ink bg-page flex items-center gap-2.5 rounded-md border-2 p-2 pl-3 sm:pl-[18px]"
@@ -62,7 +62,7 @@ export function FarmaciaBuscaDestaque({
           <Search className="h-5 w-5 sm:hidden" aria-hidden="true" />
           <span className="sr-only sm:not-sr-only">Buscar</span>
         </button>
-      </form>
+      </Form>
       {exemplos.length > 0 && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="text-mute2 text-[13px]">Remédios comuns:</span>

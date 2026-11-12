@@ -20,10 +20,15 @@ vi.mock("@bprogress/next", () => ({
   }),
 }));
 
+const mockBProgressProviderProps = vi.fn();
 vi.mock("@bprogress/next/app", () => ({
-  ProgressProvider: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="bprogress-provider-mock">{children}</div>
-  ),
+  ProgressProvider: ({
+    children,
+    ...props
+  }: { children: React.ReactNode } & Record<string, unknown>) => {
+    mockBProgressProviderProps(props);
+    return <div data-testid="bprogress-provider-mock">{children}</div>;
+  },
 }));
 
 let currentPathname = "/porciuncula_prefeitura/obras";
@@ -88,6 +93,87 @@ describe("ProgressProvider", () => {
     fireEvent.click(link);
 
     expect(mockBProgressStart).toHaveBeenCalledTimes(1);
+  });
+
+  it("mostra a barra em links que mudam só a query (índice A-Z, 'Ver mais')", () => {
+    render(
+      <ProgressProvider>
+        <div />
+      </ProgressProvider>,
+    );
+
+    expect(mockBProgressProviderProps).toHaveBeenCalledWith(
+      expect.not.objectContaining({ shallowRouting: true }),
+    );
+  });
+
+  it("dispara BProgress.start ao enviar formulário GET interno", () => {
+    render(
+      <ProgressProvider>
+        <form method="get" action="/porciuncula_prefeitura/farmacia">
+          <button type="submit">Buscar</button>
+        </form>
+      </ProgressProvider>,
+    );
+
+    fireEvent.submit(
+      screen
+        .getByRole("button", { name: "Buscar" })
+        .closest("form") as HTMLFormElement,
+    );
+
+    expect(mockBProgressStart).toHaveBeenCalledTimes(1);
+  });
+
+  it("dispara BProgress.start mesmo quando o envio é assumido pelo roteador (next/form cancela o envio nativo)", () => {
+    render(
+      <ProgressProvider>
+        <form
+          method="get"
+          action="/porciuncula_prefeitura/farmacia"
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <input name="q" defaultValue="dipirona" />
+          <button type="submit">Buscar</button>
+        </form>
+      </ProgressProvider>,
+    );
+
+    fireEvent.submit(
+      screen
+        .getByRole("button", { name: "Buscar" })
+        .closest("form") as HTMLFormElement,
+    );
+
+    expect(mockBProgressStart).toHaveBeenCalledTimes(1);
+  });
+
+  it("não dispara BProgress.start em formulário POST, externo, sem action ou para a URL atual", () => {
+    const currentPath = `${window.location.pathname}${window.location.search}`;
+    render(
+      <ProgressProvider>
+        <form method="post" action="/porciuncula_prefeitura/farmacia">
+          <button type="submit">Post</button>
+        </form>
+        <form method="get" action="https://google.com/search">
+          <button type="submit">Externo</button>
+        </form>
+        <form onSubmit={(e) => e.preventDefault()}>
+          <button type="submit">Sem action</button>
+        </form>
+        <form method="get" action={currentPath}>
+          <button type="submit">Mesma URL</button>
+        </form>
+      </ProgressProvider>,
+    );
+
+    for (const name of ["Post", "Externo", "Sem action", "Mesma URL"]) {
+      fireEvent.submit(
+        screen.getByRole("button", { name }).closest("form") as HTMLFormElement,
+      );
+    }
+
+    expect(mockBProgressStart).not.toHaveBeenCalled();
   });
 
   it("não dispara BProgress.start em links externos ou target=_blank", () => {

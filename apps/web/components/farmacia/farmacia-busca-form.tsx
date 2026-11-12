@@ -1,4 +1,5 @@
 import { Search, X } from "lucide-react";
+import Form from "next/form";
 import Link from "next/link";
 
 export interface FarmaciaBuscaFormProps {
@@ -19,8 +20,7 @@ export function FarmaciaBuscaForm({
   // No celular o botão é só a lupa, para caber na mesma linha do campo;
   // "Limpar busca" quebra para a linha de baixo.
   return (
-    <form
-      method="get"
+    <Form
       action={action}
       aria-label="Busca de remédios"
       className={`border-ink bg-page focus-within:ring-brand/30 flex flex-wrap items-center gap-2 rounded-md border-2 p-2 focus-within:ring-2 sm:flex-nowrap sm:gap-2.5 sm:pl-[18px] ${className}`}
@@ -59,6 +59,6 @@ export function FarmaciaBuscaForm({
           Limpar busca
         </Link>
       )}
-    </form>
+    </Form>
   );
 }
