@@ -4,7 +4,6 @@ import Link from "next/link";
 export interface FarmaciaBuscaFormProps {
   action: string;
   defaultValue?: string;
-  rotuloBotaoMobile?: string;
   className?: string;
   /** Quando informado, exibe o link para voltar à página sem busca. */
   limparHref?: string;
@@ -14,16 +13,17 @@ export interface FarmaciaBuscaFormProps {
 export function FarmaciaBuscaForm({
   action,
   defaultValue = "",
-  rotuloBotaoMobile,
   className = "",
   limparHref,
 }: FarmaciaBuscaFormProps) {
+  // No celular o botão é só a lupa, para caber na mesma linha do campo;
+  // "Limpar busca" quebra para a linha de baixo.
   return (
     <form
       method="get"
       action={action}
       aria-label="Busca de remédios"
-      className={`border-ink bg-page focus-within:ring-brand/30 flex flex-col gap-2 rounded-md border-2 p-2 focus-within:ring-2 sm:flex-row sm:items-center sm:gap-2.5 sm:pl-[18px] ${className}`}
+      className={`border-ink bg-page focus-within:ring-brand/30 flex flex-wrap items-center gap-2 rounded-md border-2 p-2 focus-within:ring-2 sm:flex-nowrap sm:gap-2.5 sm:pl-[18px] ${className}`}
     >
       <Search
         className="text-mute2 hidden h-[18px] w-[18px] shrink-0 sm:block"
@@ -45,21 +45,15 @@ export function FarmaciaBuscaForm({
       />
       <button
         type="submit"
-        className="bg-ink text-onink hover:bg-ink/90 inline-flex min-h-13 items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold transition-colors sm:min-h-10"
+        className="bg-ink text-onink hover:bg-ink/90 inline-flex min-h-13 min-w-13 shrink-0 items-center justify-center gap-2 rounded-md text-sm font-semibold transition-colors sm:min-h-10 sm:px-5"
       >
-        {rotuloBotaoMobile ? (
-          <>
-            <span className="sm:hidden">{rotuloBotaoMobile}</span>
-            <span className="hidden sm:inline">Buscar</span>
-          </>
-        ) : (
-          <span>Buscar</span>
-        )}
+        <Search className="h-5 w-5 sm:hidden" aria-hidden="true" />
+        <span className="sr-only sm:not-sr-only">Buscar</span>
       </button>
       {limparHref && (
         <Link
           href={limparHref}
-          className="bg-page text-ink hover:bg-line2/40 inline-flex min-h-13 items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold transition-colors sm:min-h-10"
+          className="bg-page text-ink hover:bg-line2/40 inline-flex min-h-13 basis-full items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold transition-colors sm:min-h-10 sm:basis-auto"
         >
           <X className="h-4 w-4" aria-hidden="true" />
           Limpar busca

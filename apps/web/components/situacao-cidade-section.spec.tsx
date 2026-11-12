@@ -48,6 +48,7 @@ const propsBase = {
   obrasDetailUrl: "/p/obras?ano=2024",
   educacaoDetailUrl: "/p/educacao?ano=2024",
   farmaciaDetailUrl: "/p/farmacia",
+  farmaciaIndiceUrl: "/p/farmacia#indice",
   farmaciaExemplos: [
     { codigoPrincipioAtivo: "1", nomePrincipioAtivo: "Dipirona", href: "/x" },
   ],
@@ -88,6 +89,13 @@ describe("SituacaoCidadeSection compartilhar", () => {
     expect(link.closest("ul")?.getAttribute("role")).toBe("list");
     expect(link.className).not.toContain("border");
     expect(link.className).toContain("underline");
+  });
+
+  it("leva ao índice A–Z da farmácia pelo link 'Ver todos os remédios'", () => {
+    render(<SituacaoCidadeSection {...propsBase} />);
+    expect(
+      screen.getByRole("link", { name: "Ver todos os remédios de A a Z" }),
+    ).toHaveAttribute("href", "/p/farmacia#indice");
   });
 });
 

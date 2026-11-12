@@ -19,6 +19,7 @@ import {
   buildExemplosFarmacia,
   buildRequerimentoFiscalizacao,
   buildTextoWhatsApp,
+  ID_SECAO_INDICE,
 } from "./farmacia/view-model";
 import type { loadVisaoGeralData } from "./loader";
 
@@ -616,6 +617,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
           })
         : undefined,
     farmaciaDetailUrl,
+    farmaciaIndiceUrl: `${farmaciaDetailUrl}#${ID_SECAO_INDICE}`,
     farmaciaExemplos:
       raw.resumoFarmacia?.status === "conforme"
         ? buildExemplosFarmacia(

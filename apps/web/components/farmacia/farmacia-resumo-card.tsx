@@ -103,10 +103,7 @@ export function FarmaciaResumoCard({
         </p>
       </div>
       <div className="space-y-3">
-        <FarmaciaBuscaForm
-          action={detailUrl}
-          rotuloBotaoMobile="Buscar no estoque"
-        />
+        <FarmaciaBuscaForm action={detailUrl} />
         {exemplos.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="text-mute2 text-xs">Exemplos:</span>
