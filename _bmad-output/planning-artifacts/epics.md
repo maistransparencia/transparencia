@@ -3019,9 +3019,9 @@ Dar ao cidadão, ao jornalista e ao vereador provas de que os números do portal
 
 **Restrições:** Regra 23 (sem literais de tenant, UF ou ano; tudo por `portal_slug`), Regra 9 (nomes explícitos), Regra 10 (códigos em snake_case; a UI traduz), lógica só em `@transparencia/db` (UI burra), linguagem cidadã e tom não acusatório (`editor-cidadao`), texto jurídico revisado por `jurista-fiscal`.
 
-**Fora do escopo (backlog):** fila de WhatsApp com confirmação dupla (só com demanda; exige opt-in e custo Meta; LGPD e tarifas não verificadas), tema escuro e auditoria de contraste AA (absorvidos pela Epic 20), "Usar no seu assistente".
+**Fora do escopo (backlog):** página "Quem publica e quem não publica", "Direito de resposta", fila de WhatsApp com confirmação dupla (só com demanda; exige opt-in e custo Meta; LGPD e tarifas não verificadas), tema escuro e auditoria de contraste AA (absorvidos pela Epic 20), "Usar no seu assistente".
 
-**Pendência de insumo:** prints/HTML de "Metodologia e fontes" e "Quem publica e quem não publica" do concorrente, a serem enviados pelo Julio, para detalhar as Stories 23.5 e 23.6.
+**Insumo recebido:** página "Sobre e metodologia" do concorrente (2026-11-12), usada para detalhar a Story 23.6. A página "Quem publica e quem não publica" ficou fora da epic por decisão do Julio (2026-11-12).
 
 ---
 
@@ -3045,11 +3045,31 @@ As a citizen,
 I want to know if a dataset is up to date,  
 So that I do not trust a stale number.
 
+**Origem:** pesquisa competitiva do politicometro.org (recomendação 1: selo de frescor). A Story 23.1 já entregou a base: o modelo `fct_coletas_por_fonte` (uma linha por `portal_slug` e `fonte`, com `frequencia_esperada`, `situacao_monitoramento`, `ultima_coleta_em`, `ultima_coleta_total_linhas`) e o catálogo `seed_fontes_coleta`. Falta transformar isso em resposta para o cidadão. Esta story é só dados: nenhuma tela (a tela é a 23.4).
+
+**Decisões de produto (a confirmar com o Julio na revisão):**
+- **Tolerância por frequência fica no catálogo, não no código.** O `seed_fontes_coleta` ganha a coluna `tolerancia_dias`. Proposta inicial: `diaria` 4 dias (cobre fim de semana e feriado), `semanal` 10, `mensal` 40, `anual` 400. `sob_demanda` nunca vira `fora_do_prazo`.
+- **A fonte cuja carga não grava registro continua `nao_monitorado`**, nunca presumida em dia (herdado da 23.1).
+- **`descricao_dados` é texto do catálogo**, em linguagem cidadã (ex.: "o que a Prefeitura recebeu e pagou"), revisado pelo `editor-cidadao`; códigos de `fonte` e `situacao` ficam em snake_case e a UI traduz (Regra 10).
+
 **Acceptance Criteria:**
-- **Given** o registro da Story 23.1
-- **When** `@transparencia/db` consulta o frescor de um `portalSlug`
-- **Then** retorna por fonte: `fonte`, `descricao_dados`, `frequencia_esperada`, `ultima_atualizacao` e `situacao` (`em_dia`, `fora_do_prazo`, `nao_monitorado`), com DTOs `camelCase`
-- **And** `fora_do_prazo` ocorre quando `ultima_atualizacao` é mais antiga que a frequência esperada, calculado só na camada de dados, com teste de paridade e isolamento entre portais.
+- **Given** `fct_coletas_por_fonte` e o seed `seed_fontes_coleta` com a nova coluna `descricao_dados` e `tolerancia_dias` por fonte
+- **When** `@transparencia/db` consulta o frescor de um `portalSlug` (nova query em `packages/db/src/queries/`, tipada com Kysely)
+- **Then** retorna por fonte: `fonte`, `descricaoDados`, `frequenciaEsperada`, `ultimaAtualizacao` e `situacao` (`em_dia`, `fora_do_prazo`, `nao_monitorado`), em `camelCase` e com nomes explícitos (Regra 9), ordenado de forma estável
+- **And** `fora_do_prazo` ocorre quando `ultima_coleta_em` é mais antiga que `tolerancia_dias`, medido contra a data corrente passada como parâmetro (nunca `now()` escondido, para o teste ser determinístico); o cálculo existe só na camada de dados.
+- **Given** fontes `sem_registro` e `nao_monitorado`
+- **When** a query roda
+- **Then** ambas saem como `nao_monitorado` com `ultimaAtualizacao` nulo, e uma coleta com `ultima_coleta_total_linhas` zero continua `em_dia` (fonte respondeu sem registros não é falha).
+- **Given** dois portais com fontes de mesmo nome e datas diferentes
+- **When** a query roda para um deles
+- **Then** só aparecem as fontes dele (isolamento por `portal_slug`, Regra 23), sem literais de município, UF ou ano.
+- **And** há teste de paridade (banco local) cobrindo os três estados, a fronteira exata da tolerância (dia limite em dia, dia seguinte fora do prazo) e `sob_demanda`; `make test/ts` e `pnpm typecheck` passam.
+
+**Fora do escopo:** qualquer componente ou texto na tela (Story 23.4); registrar falha de carga (Story 23.3); mudar o que cada extrator coleta; confirmar com cada fonte a frequência real de publicação.
+
+**Riscos:** a tolerância é uma estimativa; tolerância curta demais gera falso alarme ("fora do prazo" sem motivo) e prejudica a confiança que a epic quer construir. Por isso fica no seed, ajustável sem deploy de código.
+
+**Dependências:** Story 23.1 (concluída). Alinhamento de `frequencia_esperada` com a Story 23.8b. Mudança de seed roda só no banco local do Docker (Regra 15).
 
 ---
 
@@ -3059,11 +3079,31 @@ As a maintainer,
 I want a load that fails validation to stop and flag the source,  
 So that wrong data never overwrites good data.
 
+**Origem:** pesquisa competitiva (recomendação 2). O concorrente alega rotina de "parar e avisar" sem prova; aqui a regra precisa ser verificável por teste. Padrão já existente a aproveitar: o tudo-ou-nada do SIOPE (Story 24.1) e do SIOPS (Story 25.2), e o registro de coletas da 23.1.
+
+**Decisões de produto:**
+- **Falha preserva o dado anterior e é visível.** Uma carga que falha não grava linhas novas e não apaga as antigas; o registro da tentativa guarda `resultado` (`sucesso`, `falha`) e `erro_codigo` (snake_case, ex.: `fonte_fora_do_ar`, `formato_mudou`, `resposta_vazia_suspeita`), sem texto de exceção cru.
+- **Zero registros não é, por si só, falha** (a 23.1 já distingue coleta vazia). Só vira `resposta_vazia_suspeita` quando a fonte historicamente traz linhas e agora traz zero, regra por fonte no catálogo, sem número fixo no código.
+- **Ausente na fonte é "—", nunca zero.** Vale para o que a story tocar; a auditoria de telas fica a cargo do `contador-publico`.
+
 **Acceptance Criteria:**
-- **Given** uma fonte que ficou fora do ar ou mudou de formato
+- **Given** uma fonte que ficou fora do ar, mudou de formato ou devolveu resposta suspeita
 - **When** a carga detecta a falha
-- **Then** os dados anteriores são preservados, a fonte passa a `fora_do_prazo` na Story 23.2 e o erro fica registrado para a equipe
-- **And** valor ausente na fonte aparece como "—" com explicação, nunca como zero.
+- **Then** nenhuma linha da fonte é alterada nem apagada, o registro de coletas ganha uma tentativa com `resultado` `falha` e `erro_codigo`, e o loader termina com código de saída que o workflow enxerga (o job falha, a equipe é avisada pelo mecanismo de alerta do CI já existente)
+- **And** `fct_coletas_por_fonte` passa a expor a última tentativa com falha (`ultima_falha_em`, `ultimo_erro_codigo`) sem sobrescrever `ultima_coleta_em`, que continua sendo a última coleta bem-sucedida.
+- **Given** uma fonte cuja última tentativa falhou
+- **When** a query da Story 23.2 consulta o frescor
+- **Then** a fonte aparece como `fora_do_prazo` assim que a tolerância vence, com a data da última coleta boa preservada (a falha sozinha não troca a situação antes do prazo, para não alarmar por um tropeço de um dia).
+- **Given** um campo ausente na fonte em um bloco já existente
+- **When** a tela renderiza
+- **Then** mostra "—" com a explicação do que significa, não `0` nem `R$ 0,00`, com teste em pelo menos um bloco real e lista dos demais blocos auditados registrada na story.
+- **And** testes com fonte simulada fora do ar e com formato alterado provam que o dado anterior sobrevive intacto; sem literais de tenant (Regra 23).
+
+**Fora do escopo:** reescrever extratores que já são tudo-ou-nada; retentativa automática com espera; painel de saúde das cargas para a equipe; notificação nova (usa o alerta do CI atual).
+
+**Riscos:** a detecção de "formato mudou" depende de cada extrator expor um contrato de validação; extratores sem contrato ficam fora desta story e registrados como pendência por fonte, não presumidos seguros.
+
+**Dependências:** Stories 23.1 (concluída) e 23.2. Execução só no banco local do Docker (Regra 15).
 
 ---
 
@@ -3073,11 +3113,32 @@ As a citizen,
 I want each block to show its source and update date, and a page listing all sources,  
 So that I can judge how current and how reliable what I see is.
 
+**Origem:** pesquisa competitiva (recomendação 1). O concorrente mostra o selo no rodapé de cada bloco e um link "Como atualizamos" no cabeçalho. Aqui adaptamos o padrão, sem copiar texto. Leia `DESIGN.md` e `EXPERIENCE.md` antes de criar os componentes (Regra 25).
+
+**Pergunta do cidadão (Regra 27):** "Estes números estão atualizados? De onde vieram?"
+
+**Decisões de produto:**
+- **Selo discreto no rodapé do bloco**, uma linha: "Fonte: {descrição} · atualizado em {data}". Em `fora_do_prazo`, o selo ganha o aviso "Atualização atrasada: o último dado é de {data}"; em `nao_monitorado`, "Não acompanhamos a data de atualização desta fonte". Nunca finge frescor.
+- **Página "Como atualizamos"** por município: tabela com fonte, o que traz, frequência, última atualização e situação. Fica no rodapé/menu e é linkada pelo selo; o texto da frequência é em linguagem comum ("todo dia útil", "toda semana", "todo mês").
+- **Tom não acusatório:** "atrasada" descreve a coleta do portal, não a conduta da Prefeitura, salvo quando a fonte original for a que não publica (distinção a revisar com o `editor-cidadao`).
+
 **Acceptance Criteria:**
 - **Given** a query da Story 23.2
-- **When** o usuário abre um bloco de dados ou a página "Como atualizamos" do município
-- **Then** cada bloco mostra "Fonte: … · atualizado em …" e a página mostra a tabela (fonte, o que traz, frequência, última atualização, situação) com aviso claro em `fora_do_prazo`
-- **And** os componentes apenas renderizam o DTO (UI burra), sem anos ou municípios fixos, com textos revisados pelo `editor-cidadao`.
+- **When** o usuário abre um bloco de dados de qualquer página do município
+- **Then** o bloco mostra "Fonte: … · atualizado em …", com a fonte vinda do DTO (um mapeamento bloco → `fonte` por página, definido na camada de dados ou no view-model, nunca em JSX solto) e a data formatada em `pt-BR`
+- **And** em `fora_do_prazo` e `nao_monitorado` aparece o aviso correspondente, com ícone e texto (não só cor) e legível em leitor de tela.
+- **Given** a página "Como atualizamos" do município
+- **When** o usuário a abre
+- **Then** vê a tabela de todas as fontes do portal (fonte, o que traz, frequência, última atualização, situação), com aviso claro no topo se qualquer fonte estiver `fora_do_prazo`, e a tabela é legível no celular sem rolagem horizontal da página
+- **And** o cabeçalho ou rodapé do site leva à página, e o texto "Dados atualizados em" geral, se existir, deriva da mesma query (uma só fonte de verdade).
+- **Given** um portal sem nenhuma fonte monitorada
+- **When** a página abre
+- **Then** o estado é neutro e genérico, sem município fixo (Regra 23).
+- **And** os componentes apenas renderizam o DTO (UI burra), sem anos ou municípios fixos; textos revisados pelo `editor-cidadao`; specs de página, view-model e componente e o glossário (`docs/glossario-cidadao.md`) atualizados; `make test/ts` e `pnpm typecheck` passam.
+
+**Fora do escopo:** reportar erro (23.5); página de metodologia (23.6); notificação por e-mail de dados novos; histórico de atualizações por fonte.
+
+**Dependências:** Story 23.2 (query). A cobertura do selo cresce conforme as fontes ganham registro de coleta (Stories 23.1 e 23.8).
 
 ---
 
@@ -3087,25 +3148,67 @@ As a citizen,
 I want to report an error on a specific indicator,  
 So that wrong numbers are corrected quickly.
 
+**Origem:** pesquisa competitiva (recomendação 3). No concorrente, todo crachá tem "Reportar erro" e as mensagens "são conferidas contra a fonte oficial". O rótulo visível na tela é "Sugestão ou erro", definido na Story 27.5; esta story entrega o mecanismo por indicador.
+
+**Decisões de produto:**
+- **Um botão por indicador**, não um formulário global: o cidadão aponta o número exato que estranhou.
+- **O envio carrega contexto automaticamente**: `portal_slug`, identificador estável do indicador (snake_case), a página e o período exibidos, mais a descrição livre. O cidadão não precisa saber o nome do indicador.
+- **Conferência é humana e contra a fonte**; o portal não promete prazo que não controla, e o texto de confirmação diz o que acontece depois, em linguagem comum.
+- **Sem dado pessoal obrigatório.** E-mail é opcional, só para retorno; a política de uso fica na página da 23.6.
+
 **Acceptance Criteria:**
 - **Given** o `feedback-modal` existente
-- **When** o usuário aciona "Sugestão ou erro" (rótulo definido na Story 27.5; antes "Reportar erro") em um indicador
-- **Then** o envio leva `portal_slug`, identificador do indicador e a descrição, e o rótulo é explícito e visível em cada bloco
-- **And** o texto segue linguagem cidadã e tom não acusatório.
+- **When** o usuário aciona "Sugestão ou erro" em um indicador
+- **Then** o modal abre já ligado àquele indicador e o envio leva `portal_slug`, identificador do indicador e descrição, validados no servidor (indicador e portal existentes; descrição com tamanho mínimo e máximo)
+- **And** o rótulo é explícito e visível em cada bloco, alcançável por teclado, com foco devolvido ao botão ao fechar.
+- **Given** um envio válido
+- **When** o servidor o recebe
+- **Then** grava a mensagem com status `recebida` (snake_case), sem rastrear a pessoa, e responde com confirmação que diz o que acontece em seguida; há limite de taxa contra abuso, sem armazenar IP em claro.
+- **Given** um envio inválido ou falha de gravação
+- **When** o usuário envia
+- **Then** vê mensagem de erro clara e o texto digitado é preservado.
+- **And** o texto segue linguagem cidadã e tom não acusatório (`editor-cidadao`); sem literais de tenant (Regra 23); nome do indicador vem do catálogo de indicadores, não de JSX; testes cobrem validação, isolamento por portal e acessibilidade básica do modal.
+
+**Fora do escopo:** painel interno para triagem das mensagens (a equipe usa o banco por enquanto); resposta automática ao cidadão; "Direito de resposta" (backlog); fila de WhatsApp.
+
+**Riscos:** receber erro que o portal não consegue verificar (a fonte oficial está errada). A resposta padrão precisa distinguir "erro do portal" de "erro na fonte original".
+
+**Dependências:** Story 27.5 (rótulo "Sugestão ou erro" por indicador; ver `epic-27-context.md`). Quando houver conflito de rótulo, vale o da 27.5.
 
 ---
 
-### Story 23.6: Direito de Resposta, Metodologia e Fontes, "Sobre" e "Quem Publica e Quem Não Publica"
+### Story 23.6: Metodologia e Fontes e "Sobre"
 
 As a citizen or public official,  
-I want to know the methodology and sources, which municipalities publish what, and how to respond to a published number,  
+I want to know the methodology and sources of the portal,  
 So that the portal is accountable for what it shows.
 
+**Origem:** pesquisa competitiva. Referência analisada: a página "Sobre e metodologia" do Politicômetro (salva por Julio em 2026-11-12), que reúne na mesma página: o que é o site, neutralidade, método de contagem, fontes com o que cada uma traz, "O que cobrimos", "O que ainda não cobrimos", "Lacunas e divergências conhecidas", privacidade, tratamento de processos e sanções, correções e direito de resposta, e créditos. O que vale adaptar (não copiar texto): a honestidade sobre o que **não** cobrimos e sobre divergências entre fontes; a regra explícita "ausente aparece como 'ainda não disponível', nunca zero"; a promessa de ligar pessoas só por mais de um dado, nunca só pelo nome; "investigação não é condenação" como princípio. Ficam fora da epic, por decisão do Julio (2026-11-12): a página "Quem publica e quem não publica" e o "Direito de resposta" (ambos no backlog).
+
+**Decisões de produto:**
+- **Duas páginas em vez de uma:** "Sobre" (curta: o que é, para quem, neutralidade, quem mantém) e "Metodologia e fontes" (detalhada). Hoje as fontes só aparecem em termos e privacidade; as páginas novas passam a ser a referência e os termos apontam para elas.
+- **Seções de "Metodologia e fontes"**, na ordem do cidadão: de onde vêm os números (tabela de fontes por município, gerada dos dados reais); como calculamos o que não é medido direto (valor derivado ou estimado diz que é, Regra 27); o que ainda não cobrimos; lacunas e divergências conhecidas; promessas negativas.
+- **Promessas negativas explícitas**, cada uma verificável no código antes de entrar no texto: não inventamos dado (ausente é "—", Story 23.3); não juntamos registros só pelo nome; não expomos dados pessoais além do já público; não fazemos acusação (indício, nunca conclusão).
+- **Correções:** a página explica como apontar um erro por "Sugestão ou erro" (Story 23.5) e o que acontece depois; não promete fluxo de resposta formal.
+- **Jurídico:** qualquer lei citada na página (LAI, LGPD) passa pelo `jurista-fiscal` e leva link oficial (Regra 20); o que não for verificado fica marcado "NÃO VERIFICADO" no registro da story e sai do texto público.
+
 **Acceptance Criteria:**
-- **Given** o `jurista-fiscal` validou o fluxo e o texto do direito de resposta (peso jurídico; LAI, LGPD)
-- **When** o usuário acessa as páginas "Sobre", "Metodologia e fontes" e "Quem publica e quem não publica"
-- **Then** as fontes e a lacuna de publicação por município são geradas dos dados reais por `portal_slug`, e cada indicador oferece "Direito de resposta" ao lado de "Sugestão ou erro"
-- **And** hoje as fontes só aparecem em termos e privacidade; essas páginas passam a ser a referência, com promessas negativas explícitas (não inventa dado, não junta registros só pelo nome, não expõe dados pessoais além do já público).
+- **Given** o `jurista-fiscal` conferiu cada lei citada nas páginas, com link oficial
+- **When** o usuário acessa "Sobre" e "Metodologia e fontes" de um município
+- **Then** as fontes, o que cada uma traz e o que não cobrimos são gerados dos dados reais por `portal_slug` (catálogo de fontes da 23.1 e query da 23.2, sem lista escrita à mão na UI), sem município, UF ou ano fixo (Regra 23)
+- **And** as lacunas e divergências conhecidas vêm de uma fonte de dados mantida na camada de dados (catálogo com `fonte`, texto cidadão e vigência), não de JSX.
+- **Given** as promessas negativas da página
+- **When** a story é concluída
+- **Then** cada promessa tem referência ao ponto do código ou do teste que a sustenta (registrada na story); promessa sem sustentação sai do texto.
+- **And** os termos e a política de privacidade passam a apontar para as novas páginas; a seção de correções aponta para "Sugestão ou erro"; textos revisados pelo `editor-cidadao`; glossário e specs atualizados; `make test/ts` e `pnpm typecheck` passam.
+
+**Fora do escopo:** "Direito de resposta" e a página "Quem publica e quem não publica" (decisão do Julio em 2026-11-12); tratamento de processos e sanções de pessoas (não é escopo fiscal do portal); contas de usuário, e-mail e WhatsApp de atualização; classificação de temas por palavras-chave; atualização em produção sem autorização explícita (Regra 15).
+
+**Riscos:** uma promessa negativa falsa é pior que nenhuma, por isso a exigência de sustentação no código; lei citada sem verificação cria compromisso público indevido.
+
+**Dependências:** Stories 23.2 e 23.5; revisão do `jurista-fiscal` antes de publicar.
+
+---
 
 ### Story 23.7: Origem das "Entradas Fora do Orçamento" em Receitas
 
@@ -4281,7 +4384,7 @@ So that I decide where to go without guessing, the person I share with sees the 
 *Qualidade*
 - **And** `pnpm typecheck` e `pnpm test` passam, com testes: resumo com e sem dado; card compartilhando a URL da página; sidebar recolhida sem filtros e com rodapé em largura total; `CHANGELOG.md`, `llms.txt` e `llms-full.txt` atualizados no que muda para o cidadão (Regra 12).
 
-**Fora do escopo:** "Reportar erro" por indicador e "Direito de resposta" (Stories 23.5 e 23.6); lembrar a sidebar recolhida; mudanças no menu do celular.
+**Fora do escopo:** "Reportar erro" por indicador (Story 23.5); "Direito de resposta" está no backlog; lembrar a sidebar recolhida; mudanças no menu do celular.
 
 **Dependências:** Stories 27.2 e 27.3 (done).
 
