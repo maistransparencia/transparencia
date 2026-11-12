@@ -57,6 +57,8 @@ export default async function VisaoGeralPage({
           situacao={viewModel.situacaoHome}
           ano={viewModel.selectedYear}
           farmaciaStatus={viewModel.farmaciaStatus}
+          farmaciaDataPosicao={viewModel.farmaciaDataPosicao}
+          isCurrentYear={viewModel.isCurrentYear}
           minimoSaude={viewModel.minimoSaude}
           resumoObras={viewModel.resumoObras}
           educacaoResumo={viewModel.educacaoResumo}

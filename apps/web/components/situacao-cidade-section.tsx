@@ -433,6 +433,9 @@ function SituacaoCard({
               )}
             </p>
           )}
+          {card.notaPeriodo && (
+            <p className="caption text-mute2 mt-1">{card.notaPeriodo}</p>
+          )}
           {card.motivoAtencao && (
             <p className="text-warn-text mt-1 text-sm">{card.motivoAtencao}</p>
           )}

@@ -606,6 +606,8 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
         }
       : null,
     farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",
+    farmaciaDataPosicao: raw.resumoFarmacia?.dataPosicaoMaisRecente ?? null,
+    isCurrentYear,
     farmaciaRequerimento:
       raw.resumoFarmacia?.status === "apagao" && portalName
         ? buildRequerimentoFiscalizacao({

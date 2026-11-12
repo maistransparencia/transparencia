@@ -56,6 +56,8 @@ const base = (
   situacao: situacao(),
   ano: 2024,
   farmaciaStatus: "conforme",
+  farmaciaDataPosicao: null,
+  isCurrentYear: true,
   minimoSaude: minimo(18.2),
   resumoObras: obras(),
   educacaoResumo: educacao(),
@@ -245,5 +247,34 @@ describe("buildSituacaoCidadeCards", () => {
     const obrasCard = card(base(), "obras");
     expect(obrasCard?.detailUrl).toBeTruthy();
     expect(obrasCard).not.toHaveProperty("textoCompartilhar");
+  });
+  it("farmácia em dia mostra a data da última posição de estoque", () => {
+    const saude = card(base({ farmaciaDataPosicao: "2026-11-10" }), "saude");
+    expect(saude?.manchete).toBe("Estoque atualizado em 10/11/2026");
+    expect(saude?.notaPeriodo).toBeNull();
+  });
+
+  it("sem data de posição, a manchete da farmácia não inventa data", () => {
+    expect(card(base(), "saude")?.manchete).toBe("Estoque divulgado em dia");
+  });
+
+  it("ano encerrado: o card da farmácia avisa que o estoque é o atual", () => {
+    const saude = card(
+      base({
+        ano: 2025,
+        isCurrentYear: false,
+        farmaciaDataPosicao: "2026-11-10",
+      }),
+      "saude",
+    );
+    expect(saude?.notaPeriodo).toBe("Situação atual, não de 2025.");
+  });
+
+  it("ano encerrado sem farmácia: o mínimo é do ano e não leva aviso", () => {
+    const saude = card(
+      base({ farmaciaStatus: "indisponivel", isCurrentYear: false }),
+      "saude",
+    );
+    expect(saude?.notaPeriodo).toBeNull();
   });
 });
