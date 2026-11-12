@@ -1,0 +1,14 @@
+fonte,frequencia_esperada,monitoramento
+fiorilli,diaria,monitorado
+farmacia_sus,diaria,monitorado
+pncp,semanal,monitorado
+obrasgov,semanal,monitorado
+siconfi_msc,mensal,monitorado
+siconfi_rgf,mensal,monitorado
+siope,mensal,nao_monitorado
+siops,mensal,nao_monitorado
+saude_rede,mensal,nao_monitorado
+inep_censo,anual,nao_monitorado
+inep_ideb,anual,nao_monitorado
+emendas_estaduais,sob_demanda,nao_monitorado
+receitas_csv,sob_demanda,nao_monitorado

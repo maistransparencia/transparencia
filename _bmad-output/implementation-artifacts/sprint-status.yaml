@@ -42,7 +42,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-11-11
+last_updated: 2026-11-12
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -244,7 +244,7 @@ development_status:
   epic-20-retrospective: optional
 
   epic-23: backlog
-  23-1-registro-de-coletas-por-fonte-e-frequencia-esperada: backlog
+  23-1-registro-de-coletas-por-fonte-e-frequencia-esperada: done
   23-2-query-de-frescor-com-estado-fora-do-prazo-previsto: backlog
   23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado: backlog
   23-4-selo-fonte-atualizado-em-nos-blocos-e-pagina-como-atualizamos: backlog
