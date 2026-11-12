@@ -14,3 +14,4 @@ sources:
           - name: fonte
           - name: coletado_em
           - name: frequencia_esperada
+          - name: total_linhas

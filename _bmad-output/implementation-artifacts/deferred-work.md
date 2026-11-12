@@ -565,3 +565,7 @@ source_spec: `spec-23-7-origem-das-entradas-fora-do-orcamento-em-receitas.md`
 severity: low
 reason: Cobertura em view-model.spec.ts e no spec do componente; página não renderizada de ponta a ponta.
 status: open
+
+## Deferred from: code review of story 23-1 (2026-11-12)
+
+- Cruzamento total portal x fonte em `fct_coletas_por_fonte`: portal que não usa uma fonte (ex.: sem farmácia/ObrasGov) fica permanentemente `sem_registro`, o que a 23.2 pode ler como atraso. Decisão: adiar; resolver ao calcular o frescor na 23.2 (talvez status `nao_aplicavel`). [elt/transform/models/marts/fct_coletas_por_fonte.sql]

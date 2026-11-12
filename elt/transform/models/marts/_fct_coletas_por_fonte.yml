@@ -43,6 +43,9 @@ models:
                 values: [monitorado, sem_registro, nao_monitorado]
       - name: ultima_coleta_em
         data_type: timestamp with time zone
+      - name: ultima_coleta_total_linhas
+        data_type: integer
+        description: "Linhas que a última carga trouxe. Zero significa que a fonte respondeu sem registros (não é falha); nulo, que não há coleta registrada."
       - name: total_coletas
         data_type: integer
         constraints:
