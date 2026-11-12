@@ -662,6 +662,8 @@ export async function getLicitacoesEmAndamentoMetrics(
         .onRef("o.empresa_id", "=", "l.empresa_id"),
     )
     .leftJoin(
+      // sem filtro de fonte: restos a pagar entram de propósito, pois o pagamento
+      // de uma licitação de ano anterior pertence a ela
       db
         .selectFrom("fct_despesas")
         .select([
@@ -833,6 +835,8 @@ export async function getLicitacaoByNumero(
         .onRef("o.empresa_id", "=", "l.empresa_id"),
     )
     .leftJoin(
+      // sem filtro de fonte: restos a pagar entram de propósito, pois o pagamento
+      // de uma licitação de ano anterior pertence a ela
       db
         .selectFrom("fct_despesas")
         .select([
