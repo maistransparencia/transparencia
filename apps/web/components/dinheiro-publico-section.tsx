@@ -14,10 +14,11 @@ export interface DinheiroPublicoSectionProps {
   posicaoFinanceira?: SiconfiPosicaoFinanceiraDTO | null;
   ano: number;
   orcamentoDetailUrl: string;
+  receitasDetailUrl: string;
   hasEntityFilter: boolean;
 }
 
-/** Hero fiscal rebaixado: total arrecadado e saldo em caixa, com atalho ao orçamento. */
+/** Hero fiscal rebaixado: total arrecadado e saldo em caixa, com atalhos a receitas e orçamento. */
 export function DinheiroPublicoSection({
   arrecadadoTitle,
   totalArrecadado,
@@ -26,6 +27,7 @@ export function DinheiroPublicoSection({
   posicaoFinanceira,
   ano,
   orcamentoDetailUrl,
+  receitasDetailUrl,
   hasEntityFilter,
 }: DinheiroPublicoSectionProps) {
   const larguraBarra = Math.min(100, Math.max(0, percentualPrevisto));
@@ -33,7 +35,7 @@ export function DinheiroPublicoSection({
   return (
     <SectionWithHeader
       id="dinheiro-publico"
-      title="Para onde vai o dinheiro público"
+      title="Quanto dinheiro entrou"
       description="O que a Prefeitura arrecadou e quanto tem disponível nas contas."
     >
       <div className="space-y-8">
@@ -49,7 +51,7 @@ export function DinheiroPublicoSection({
             {percentualPrevisto}% da previsão de {fmtCompact(previstoTotal)}{" "}
             para o exercício.
           </p>
-          <Link href={orcamentoDetailUrl} className={CLASSE_ACAO_DESTAQUE}>
+          <Link href={receitasDetailUrl} className={CLASSE_ACAO_DESTAQUE}>
             <span>Ver detalhes</span>
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>

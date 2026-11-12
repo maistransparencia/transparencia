@@ -88,6 +88,7 @@ export default async function VisaoGeralPage({
         posicaoFinanceira={viewModel.posicaoFinanceira}
         ano={viewModel.selectedYear}
         orcamentoDetailUrl={viewModel.orcamentoDetailUrl}
+        receitasDetailUrl={viewModel.receitasDetailUrl}
         hasEntityFilter={viewModel.hasEntityFilter}
       />
 

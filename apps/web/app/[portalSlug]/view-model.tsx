@@ -262,39 +262,11 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
 
   const folhaPct = Number((raw.folha.percentualFolha || 0).toFixed(1));
 
-  const totalArr = posicao.totalArrecadado || fonte?.totalArrecadado || 0;
-  const uniaoArr = fonte?.transferenciasUniaoArrecadado || 0;
-  const estadoArr = fonte?.transferenciasEstadoArrecadado || 0;
-  const propriaArr =
-    fonte?.receitaPropriaArrecadado ||
-    Math.max(0, totalArr - uniaoArr - estadoArr);
-
-  const uniaoPct = totalArr > 0 ? Math.round((uniaoArr / totalArr) * 100) : 0;
-  const estadoPct = totalArr > 0 ? Math.round((estadoArr / totalArr) * 100) : 0;
-  const propriaPct = totalArr > 0 ? Math.max(0, 100 - uniaoPct - estadoPct) : 0;
-
+  // Arrecadado e previsto vêm da mesma fonte: previsão de receita, nunca dotação de despesa.
+  const totalArrecadado = fonte?.totalArrecadado ?? 0;
+  const previstoTotal = fonte?.totalPrevisto ?? 0;
   const realizationPct =
-    execSummary.totalDotacao > 0
-      ? Math.round((totalArr / execSummary.totalDotacao) * 100)
-      : 0;
-
-  const originBreakdown = [
-    {
-      label: "Transferências da União",
-      amountPerReal: `R$ ${(uniaoArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
-      percentage: uniaoPct,
-    },
-    {
-      label: "Transferências do Estado",
-      amountPerReal: `R$ ${(estadoArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
-      percentage: estadoPct,
-    },
-    {
-      label: "Receita Própria",
-      amountPerReal: `R$ ${(propriaArr / (totalArr || 1)).toFixed(2).replace(".", ",")}`,
-      percentage: propriaPct,
-    },
-  ];
+    previstoTotal > 0 ? Math.round((totalArrecadado / previstoTotal) * 100) : 0;
 
   const totalDotacao = execSummary.totalDotacao;
   const totalEmpenhado = execSummary.totalEmpenhado;
@@ -506,30 +478,6 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     ? "Arrecadado no ano até agora"
     : "Arrecadado no exercício";
 
-  const heroHeadline = (
-    <>
-      De cada R$ 100 que entram no caixa,{" "}
-      <span className="text-brand-text">R$ {propriaPct}</span> a cidade arrecada
-      sozinha.
-    </>
-  );
-
-  const heroSummary = isCurrentYear ? (
-    <p>
-      O município já recebeu <b>{fmtCompact(totalArr)}</b> em {selectedYear} —{" "}
-      <b>{realizationPct}%</b> do previsto para o ano. Quase todo esse dinheiro
-      vem de repasses da União e do Estado, o que torna as contas sensíveis a
-      decisões tomadas longe daqui.
-    </p>
-  ) : (
-    <p>
-      O município arrecadou <b>{fmtCompact(totalArr)}</b> em {selectedYear} —{" "}
-      <b>{realizationPct}%</b> do previsto para o exercício. Quase todo esse
-      dinheiro veio de repasses da União e do Estado, o que torna as contas
-      sensíveis a decisões tomadas longe daqui.
-    </p>
-  );
-
   const radarCivicoFeedData = buildRadarCivicoCards(
     raw.radarAlertas,
     portalSlug,
@@ -573,13 +521,10 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     detailShortcuts,
     periodText,
     arrecadadoTitle,
-    heroHeadline,
-    heroSummary,
     selectedYear,
     realizationPercent: realizationPct,
-    totalArrecadado: posicao.totalArrecadado,
-    previstoTotal: execSummary.totalDotacao,
-    originBreakdown,
+    totalArrecadado,
+    previstoTotal,
     pipelineStages,
     despesasCardData,
     licitacoesCardData,
@@ -589,6 +534,7 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     radarCivicoFeed,
     licitacoesEmAndamentoCount: raw.licitacoesEmAndamentoCount ?? 0,
     orcamentoDetailUrl: routeUrl("/orcamento"),
+    receitasDetailUrl: routeUrl("/receitas"),
     obrasDetailUrl: buildNavUrl({
       path: "/obras",
       slug: portalSlug,

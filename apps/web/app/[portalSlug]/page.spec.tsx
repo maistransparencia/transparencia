@@ -173,7 +173,7 @@ describe("VisaoGeralPage", () => {
       .map((h) => h.textContent);
     expect(titulos).toEqual([
       "Como está a cidade hoje",
-      "Para onde vai o dinheiro público",
+      "Quanto dinheiro entrou",
       "Mais detalhes",
     ]);
     expect(screen.queryByText(/Ano/i, { selector: "select" })).toBeNull();
@@ -210,7 +210,7 @@ describe("VisaoGeralPage", () => {
     expect(titulos).toEqual([
       "Como está a cidade hoje",
       "Dinheiro que entra na cidade",
-      "Para onde vai o dinheiro público",
+      "Quanto dinheiro entrou",
       "Mais detalhes",
     ]);
     expect(
@@ -411,7 +411,7 @@ describe("VisaoGeralPage", () => {
     const obras = screen.getByRole("article", { name: "Obras" });
     const educacao = screen.getByRole("article", { name: "Educação" });
     const dinheiro = screen.getByRole("heading", {
-      name: "Para onde vai o dinheiro público",
+      name: "Quanto dinheiro entrou",
     });
     const precede = (anterior: Element, posterior: Element) =>
       Boolean(
@@ -478,7 +478,7 @@ describe("VisaoGeralPage", () => {
       makeRaw({ resumoFarmacia: { status: "apagao" } }),
     );
     const { container } = render(await VisaoGeralPage(props));
-    const titulos = ["Para onde vai o dinheiro público", "Mais detalhes"];
+    const titulos = ["Quanto dinheiro entrou", "Mais detalhes"];
     titulos.forEach((titulo) => {
       const cabecalho = screen
         .getByRole("heading", { name: titulo })

@@ -1040,12 +1040,34 @@ describe("buildVisaoGeralViewModel - farmacia", () => {
   });
 });
 
-describe("buildVisaoGeralViewModel - cores das barras", () => {
-  it("não define cor própria por item na origem da arrecadação nem nas etapas", () => {
-    const vm = buildVisaoGeralViewModel(makeRawVisaoGeral());
-    expect(vm.originBreakdown.every((item) => !("corToken" in item))).toBe(
-      true,
+describe("buildVisaoGeralViewModel - arrecadado e previsão de receita", () => {
+  it("compara o arrecadado com a previsão de receita, não com a dotação de despesa", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        fonte: { totalArrecadado: 1309, totalPrevisto: 1562 },
+        execSummary: { totalDotacao: 2061 },
+      }),
     );
+    expect(vm.totalArrecadado).toBe(1309);
+    expect(vm.previstoTotal).toBe(1562);
+    expect(vm.realizationPercent).toBe(84);
+  });
+
+  it("sem previsão de receita o percentual fica zerado", () => {
+    const vm = buildVisaoGeralViewModel(makeRawVisaoGeral({ fonte: null }));
+    expect(vm.previstoTotal).toBe(0);
+    expect(vm.realizationPercent).toBe(0);
+  });
+
+  it("aponta o detalhe da arrecadação para /receitas", () => {
+    const vm = buildVisaoGeralViewModel(makeRawVisaoGeral());
+    expect(vm.receitasDetailUrl).toContain("/receitas");
+  });
+});
+
+describe("buildVisaoGeralViewModel - cores das barras", () => {
+  it("não define cor própria por item nas etapas", () => {
+    const vm = buildVisaoGeralViewModel(makeRawVisaoGeral());
     expect(vm.pipelineStages.every((etapa) => !("corToken" in etapa))).toBe(
       true,
     );
