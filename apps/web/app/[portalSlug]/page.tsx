@@ -3,6 +3,7 @@ import { AberturaHome } from "@/components/abertura-home";
 import { DinheiroPublicoSection } from "@/components/dinheiro-publico-section";
 import { DinheiroQueEntraSection } from "@/components/dinheiro-que-entra-section";
 import { MaisDetalhesSection } from "@/components/mais-detalhes-section";
+import { OrcamentoPagoSection } from "@/components/orcamento-pago-section";
 import { SituacaoCidadeSection } from "@/components/situacao-cidade-section";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadVisaoGeralData } from "./loader";
@@ -85,10 +86,15 @@ export default async function VisaoGeralPage({
         totalArrecadado={viewModel.totalArrecadado}
         previstoTotal={viewModel.previstoTotal}
         percentualPrevisto={viewModel.realizationPercent}
+        receitasDetailUrl={viewModel.receitasDetailUrl}
+      />
+
+      <OrcamentoPagoSection
+        pagoTitle={viewModel.pagoTitle}
+        {...viewModel.execucaoPaga}
         posicaoFinanceira={viewModel.posicaoFinanceira}
         ano={viewModel.selectedYear}
         orcamentoDetailUrl={viewModel.orcamentoDetailUrl}
-        receitasDetailUrl={viewModel.receitasDetailUrl}
         hasEntityFilter={viewModel.hasEntityFilter}
       />
 

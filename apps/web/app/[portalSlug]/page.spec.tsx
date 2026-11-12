@@ -174,6 +174,7 @@ describe("VisaoGeralPage", () => {
     expect(titulos).toEqual([
       "Como está a cidade hoje",
       "Quanto dinheiro entrou",
+      "Para onde vai o dinheiro público",
       "Mais detalhes",
     ]);
     expect(screen.queryByText(/Ano/i, { selector: "select" })).toBeNull();
@@ -211,6 +212,7 @@ describe("VisaoGeralPage", () => {
       "Como está a cidade hoje",
       "Dinheiro que entra na cidade",
       "Quanto dinheiro entrou",
+      "Para onde vai o dinheiro público",
       "Mais detalhes",
     ]);
     expect(

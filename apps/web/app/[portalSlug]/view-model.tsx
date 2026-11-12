@@ -268,6 +268,23 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const realizationPct =
     previstoTotal > 0 ? Math.round((totalArrecadado / previstoTotal) * 100) : 0;
 
+  // Mesma conta do destaque de /orcamento: pago sobre o orçamento autorizado.
+  const execucaoPaga = {
+    totalPago: execSummary.totalPago,
+    totalDotacao: execSummary.totalDotacao,
+    percentualPago:
+      execSummary.totalDotacao > 0
+        ? Math.round((execSummary.totalPago / execSummary.totalDotacao) * 100)
+        : 0,
+    anoEmAndamento: isCurrentYear,
+    anoAnterior: selectedYear - 1,
+    percentualPagoAnoAnterior: (() => {
+      const percentual = raw.execucaoAnoAnterior?.percentualPago;
+      if (percentual === null || percentual === undefined) return null;
+      return Math.round(percentual);
+    })(),
+  };
+
   const totalDotacao = execSummary.totalDotacao;
   const totalEmpenhado = execSummary.totalEmpenhado;
   const totalLiquidado = execSummary.totalLiquidado;
@@ -477,6 +494,9 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   const arrecadadoTitle = isCurrentYear
     ? "Arrecadado no ano até agora"
     : "Arrecadado no exercício";
+  const pagoTitle = isCurrentYear
+    ? "Pago no ano até agora"
+    : "Pago no exercício";
 
   const radarCivicoFeedData = buildRadarCivicoCards(
     raw.radarAlertas,
@@ -525,6 +545,8 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
     realizationPercent: realizationPct,
     totalArrecadado,
     previstoTotal,
+    pagoTitle,
+    execucaoPaga,
     pipelineStages,
     despesasCardData,
     licitacoesCardData,

@@ -1059,6 +1059,28 @@ describe("buildVisaoGeralViewModel - arrecadado e previsão de receita", () => {
     expect(vm.realizationPercent).toBe(0);
   });
 
+  it("calcula o pago sobre o orçamento autorizado e a régua do ano anterior", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        execSummary: { totalPago: 1186, totalDotacao: 2061 },
+        execucaoAnoAnterior: { anoAnterior: 2023, percentualPago: 90.6 },
+      }),
+    );
+    expect(vm.execucaoPaga.percentualPago).toBe(58);
+    expect(vm.execucaoPaga.percentualPagoAnoAnterior).toBe(91);
+  });
+
+  it("sem orçamento autorizado o percentual pago fica zerado e sem régua", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        execSummary: { totalPago: 0, totalDotacao: 0 },
+        execucaoAnoAnterior: { anoAnterior: 2023, percentualPago: null },
+      }),
+    );
+    expect(vm.execucaoPaga.percentualPago).toBe(0);
+    expect(vm.execucaoPaga.percentualPagoAnoAnterior).toBeNull();
+  });
+
   it("aponta o detalhe da arrecadação para /receitas", () => {
     const vm = buildVisaoGeralViewModel(makeRawVisaoGeral());
     expect(vm.receitasDetailUrl).toContain("/receitas");
