@@ -218,7 +218,7 @@ export default async function DespesasPage({
           <Indicator
             label="Pendência mais antiga desde"
             value={restosResumo.dividaMaisAntigaAno}
-            note="Quanto mais antiga, mais atenção merece."
+            note="Ano estimado a partir do empenho original. Quanto mais antiga, mais atenção merece."
           />
         </IndicatorPanel>
 

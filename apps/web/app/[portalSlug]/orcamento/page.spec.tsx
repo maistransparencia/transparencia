@@ -35,6 +35,7 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       anoAnterior: 2023,
       percentualPago: null,
     },
+    restosPagosNoAno: 0,
     ...overrides,
   } as unknown as RawData;
 }
@@ -104,6 +105,28 @@ describe("OrcamentoPage", () => {
     expect(screen.getByTestId("orcamento-ano-anterior")).toHaveTextContent(
       "Para comparar: em 2023, o ano inteiro terminou com 85% do orçamento pago.",
     );
+  });
+
+  it("mostra o pago de anos anteriores à parte quando há restos a pagar pagos", async () => {
+    loadOrcamentoDataMock.mockResolvedValue(
+      makeRaw({ restosPagosNoAno: 15_440_000 }),
+    );
+
+    const element = await OrcamentoPage(props);
+    render(element);
+
+    expect(screen.getByTestId("orcamento-restos-pagos")).toHaveTextContent(
+      "contas de anos anteriores (restos a pagar)",
+    );
+  });
+
+  it("não mostra o aviso de restos a pagar quando não houve pagamento", async () => {
+    loadOrcamentoDataMock.mockResolvedValue(makeRaw());
+
+    const element = await OrcamentoPage(props);
+    render(element);
+
+    expect(screen.queryByTestId("orcamento-restos-pagos")).toBeNull();
   });
 
   it("esconde a seção 'por função' quando não há dados funcionais", async () => {

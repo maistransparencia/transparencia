@@ -54,6 +54,7 @@ export default async function OrcamentoPage({
     funnelStages,
     funcItems,
     execucaoAnoAnterior,
+    restosPagosNoAno,
   } = viewModel;
 
   const temOrcamento = totalDotacao > 0;
@@ -94,6 +95,18 @@ export default async function OrcamentoPage({
           </>
         )}
       </section>
+
+      {restosPagosNoAno > 0 ? (
+        <p
+          className="text-mute2 text-sm leading-relaxed"
+          data-testid="orcamento-restos-pagos"
+        >
+          Em {selectedYear}, a prefeitura também pagou{" "}
+          {fmtCompact(restosPagosNoAno)} por contas de anos anteriores (restos a
+          pagar). Esse valor não está no percentual acima, que considera só o
+          orçamento de {selectedYear}.
+        </p>
+      ) : null}
 
       {execucaoAnoAnterior.percentualPago !== null ? (
         <p
