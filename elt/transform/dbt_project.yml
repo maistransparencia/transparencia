@@ -19,8 +19,17 @@ on-run-start:
   - "CREATE EXTENSION IF NOT EXISTS unaccent;"
   - "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
   - "CREATE SCHEMA IF NOT EXISTS analytics;"
-  - "CREATE OR REPLACE FUNCTION analytics.unaccent(text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1); $$;"
-  - "CREATE OR REPLACE FUNCTION analytics.unaccent(regdictionary, text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT public.unaccent($1, $2); $$;"
+  # A extensão pode morar fora de public (ex: Supabase instala em extensions).
+  - |
+    DO $$
+    DECLARE ext_schema text;
+    BEGIN
+      SELECT n.nspname INTO ext_schema
+      FROM pg_extension e JOIN pg_namespace n ON n.oid = e.extnamespace
+      WHERE e.extname = 'unaccent';
+      EXECUTE format('CREATE OR REPLACE FUNCTION analytics.unaccent(text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $f$ SELECT %I.unaccent($1) $f$', ext_schema);
+      EXECUTE format('CREATE OR REPLACE FUNCTION analytics.unaccent(regdictionary, text) RETURNS text LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $f$ SELECT %I.unaccent($1, $2) $f$', ext_schema);
+    END $$;
 
 vars:
   test_mode: false
