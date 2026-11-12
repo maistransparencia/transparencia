@@ -562,6 +562,13 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
   return {
     portalName,
     openingTitle: portalName || "Municípios Integrados",
+    // Ano encerrado não é "hoje": o texto acompanha o ano escolhido.
+    openingLead: isCurrentYear
+      ? "Como a cidade está hoje e para onde vai o dinheiro público."
+      : `Como a cidade ficou em ${selectedYear} e para onde foi o dinheiro público.`,
+    situacaoTitle: isCurrentYear
+      ? "Como está a cidade hoje"
+      : `Como a cidade ficou em ${selectedYear}`,
     periodLabel,
     detailShortcuts,
     periodText,

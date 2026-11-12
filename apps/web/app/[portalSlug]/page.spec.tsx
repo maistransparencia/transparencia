@@ -478,11 +478,7 @@ describe("VisaoGeralPage", () => {
       makeRaw({ resumoFarmacia: { status: "apagao" } }),
     );
     const { container } = render(await VisaoGeralPage(props));
-    const titulos = [
-      "Como está a cidade hoje",
-      "Para onde vai o dinheiro público",
-      "Mais detalhes",
-    ];
+    const titulos = ["Para onde vai o dinheiro público", "Mais detalhes"];
     titulos.forEach((titulo) => {
       const cabecalho = screen
         .getByRole("heading", { name: titulo })
@@ -491,6 +487,36 @@ describe("VisaoGeralPage", () => {
     });
     const raiz = container.firstElementChild;
     expect(raiz).toHaveClass("space-y-12", "md:space-y-16", "bg-page");
+  });
+
+  it("a situação da cidade não repete a abertura: título só para leitor de tela", async () => {
+    render(await VisaoGeralPage(props));
+    const titulo = screen.getByRole("heading", {
+      name: "Como está a cidade hoje",
+    });
+    expect(titulo).toHaveClass("sr-only");
+    expect(titulo.closest("header")).toBeNull();
+  });
+
+  it("ano encerrado não fala em hoje", async () => {
+    loadVisaoGeralDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          currentYear: 2026,
+          selectedYear: 2025,
+          isCurrentYear: false,
+          entidadesIds: undefined,
+        },
+      }),
+    );
+    const { container } = render(await VisaoGeralPage(props));
+    expect(
+      screen.getByText(/Como a cidade ficou em 2025 e para onde foi/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Como a cidade ficou em 2025" }),
+    ).toBeInTheDocument();
+    expect(container.querySelector("header")?.textContent).not.toMatch(/hoje/);
   });
 
   it("não usa caixas com sombra nem hex nos arquivos migrados", () => {

@@ -48,10 +48,12 @@ export default async function VisaoGeralPage({
       <div className="space-y-8">
         <AberturaHome
           title={viewModel.openingTitle}
+          lead={viewModel.openingLead}
           periodLabel={viewModel.periodLabel}
         />
 
         <SituacaoCidadeSection
+          title={viewModel.situacaoTitle}
           situacao={viewModel.situacaoHome}
           ano={viewModel.selectedYear}
           farmaciaStatus={viewModel.farmaciaStatus}

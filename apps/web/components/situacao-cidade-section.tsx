@@ -34,9 +34,10 @@ import {
   type FarmaciaBuscaFormProps,
 } from "./farmacia/farmacia-busca-form";
 import type { ObraMiniMapMarker } from "./obras-resumo-card";
-import { SectionWithHeader } from "./section-with-header";
 
 export interface SituacaoCidadeSectionProps extends BuildSituacaoCidadeParams {
+  /** Título da seção, lido só por leitor de tela; acompanha o ano escolhido. */
+  title: string;
   farmaciaDetailUrl: string;
   /** Página da farmácia já rolada até o índice alfabético. */
   farmaciaIndiceUrl: string;
@@ -474,12 +475,16 @@ export function SituacaoCidadeSection(props: SituacaoCidadeSectionProps) {
   const cards = buildSituacaoCidadeCards(props);
   if (cards.length === 0) return null;
   return (
-    <SectionWithHeader id="situacao-cidade" title="Como está a cidade hoje">
+    // O subtítulo da abertura já faz a pergunta; o título fica só para leitor de tela.
+    <section id="situacao-cidade" aria-labelledby="situacao-cidade-titulo">
+      <h2 id="situacao-cidade-titulo" className="sr-only">
+        {props.title}
+      </h2>
       <div className="space-y-8">
         {cards.map((card) => (
           <SituacaoCard key={card.area} card={card} props={props} />
         ))}
       </div>
-    </SectionWithHeader>
+    </section>
   );
 }
