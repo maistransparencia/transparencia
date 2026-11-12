@@ -1,16 +1,16 @@
 export interface AberturaHomeProps {
   title: string;
+  lead: string;
   periodLabel: string;
 }
 
 /** Abertura da home: situação da cidade e período dos dados, sem número fiscal. */
-export function AberturaHome({ title, periodLabel }: AberturaHomeProps) {
+export function AberturaHome({ title, lead, periodLabel }: AberturaHomeProps) {
   return (
     <header className="space-y-2">
       <h1>{title}</h1>
       <p className="text-mute2">
-        Como a cidade está hoje e para onde vai o dinheiro público.{" "}
-        <span className="text-sm">{periodLabel}</span>
+        {lead} <span className="text-sm">{periodLabel}</span>
       </p>
     </header>
   );

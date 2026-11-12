@@ -4,7 +4,7 @@ import type {
   SituacaoAreaDTO,
   SituacaoHomeDTO,
 } from "@transparencia/db";
-import { fmtNumber, fmtPercent } from "@transparencia/ui";
+import { fmtDate, fmtNumber, fmtPercent } from "@transparencia/ui";
 import type { EducacaoResumoCardData } from "@/components/educacao-resumo-card";
 import {
   FONTES_OFICIAIS,
@@ -51,6 +51,8 @@ export interface SituacaoCidadeCardModel {
   fontes: FonteOficial[];
   /** Observação depois das fontes (ex.: a meta do Ideb); `null` quando não há. */
   notaOrigem: string | null;
+  /** Aviso de que a manchete não é do ano escolhido; `null` quando é. */
+  notaPeriodo: string | null;
   apoio: ApoioMinimoModel | null;
   /** Motivo escrito da etiqueta "Merece atenção"; `null` = sem etiqueta. */
   motivoAtencao: string | null;
@@ -62,6 +64,9 @@ export interface BuildSituacaoCidadeParams {
   situacao: SituacaoHomeDTO;
   ano: number;
   farmaciaStatus: StatusFarmaciaCard;
+  /** Data (ISO) da posição de estoque mais recente divulgada. */
+  farmaciaDataPosicao: string | null;
+  isCurrentYear: boolean;
   minimoSaude: MinimoLegalEntrada | null;
   resumoObras: ResumoObrasDTO | null;
   educacaoResumo: EducacaoResumoCardData | null;
@@ -146,7 +151,12 @@ const PERGUNTA_SAUDE = "Tem remédio no posto de saúde?";
 const PERGUNTA_OBRAS = "As obras da cidade estão andando?";
 const PERGUNTA_EDUCACAO = "A educação da cidade está melhorando?";
 
-const mancheteSaude = (status: StatusFarmaciaCard): string | null => {
+const mancheteSaude = (
+  status: StatusFarmaciaCard,
+  dataPosicao: string | null,
+): string | null => {
+  if (status === "conforme" && dataPosicao)
+    return `Estoque atualizado em ${fmtDate(dataPosicao)}`;
   if (status === "conforme") return "Estoque divulgado em dia";
   if (status === "apagao") return "Sem informação de estoque";
   return null;
@@ -159,13 +169,19 @@ const mancheteSaude = (status: StatusFarmaciaCard): string | null => {
 const montarCardSaude = (
   params: BuildSituacaoCidadeParams,
 ): SituacaoCidadeCardModel | null => {
-  const { situacao, farmaciaStatus, minimoSaude, saudeDetailUrl } = params;
+  const {
+    situacao,
+    farmaciaStatus,
+    farmaciaDataPosicao,
+    minimoSaude,
+    saudeDetailUrl,
+  } = params;
   const apoio = montarApoioMinimo(
     "A Prefeitura aplica o mínimo exigido em saúde?",
     situacao.saude,
     minimoSaude,
   );
-  const manchete = mancheteSaude(farmaciaStatus);
+  const manchete = mancheteSaude(farmaciaStatus, farmaciaDataPosicao);
   if (!manchete && !apoio) return null;
   const motivoAtencao = textoMotivo(situacao.saude, 0);
   return {
@@ -177,6 +193,11 @@ const montarCardSaude = (
     sentidoComplemento: null,
     fontes: FONTES_SAUDE,
     notaOrigem: null,
+    // O estoque é sempre o de hoje: em ano encerrado o card avisa.
+    notaPeriodo:
+      manchete && !params.isCurrentYear
+        ? `Situação atual, não de ${params.ano}.`
+        : null,
     apoio: manchete ? apoio : null,
     motivoAtencao,
     tom:
@@ -249,6 +270,7 @@ const montarCardObras = (
     sentidoComplemento: null,
     fontes: FONTES_OBRAS,
     notaOrigem: null,
+    notaPeriodo: null,
     apoio: null,
     motivoAtencao,
     tom: tomDoCard(motivoAtencao, null),
@@ -303,6 +325,7 @@ const montarCardEducacao = (
     notaOrigem: educacaoResumo.metaTexto
       ? `${educacaoResumo.metaTexto}.`
       : null,
+    notaPeriodo: null,
     apoio,
     motivoAtencao,
     tom: tomDoCard(motivoAtencao, apoio),
