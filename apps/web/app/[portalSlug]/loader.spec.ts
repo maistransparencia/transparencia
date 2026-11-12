@@ -36,6 +36,10 @@ vi.mock("@transparencia/db", () => ({
   getContratosServicosVigentes: vi.fn().mockResolvedValue([]),
   getEntidades: getEntidadesMock,
   getExecucaoOrcamentariaMetrics: vi.fn().mockResolvedValue([]),
+  getExecucaoAnoAnterior: vi.fn().mockResolvedValue({
+    anoAnterior: 2023,
+    percentualPago: null,
+  }),
   getFolhaVsServicosMetrics: vi.fn().mockResolvedValue([]),
   getFontesReceitaMetrics: vi.fn().mockResolvedValue(null),
   getLicitacaoGapsMetrics: vi.fn().mockResolvedValue([]),
