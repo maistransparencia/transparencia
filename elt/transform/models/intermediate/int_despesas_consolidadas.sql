@@ -1,6 +1,10 @@
 -- Intermediário: consolida despesas de todos os portais via union all.
 -- Para adicionar novo portal: incluir novo CTE + union all abaixo.
 -- fonte: 'exercicio' para despesas do orçamento corrente, 'restos_a_pagar' para RAP.
+-- View: só alimenta int_despesas_reclassificadas; como tabela ocupava ~128 MB
+-- e dobrava durante o rebuild, estourando o disco de produção.
+
+{{ config(materialized='view') }}
 
 with porciuncula_exercicio as (
     select

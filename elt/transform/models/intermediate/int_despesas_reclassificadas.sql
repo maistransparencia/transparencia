@@ -1,3 +1,6 @@
+-- View: só alimenta fct_despesas; materializar como tabela duplicava ~94 MB em disco.
+{{ config(materialized='view') }}
+
 with despesas_base as (
     select * from {{ ref('int_despesas_consolidadas') }}
 ),
