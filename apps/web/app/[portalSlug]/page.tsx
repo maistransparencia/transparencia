@@ -63,6 +63,7 @@ export default async function VisaoGeralPage({
           obrasDetailUrl={viewModel.obrasDetailUrl}
           educacaoDetailUrl={viewModel.educacaoDetailUrl}
           farmaciaDetailUrl={viewModel.farmaciaDetailUrl}
+          farmaciaIndiceUrl={viewModel.farmaciaIndiceUrl}
           farmaciaRequerimento={viewModel.farmaciaRequerimento}
           farmaciaTextoWhatsApp={viewModel.farmaciaTextoWhatsApp}
           farmaciaExemplos={viewModel.farmaciaExemplos}

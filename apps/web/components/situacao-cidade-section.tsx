@@ -38,6 +38,8 @@ import { SectionWithHeader } from "./section-with-header";
 
 export interface SituacaoCidadeSectionProps extends BuildSituacaoCidadeParams {
   farmaciaDetailUrl: string;
+  /** Página da farmácia já rolada até o índice alfabético. */
+  farmaciaIndiceUrl: string;
   farmaciaRequerimento?: string;
   farmaciaTextoWhatsApp?: string;
   farmaciaExemplos?: {
@@ -280,7 +282,6 @@ function ExtrasSaude({
   if (props.farmaciaStatus === "conforme") {
     const propsBusca: FarmaciaBuscaFormProps = {
       action: props.farmaciaDetailUrl,
-      rotuloBotaoMobile: "Buscar no estoque",
     };
     return (
       <div className="space-y-2">
@@ -303,6 +304,10 @@ function ExtrasSaude({
             </ul>
           </div>
         )}
+        <Link href={props.farmaciaIndiceUrl} className={CLASSE_ACAO_DESTAQUE}>
+          <span>Ver todos os remédios de A a Z</span>
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
       </div>
     );
   }

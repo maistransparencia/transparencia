@@ -237,7 +237,7 @@ export function FarmaciaIndiceAz({ indice, idSecao }: FarmaciaIndiceAzProps) {
     <section
       id={idSecao}
       aria-labelledby={`${idSecao}-titulo`}
-      className="flex scroll-mt-4 flex-col gap-4"
+      className="flex scroll-mt-20 flex-col gap-4 lg:scroll-mt-4"
     >
       <div className="space-y-1">
         <h2 id={`${idSecao}-titulo`}>Procurar por letra</h2>
