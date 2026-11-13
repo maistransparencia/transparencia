@@ -74,4 +74,4 @@ Regra 4 (`make test`, `make check`); regra 15 (nada contra produção sem autori
 
 ### Evidência do primeiro run mensal do SIOPS
 
-PENDENTE: depende de autorização do Julio para o dispatch com `dry_run=true`.
+PENDENTE (2026-11-13): o Julio autorizou o dispatch com `dry_run=true`, mas o GitHub recusou (`HTTP 404: workflow ingestion-monthly.yml not found on the default branch`): o `workflow_dispatch` exige o workflow na `dev`, mesmo com `--ref` da branch (que foi enviada ao remoto). Passo pos-merge na `dev`, com os crons ainda travados por `INGESTION_SCHEDULE_ENABLED=false`: `gh workflow run ingestion-monthly.yml --ref dev -f portal=<um portal> -f dry_run=true`, registrar aqui timeout, limite de taxa e repeticao do SIOPS e so entao considerar `siope`/`siops` como `monitorado`.
