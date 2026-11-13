@@ -21,7 +21,7 @@ def _seed_sources() -> dict[str, dict[str, str]]:
 
 
 def _grouped_sources() -> list[str]:
-    return [key for group in CADENCE_GROUPS for key in group.only_keys]
+    return [key for group in CADENCE_GROUPS for key in group.source_keys]
 
 
 def test_each_collected_source_is_in_exactly_one_group():
@@ -48,8 +48,8 @@ def test_group_keys_are_accepted_by_extract_run():
 def test_seed_frequency_equals_group_name(group):
     seed = _seed_sources()
 
-    assert {key: seed[key]["frequencia_esperada"] for key in group.only_keys} == {
-        key: group.name for key in group.only_keys
+    assert {key: seed[key]["frequencia_esperada"] for key in group.source_keys} == {
+        key: group.name for key in group.source_keys
     }
 
 
@@ -57,7 +57,7 @@ def test_seed_frequency_equals_group_name(group):
 def test_tolerance_covers_the_cron_interval(group):
     seed = _seed_sources()
 
-    for key in group.only_keys:
+    for key in group.source_keys:
         assert int(seed[key]["tolerancia_dias"]) >= group.max_interval_days + MIN_SLACK_DAYS
 
 
@@ -92,3 +92,45 @@ def test_scheduled_runs_are_gated_by_repository_variable(group):
 
     assert "vars.INGESTION_SCHEDULE_ENABLED == 'true'" in call["if"]
     assert "github.event_name != 'schedule'" in call["if"]
+
+
+def _group_workflow() -> dict:
+    return yaml.safe_load((WORKFLOWS / "ingestion-group.yml").read_text(encoding="utf-8"))
+
+
+def test_health_sources_run_only_in_the_monthly_group():
+    from elt.extract.saude_datasus import FONTE_DA_TABELA
+
+    health_sources = set(FONTE_DA_TABELA.values())
+    monthly = next(group for group in CADENCE_GROUPS if group.name == "mensal")
+
+    assert health_sources == set(monthly.dedicated_keys)
+    assert all(not group.dedicated_keys for group in CADENCE_GROUPS if group is not monthly)
+    assert not health_sources & {key for group in CADENCE_GROUPS for key in group.only_keys}
+
+
+@pytest.mark.parametrize("group", CADENCE_GROUPS, ids=lambda g: g.name)
+def test_only_the_group_with_dedicated_sources_enables_the_health_job(group):
+    workflow = yaml.safe_load((WORKFLOWS / group.workflow_file).read_text(encoding="utf-8"))
+    call = next(job for job in workflow["jobs"].values() if "uses" in job)
+
+    assert bool(call["with"].get("saude")) == bool(group.dedicated_keys)
+
+
+def test_health_job_is_conditional_per_uf_with_explicit_timeout_and_runs_before_dbt():
+    jobs = _group_workflow()["jobs"]
+    health = jobs["saude"]
+
+    assert "inputs.saude" in health["if"]
+    assert health["timeout-minutes"]
+    assert "needs.setup.outputs.ufs" in health["strategy"]["matrix"]["uf"]
+    assert "saude" in jobs["load_and_transform"]["needs"]
+
+
+def test_health_job_hardcodes_no_uf_or_competencies():
+    steps = _group_workflow()["jobs"]["saude"]["steps"]
+    script = "\n".join(step.get("run", "") for step in steps)
+
+    assert "saude_datasus" in script
+    assert not re.search(r"--(years|competencias)", script)
+    assert not re.search(r"\b[A-Z]{2}\b(?=\s*\")", script.replace("${{ matrix.uf }}", ""))

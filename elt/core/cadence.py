@@ -13,6 +13,12 @@ class CadenceGroup:
     only_keys: tuple[str, ...]
     max_interval_days: int
     workflow_file: str
+    # Sources collected by a dedicated job of the group (not by `elt.extract.run --only`).
+    dedicated_keys: tuple[str, ...] = ()
+
+    @property
+    def source_keys(self) -> tuple[str, ...]:
+        return (*self.only_keys, *self.dedicated_keys)
 
 
 CADENCE_GROUPS: tuple[CadenceGroup, ...] = (
@@ -32,13 +38,15 @@ CADENCE_GROUPS: tuple[CadenceGroup, ...] = (
         ("siconfi_msc", "siconfi_rgf", "siope", "siops"),
         max_interval_days=31,
         workflow_file="ingestion-monthly.yml",
+        dedicated_keys=("saude_rede", "saude_producao"),
     ),
 )
 
 # Sources in the seed that elt.extract.run does not collect on a schedule, with the reason.
 UNSCHEDULED_SOURCES: dict[str, str] = {
-    "saude_rede": "cadencia propria da saude (Story 23.8c)",
-    "inep_censo": "anual, cadencia propria (Story 23.8c)",
+    "inep_censo": "anual, cadencia propria",
     "inep_ideb": "anual, verificado por check-inep-ideb-updates.yml",
+    "inep_ideb_estados": "anual, verificado por check-inep-ideb-updates.yml",
+    "inep_ideb_brasil": "anual, verificado por check-inep-ideb-updates.yml",
     "emendas_estaduais": "sob demanda",
 }

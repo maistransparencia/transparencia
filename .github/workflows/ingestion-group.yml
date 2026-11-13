@@ -19,6 +19,10 @@ on:
         description: "Executar em modo dry-run (sem gravar no banco nem webhook de produção)"
         type: boolean
         default: false
+      saude:
+        description: "Inclui o job de saúde (DATASUS), uma execução por UF, antes do dbt"
+        type: boolean
+        default: false
 
 jobs:
   # ==========================================================
@@ -29,6 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       portals: ${{ steps.discover.outputs.portals }}
+      ufs: ${{ steps.discover.outputs.ufs }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -57,8 +62,24 @@ jobs:
           print(json.dumps(selected))
           " "$PORTAL_INPUT")
 
+          # UFs dos portais selecionados (lidas do campo `uf:` de cada YAML), para o job de saúde.
+          UFS_JSON=$(python3 -c "
+          import json, re, sys
+          from pathlib import Path
+
+          slugs = json.loads(sys.argv[1])
+          ufs = {
+              match.group(1)
+              for slug in slugs
+              if (match := re.search(r'^uf:\\s*(\\w+)', Path(f'elt/portals/{slug}.yml').read_text(encoding='utf-8'), re.M))
+          }
+          print(json.dumps(sorted(ufs)))
+          " "$PORTALS_JSON")
+
           echo "Portais selecionados para execução: $PORTALS_JSON"
+          echo "UFs dos portais: $UFS_JSON"
           echo "portals=$PORTALS_JSON" >> "$GITHUB_OUTPUT"
+          echo "ufs=$UFS_JSON" >> "$GITHUB_OUTPUT"
         env:
           INPUT_PORTAL: ${{ inputs.portal }}
 
@@ -142,11 +163,66 @@ jobs:
           retention-days: 7
 
   # ==========================================================
+  # FASE 1b: Saúde (DATASUS), uma execução por UF
+  # ==========================================================
+  # Extrator próprio (elt.extract.saude_datasus): lê os arquivos mensais da UF por FTP, grava direto no banco as
+  # 4 últimas competências fechadas e registra a coleta de cada portal (saude_rede e saude_producao).
+  # O backfill de 2021 em diante é manual e só no banco local; aqui nunca se passa --years/--competencias.
+  saude:
+    name: "Saude: ${{ matrix.uf }}"
+    needs: [setup]
+    if: ${{ inputs.saude && needs.setup.outputs.ufs != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        uf: ${{ fromJson(needs.setup.outputs.ufs) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # O cron sempre dispara na branch padrão (dev); a ingestão de produção usa o código de main.
+          ref: ${{ github.event_name == 'schedule' && 'main' || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv and sync dependencies
+        run: |
+          pip install uv
+          uv sync --project elt --no-dev
+
+      - name: Extract and load health data
+        run: |
+          START=$(date +%s)
+          ARGS=(--uf "${{ matrix.uf }}")
+          if [ "$INPUT_PORTAL" != "all" ] && [ -n "$INPUT_PORTAL" ]; then
+            ARGS+=(--portal "$INPUT_PORTAL")
+          fi
+          if [ "$INPUT_DRY_RUN" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+          PYTHONPATH=. uv run --project elt python -m elt.extract.saude_datasus "${ARGS[@]}"
+          echo "Saude ${{ matrix.uf }}: $(( $(date +%s) - START )) s" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          INPUT_PORTAL: ${{ inputs.portal }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Remove temporary files
+        if: ${{ always() }}
+        run: rm -rf "${TMPDIR:-/tmp}"/saude_datasus_*
+
+  # ==========================================================
   # FASE 2: Carga no Banco e Transformação dbt (Fan-in)
   # ==========================================================
   load_and_transform:
     name: Load to PostgreSQL & dbt Transform
-    needs: [setup, extract]
+    needs: [setup, extract, saude]
     if: ${{ !cancelled() && needs.setup.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import ftplib
+import json
 import logging
 import re
 import socket
@@ -41,6 +42,14 @@ TIMEOUT_FTP = 60
 TENTATIVAS_FTP = 5
 ESPERA_INICIAL_FTP = 2.0
 MESES_RECENTES = 4
+# Código da fonte no catálogo (seed_fontes_coleta.csv) de cada tabela do raw_saude_rede.
+FONTE_DA_TABELA: dict[str, str] = {
+    "leitos_competencia": "saude_rede",
+    "profissionais_competencia": "saude_rede",
+    "populacao_residente": "saude_rede",
+    "sia_competencia": "saude_producao",
+    "sih_competencia": "saude_producao",
+}
 
 
 class SaudeDatasusError(RuntimeError):
@@ -448,15 +457,27 @@ def anos_da_populacao(competencias: list[int]) -> list[int]:
     return sorted({*anos, min(anos) - 1}) if anos else []
 
 
+def totais_por_fonte(linhas_por_tabela: dict[str, int]) -> dict[str, int]:
+    """Soma as linhas das tabelas por fonte do catálogo; a fonte sem linhas continua presente com zero."""
+    fontes = sorted(set(FONTE_DA_TABELA.values()))
+    return {
+        fonte: sum(total for tabela, total in linhas_por_tabela.items() if FONTE_DA_TABELA[tabela] == fonte)
+        for fonte in fontes
+    }
+
+
 def main() -> None:
     from elt.core.config import PortalConfig
     from elt.core.db import get_engine
     from elt.extract.saude_rede import extrair_populacao
+    from elt.load.coletas import record_collections
     from elt.load.saude_rede import load_saude_rede_tabela
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     parser = argparse.ArgumentParser(description="Extrai e carrega a rede e a produção de saúde do DATASUS")
     parser.add_argument("--portal", help="Slug de um portal (default: todos, agrupados por UF)")
+    parser.add_argument("--uf", help="Só os portais desta UF (uma execução por UF no workflow mensal)")
+    parser.add_argument("--list-ufs", action="store_true", help="Imprime as UFs dos portais cadastrados (JSON) e sai")
     parser.add_argument("--competencias", nargs="+", type=int, help="Competências AAAAMM (default: 4 últimas fechadas)")
     parser.add_argument("--years", nargs="+", type=int, help="Todas as competências fechadas destes anos (backfill)")
     parser.add_argument("--dry-run", action="store_true", help="Extrai e agrega, sem gravar no banco")
@@ -466,10 +487,15 @@ def main() -> None:
         [args.portal] if args.portal else sorted(p.stem for p in (CAMINHO_FONTES.parents[1] / "portals").glob("*.yml"))
     )
     portais = [PortalConfig.load(slug) for slug in slugs]
+    if args.list_ufs:
+        print(json.dumps(sorted({portal.uf for portal in portais})))
+        return
+    portais = [portal for portal in portais if args.uf is None or portal.uf == args.uf]
     fontes = {fonte.uf: fonte for fonte in carregar_fontes()}
     competencias = competencias_do_pedido(args.competencias, args.years)
     tipos_leito = carregar_tipos_leito()
     engine = None if args.dry_run else get_engine()
+    coletado_em = datetime.now(timezone.utc).astimezone()
 
     for uf in sorted({portal.uf for portal in portais}):
         fonte = fontes.get(uf)
@@ -478,12 +504,14 @@ def main() -> None:
             logger.warning("UF %s sem fonte do DATASUS configurada (ufs_sem_fonte): nada a extrair", uf)
             continue
         municipios = {codigo_municipio6(portal.cod_ibge): portal.slug for portal in do_estado}
+        linhas_por_portal: dict[str, dict[str, int]] = {portal.slug: {} for portal in do_estado}
         with ClienteFtp(fonte.host) as cliente:
             for competencia in competencias:
                 dados = extrair_competencia(cliente, fonte, competencia, municipios, tipos_leito)
                 for slug, tabelas in dados.items():
                     for tabela, linhas in tabelas.items():
                         logger.info("%s %d %s → %d linhas", slug, competencia, tabela, len(linhas))
+                        linhas_por_portal[slug][tabela] = linhas_por_portal[slug].get(tabela, 0) + len(linhas)
                         if engine is not None and linhas:
                             load_saude_rede_tabela(engine, tabela, linhas, slug)
         # O mart usa o último ano anterior com população quando o ano da competência ainda não foi divulgado.
@@ -491,8 +519,14 @@ def main() -> None:
         for portal in do_estado:
             populacao = extrair_populacao(portal.slug, portal.cod_ibge, anos)
             logger.info("%s população → %d linhas", portal.slug, len(populacao))
+            linhas_por_portal[portal.slug]["populacao_residente"] = len(populacao)
             if engine is not None and populacao:
                 load_saude_rede_tabela(engine, "populacao_residente", populacao, portal.slug)
+            if engine is not None:
+                registradas = record_collections(
+                    engine, portal.slug, totais_por_fonte(linhas_por_portal[portal.slug]), coletado_em
+                )
+                logger.info("%s: %d coleta(s) registrada(s) em raw_coletas.registro_coletas", portal.slug, registradas)
 
 
 if __name__ == "__main__":

@@ -30,4 +30,5 @@ jobs:
       portal: ${{ inputs.portal || 'all' }}
       years: ${{ inputs.years || '' }}
       dry_run: ${{ inputs.dry_run || false }}
+      saude: true
     secrets: inherit
