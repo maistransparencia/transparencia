@@ -28,6 +28,7 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       totalLiquidadoPendente: 50,
       fornecedoresAguardando: 5,
       dividaMaisAntigaAno: 2021,
+      restosPagos: 80,
       topFornecedores: [],
     },
     opacidadeContabil: {
@@ -66,6 +67,44 @@ describe("buildDespesasViewModel", () => {
     expect(vm.radarGastosSensiveis).toEqual(raw.radarGastosSensiveis);
     expect(vm.restosResumo).toEqual(raw.restosResumo);
     expect(vm.opacidadeContabil).toEqual(raw.opacidadeContabil);
+  });
+
+  it("monta o histórico de restos a pagar por ano, do mais antigo ao mais novo, somando administrações do mesmo ano", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        restosPorAno: [
+          {
+            ano: 2023,
+            administracao: "Adm. Atual",
+            empenhado: 100,
+            liquidado: 0,
+            pago: 40,
+            pendente: 60,
+          },
+          {
+            ano: 2021,
+            administracao: "Adm. Anterior",
+            empenhado: 50,
+            liquidado: 50,
+            pago: 50,
+            pendente: 0,
+          },
+          {
+            ano: 2023,
+            administracao: "Adm. Anterior",
+            empenhado: 20,
+            liquidado: 0,
+            pago: 5,
+            pendente: 15,
+          },
+        ],
+      }),
+    );
+
+    expect(vm.restosHistorico).toEqual([
+      { ano: 2021, inscrito: 50, pago: 50, pendente: 0 },
+      { ano: 2023, inscrito: 120, pago: 45, pendente: 75 },
+    ]);
   });
 
   it("ordena as áreas por etapa e calcula percentual sobre a soma da mesma etapa", () => {

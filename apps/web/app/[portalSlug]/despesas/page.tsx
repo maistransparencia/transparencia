@@ -12,6 +12,7 @@ import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-
 import { PageEyebrow } from "@/components/page-eyebrow";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
+import { ShowYourWorkButton } from "@/components/show-your-work-button";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadDespesasData } from "./loader";
@@ -62,6 +63,7 @@ export default async function DespesasPage({
     fornecedoresLinhas,
     radarGastosSensiveis,
     restosResumo,
+    restosHistorico,
     opacidadeContabil,
   } = viewModel;
 
@@ -220,7 +222,65 @@ export default async function DespesasPage({
             value={restosResumo.dividaMaisAntigaAno}
             note="Ano estimado a partir do empenho original. Quanto mais antiga, mais atenção merece."
           />
+          <Indicator
+            label={`Já pago em ${selectedYear}`}
+            value={fmtCompact(restosResumo.restosPagos)}
+            note="Pagamentos do ano por contas de anos anteriores."
+          />
         </IndicatorPanel>
+
+        {restosHistorico.length > 0 && (
+          <div className="space-y-3" data-testid="restos-historico">
+            <h3>
+              A Prefeitura está pagando as dívidas antigas? (
+              {restosHistorico[0].ano}–
+              {restosHistorico[restosHistorico.length - 1].ano})
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th scope="col">Ano</th>
+                    <th scope="col" className="numeric">
+                      Dívida levada para o ano
+                    </th>
+                    <th scope="col" className="numeric">
+                      Já pago
+                    </th>
+                    <th scope="col" className="numeric">
+                      Ainda a pagar
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {restosHistorico.map((linha) => (
+                    <tr key={linha.ano}>
+                      <td>{linha.ano}</td>
+                      <td className="numeric">{fmtCompact(linha.inscrito)}</td>
+                      <td className="numeric">{fmtCompact(linha.pago)}</td>
+                      <td className="numeric">{fmtCompact(linha.pendente)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="caption">
+              Cada linha é a situação daquele ano: o que sobra de um ano é
+              levado para o seguinte, então não some as colunas "Dívida levada"
+              e "Ainda a pagar" entre os anos. "Já pago" é o que a Prefeitura
+              pagou naquele ano.
+            </p>
+          </div>
+        )}
+
+        <ShowYourWorkButton
+          portalSlug={portalSlug}
+          tipo="restos_a_pagar"
+          entidades={resolvedSearchParams.entidades}
+          variante="link"
+          rotulo="Baixar todos os restos a pagar (planilha CSV)"
+          legenda="Traz, de todos os anos, cada conta de anos anteriores com fornecedor, valor reservado, entregue, pago e o que ainda falta pagar. A mesma conta aparece em cada ano em que ficou pendente: não some valores de anos diferentes."
+        />
 
         {/* Top 5 Credores com Maior Saldo Pendente */}
         {restosResumo.topFornecedores.length > 0 && (

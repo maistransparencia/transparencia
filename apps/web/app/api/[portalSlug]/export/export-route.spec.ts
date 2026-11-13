@@ -65,6 +65,20 @@ vi.mock("@transparencia/db", () => ({
       categoriaFuncional: "Efetivo",
     },
   ]),
+  getRawRestosAPagarExportRecords: vi.fn(async () => [
+    {
+      ano: 2022,
+      orgaoNome: "Prefeitura Municipal",
+      numeroEmpenho: "123",
+      credorNome: "Fornecedor X",
+      credorCpfCnpj: "00.000.000/0001-00",
+      objetoDescricao: "Obra; com ponto e vírgula",
+      valorEmpenhado: 1000,
+      valorLiquidado: 600,
+      valorPago: 400.5,
+      valorPendente: 599.5,
+    },
+  ]),
   getFarmaciaEstoqueExportRecords: vi.fn(async () => [
     {
       portalSlug: "porciuncula_prefeitura",
@@ -558,5 +572,60 @@ describe("API Route: /api/[portalSlug]/export", () => {
       ),
     );
     expect(respostas.some((r) => r.status === 429)).toBe(true);
+  });
+});
+
+describe("GET /api/[portalSlug]/export tipo=restos_a_pagar", () => {
+  const contextoPortal = {
+    params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+  };
+  const urlRestos =
+    "https://example.com/api/porciuncula_prefeitura/export?tipo=restos_a_pagar";
+
+  beforeEach(() => {
+    clearRateLimits();
+  });
+
+  it("exporta todos os restos a pagar sem exigir ano, com cabeçalho, valores e nome de arquivo", async () => {
+    const { GET } = await import("./route");
+    const res = await GET(new Request(urlRestos), contextoPortal);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-disposition")).toContain(
+      'filename="restos_a_pagar_porciuncula_prefeitura.csv"',
+    );
+    const text = await res.text();
+    expect(text).toContain(
+      "ano;orgao_nome;numero_empenho;credor_nome;credor_cpf_cnpj;objeto_descricao;valor_empenhado;valor_liquidado;valor_pago;valor_pendente",
+    );
+    expect(text).toContain(
+      '2022;Prefeitura Municipal;123;Fornecedor X;00.000.000/0001-00;"Obra; com ponto e vírgula";1000,00;600,00;400,50;599,50\r\n',
+    );
+  });
+
+  it("repassa as entidades selecionadas para a consulta", async () => {
+    const { GET } = await import("./route");
+    const { getRawRestosAPagarExportRecords } = await import(
+      "@transparencia/db"
+    );
+    await GET(new Request(`${urlRestos}&entidades=2,3`), contextoPortal);
+
+    expect(getRawRestosAPagarExportRecords).toHaveBeenLastCalledWith({
+      portalSlug: "porciuncula_prefeitura",
+      empresaIds: ["2", "3"],
+    });
+  });
+
+  it("devolve 500 quando a consulta falha", async () => {
+    const { GET } = await import("./route");
+    const { getRawRestosAPagarExportRecords } = await import(
+      "@transparencia/db"
+    );
+    vi.mocked(getRawRestosAPagarExportRecords).mockRejectedValueOnce(
+      new Error("falha"),
+    );
+    const res = await GET(new Request(urlRestos), contextoPortal);
+
+    expect(res.status).toBe(500);
   });
 });

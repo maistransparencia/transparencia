@@ -169,6 +169,7 @@ async function fetchRawDespesasData(
     metricasGerais,
     radarGastosSensiveis,
     restosResumo: restosResumoEnriquecido,
+    restosPorAno: posicaoDetalhes.restosPendentes,
     opacidadeContabil,
     areasPorFuncao,
     topFornecedores,
