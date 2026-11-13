@@ -120,29 +120,37 @@ export function FeedbackModal({
     setErrorMessage("");
 
     try {
-      const phWithRecording = posthog as unknown as {
-        sessionRecording?: { isRecording?: () => boolean };
-      };
-      const hasSessionRecording = Boolean(
-        phWithRecording.sessionRecording?.isRecording?.() ?? false,
-      );
-
-      posthog.capture("feedback_submitted", {
-        type,
-        message: trimmedMessage,
-        email: trimmedEmail || null,
-        portal_slug: portalSlug ?? null,
-        url: typeof window !== "undefined" ? window.location.href : "",
-        pathname: typeof window !== "undefined" ? window.location.pathname : "",
-        has_session_recording: hasSessionRecording,
-        timestamp: new Date().toISOString(),
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipoRelato: type,
+          mensagem: trimmedMessage,
+          emailRetorno: trimmedEmail,
+          rotaPagina: window.location.pathname,
+          portalSlug: portalSlug ?? null,
+        }),
       });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        setStatus("error");
+        setErrorMessage(
+          response.status === 429
+            ? "Recebemos muitos envios deste endereço. Aguarde alguns minutos e tente de novo; seu texto foi mantido."
+            : (payload?.error ??
+                "Não foi possível enviar o relato no momento. Seu texto foi mantido; tente novamente."),
+        );
+        return;
+      }
 
       setStatus("success");
     } catch {
       setStatus("error");
       setErrorMessage(
-        "Não foi possível enviar o relato no momento. Por favor, tente novamente mais tarde.",
+        "Não foi possível enviar o relato no momento. Seu texto foi mantido; tente novamente.",
       );
     }
   };
@@ -168,8 +176,9 @@ export function FeedbackModal({
           </div>
           <h3>Relato enviado com sucesso!</h3>
           <p className="text-mute mt-2 text-sm leading-relaxed">
-            Agradecemos sua colaboração cidadã. Seu relato foi registrado junto
-            aos dados técnicos da página e será analisado pela nossa equipe.
+            Seu relato foi guardado junto com o endereço da página em que você
+            estava. A equipe do portal lê os relatos para corrigir falhas e
+            melhorar as informações; não há prazo fixo de resposta.
           </p>
           <div className="mt-6">
             <button
@@ -299,8 +308,9 @@ export function FeedbackModal({
 
           {/* Nota de Contexto e Privacidade */}
           <p className="text-mute2 text-[11px] leading-relaxed">
-            Para facilitar a investigação técnica, informações sobre a página
-            atual e a sessão de navegação são enviadas com segurança ao PostHog.
+            Guardamos seu texto, o e-mail (se você informar) e o endereço desta
+            página. Não guardamos seu IP nem dados do seu navegador. A mensagem
+            e o e-mail não são enviados a ferramentas de análise de uso.
           </p>
 
           {/* Botões de Ação */}

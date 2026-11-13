@@ -232,6 +232,12 @@ export default function PrivacidadePage() {
               <li>
                 <strong>Sem comercialização</strong> ou repasse a anunciantes.
               </li>
+              <li>
+                <strong>Relatos de erro ou sugestão:</strong> o texto que você
+                escreve, o e-mail (só se você informar) e o endereço da página
+                ficam guardados no banco de dados do portal, não no PostHog. Não
+                guardamos seu IP nem dados do navegador nesse relato.
+              </li>
             </ul>
           </Section>
 
