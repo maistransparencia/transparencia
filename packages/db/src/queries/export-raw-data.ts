@@ -416,7 +416,10 @@ export async function getRawRestosAPagarExportRecords(
       query = query.where("d.empresa_id", "in", empresaIds);
     }
 
-    const rows = await query.orderBy("d.pago", "desc").execute();
+    const rows = await query
+      .orderBy("d.pago", "desc")
+      .orderBy("d.empenho_id", "asc")
+      .execute();
 
     return rows.map((r) => {
       const valorEmpenhado = Number(r.empenhado ?? 0);
@@ -433,7 +436,7 @@ export async function getRawRestosAPagarExportRecords(
         valorEmpenhado,
         valorLiquidado: Number(r.liquidado ?? 0),
         valorPago,
-        valorPendente: valorEmpenhado - valorPago,
+        valorPendente: Math.max(0, valorEmpenhado - valorPago),
       };
     });
   } catch (error) {

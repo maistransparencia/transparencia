@@ -69,42 +69,30 @@ describe("buildDespesasViewModel", () => {
     expect(vm.opacidadeContabil).toEqual(raw.opacidadeContabil);
   });
 
-  it("monta o histórico de restos a pagar por ano, do mais antigo ao mais novo, somando administrações do mesmo ano", () => {
+  it("repassa o histórico de restos a pagar por ano e destaca o pago do ano selecionado", () => {
     const vm = buildDespesasViewModel(
       makeRaw({
-        restosPorAno: [
-          {
-            ano: 2023,
-            administracao: "Adm. Atual",
-            empenhado: 100,
-            liquidado: 0,
-            pago: 40,
-            pendente: 60,
-          },
-          {
-            ano: 2021,
-            administracao: "Adm. Anterior",
-            empenhado: 50,
-            liquidado: 50,
-            pago: 50,
-            pendente: 0,
-          },
-          {
-            ano: 2023,
-            administracao: "Adm. Anterior",
-            empenhado: 20,
-            liquidado: 0,
-            pago: 5,
-            pendente: 15,
-          },
+        restosHistorico: [
+          { ano: 2021, restosInscritos: 50, restosPagos: 50, saldoRestos: 0 },
+          { ano: 2024, restosInscritos: 120, restosPagos: 45, saldoRestos: 75 },
         ],
       }),
     );
 
-    expect(vm.restosHistorico).toEqual([
-      { ano: 2021, inscrito: 50, pago: 50, pendente: 0 },
-      { ano: 2023, inscrito: 120, pago: 45, pendente: 75 },
-    ]);
+    expect(vm.restosHistorico.map((linha) => linha.ano)).toEqual([2021, 2024]);
+    expect(vm.restosPagosNoAno).toBe(45);
+  });
+
+  it("usa zero como pago do ano quando o ano selecionado não está no histórico", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        restosHistorico: [
+          { ano: 2021, restosInscritos: 50, restosPagos: 50, saldoRestos: 0 },
+        ],
+      }),
+    );
+
+    expect(vm.restosPagosNoAno).toBe(0);
   });
 
   it("ordena as áreas por etapa e calcula percentual sobre a soma da mesma etapa", () => {

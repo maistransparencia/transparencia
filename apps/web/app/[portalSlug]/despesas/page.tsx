@@ -12,6 +12,7 @@ import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-
 import { PageEyebrow } from "@/components/page-eyebrow";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
+import { RestosHistoricoLista } from "@/components/restos-historico-lista";
 import { ShowYourWorkButton } from "@/components/show-your-work-button";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -64,6 +65,7 @@ export default async function DespesasPage({
     radarGastosSensiveis,
     restosResumo,
     restosHistorico,
+    restosPagosNoAno,
     opacidadeContabil,
   } = viewModel;
 
@@ -224,7 +226,7 @@ export default async function DespesasPage({
           />
           <Indicator
             label={`Já pago em ${selectedYear}`}
-            value={fmtCompact(restosResumo.restosPagos)}
+            value={fmtCompact(restosPagosNoAno)}
             note={
               isCurrentYear
                 ? "Pago até agora neste ano por contas de anos anteriores."
@@ -240,7 +242,8 @@ export default async function DespesasPage({
               {restosHistorico[0].ano}–
               {restosHistorico[restosHistorico.length - 1].ano})
             </h3>
-            <div className="overflow-x-auto">
+            <RestosHistoricoLista linhas={restosHistorico} />
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr>
@@ -260,9 +263,15 @@ export default async function DespesasPage({
                   {restosHistorico.map((linha) => (
                     <tr key={linha.ano}>
                       <td>{linha.ano}</td>
-                      <td className="numeric">{fmtCompact(linha.inscrito)}</td>
-                      <td className="numeric">{fmtCompact(linha.pago)}</td>
-                      <td className="numeric">{fmtCompact(linha.pendente)}</td>
+                      <td className="numeric">
+                        {fmtCompact(linha.restosInscritos)}
+                      </td>
+                      <td className="numeric">
+                        {fmtCompact(linha.restosPagos)}
+                      </td>
+                      <td className="numeric">
+                        {fmtCompact(linha.saldoRestos)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

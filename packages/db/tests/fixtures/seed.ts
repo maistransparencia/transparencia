@@ -50,6 +50,37 @@ export async function seedPosicaoFiscal(row: PosicaoFiscalRow): Promise<void> {
     .execute();
 }
 
+export interface RestosMetricaRow {
+  portalSlug: string;
+  empresaId: string;
+  ano: number;
+  restosInscritos?: number;
+  restosLiquidados?: number;
+  restosPagos?: number;
+  restosCancelados?: number;
+  dividaMaisAntigaAno?: number;
+}
+
+export async function seedRestosMetrica(row: RestosMetricaRow): Promise<void> {
+  const restosInscritos = row.restosInscritos ?? 0;
+  const restosPagos = row.restosPagos ?? 0;
+  await db
+    .insertInto("fct_despesas_restos_metricas")
+    .values({
+      restos_metricas_id: nextId("rm"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId,
+      ano: row.ano,
+      restos_inscritos: restosInscritos,
+      restos_liquidados: row.restosLiquidados ?? 0,
+      restos_pagos: restosPagos,
+      restos_cancelados: row.restosCancelados ?? 0,
+      saldo_restos: restosInscritos - restosPagos,
+      divida_mais_antiga_ano: row.dividaMaisAntigaAno ?? row.ano,
+    })
+    .execute();
+}
+
 export interface OrcamentoFuncionalRow {
   portalSlug: string;
   empresaId: string;
@@ -1831,6 +1862,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_posicao_fiscal_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_despesas_restos_metricas")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db

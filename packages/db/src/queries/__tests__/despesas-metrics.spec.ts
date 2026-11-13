@@ -3,6 +3,7 @@ import { PORTAL_SLUG, TEST_YEAR } from "../../test-helpers";
 import {
   getDespesasPorFuncaoMetrics,
   getRadarGastosSensiveisMetrics,
+  getRestosAPagarHistoricoMetrics,
   getRestosAPagarResumoMetrics,
   getResumoDiariasMetrics,
   getTopFornecedoresExecucaoMetrics,
@@ -282,5 +283,72 @@ describe("despesas-metrics (smoke)", () => {
       "1",
     ]);
     expect(Array.isArray(funcoes)).toBe(true);
+  });
+
+  it("deve montar o histórico de restos a pagar por ano, do mais antigo até o ano pedido, somando as entidades", async () => {
+    const { createFixturePortalSlug, cleanupFixtures, seedRestosMetrica } =
+      await import("../../../tests/fixtures/seed");
+    const portalSlug = createFixturePortalSlug();
+    const outroPortal = createFixturePortalSlug();
+
+    try {
+      await seedRestosMetrica({
+        portalSlug,
+        empresaId: "1",
+        ano: 2022,
+        restosInscritos: 300,
+        restosPagos: 100,
+      });
+      await seedRestosMetrica({
+        portalSlug,
+        empresaId: "1",
+        ano: 2023,
+        restosInscritos: 200,
+        restosPagos: 150,
+      });
+      await seedRestosMetrica({
+        portalSlug,
+        empresaId: "2",
+        ano: 2023,
+        restosInscritos: 50,
+        restosPagos: 10,
+      });
+      await seedRestosMetrica({
+        portalSlug,
+        empresaId: "1",
+        ano: 2025,
+        restosInscritos: 999,
+        restosPagos: 999,
+      });
+      await seedRestosMetrica({
+        portalSlug: outroPortal,
+        empresaId: "1",
+        ano: 2023,
+        restosInscritos: 777,
+        restosPagos: 777,
+      });
+
+      const historico = await getRestosAPagarHistoricoMetrics(
+        portalSlug,
+        2024,
+        ["1", "2"],
+      );
+
+      expect(historico).toEqual([
+        { ano: 2022, restosInscritos: 300, restosPagos: 100, saldoRestos: 200 },
+        { ano: 2023, restosInscritos: 250, restosPagos: 160, saldoRestos: 90 },
+      ]);
+      expect(
+        await getRestosAPagarHistoricoMetrics(portalSlug, 2024, ["1"]),
+      ).toHaveLength(2);
+      expect(
+        await getRestosAPagarHistoricoMetrics(portalSlug, 2024, []),
+      ).toEqual([]);
+    } finally {
+      await Promise.all([
+        cleanupFixtures(portalSlug),
+        cleanupFixtures(outroPortal),
+      ]);
+    }
   });
 });

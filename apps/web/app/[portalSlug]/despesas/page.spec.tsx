@@ -52,23 +52,9 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       restosPagos: 80_000,
       topFornecedores: [],
     },
-    restosPorAno: [
-      {
-        ano: 2022,
-        administracao: "Adm. Anterior",
-        empenhado: 300,
-        liquidado: 100,
-        pago: 100,
-        pendente: 200,
-      },
-      {
-        ano: 2021,
-        administracao: "Adm. Anterior",
-        empenhado: 500,
-        liquidado: 400,
-        pago: 450,
-        pendente: 50,
-      },
+    restosHistorico: [
+      { ano: 2021, restosInscritos: 500, restosPagos: 450, saldoRestos: 50 },
+      { ano: 2022, restosInscritos: 300, restosPagos: 100, saldoRestos: 200 },
     ],
     ...overrides,
   } as unknown as RawData;
@@ -154,7 +140,7 @@ describe("DespesasPage", () => {
   });
 
   it("não mostra o histórico quando não há dívidas de anos anteriores", async () => {
-    loadDespesasDataMock.mockResolvedValue(makeRaw({ restosPorAno: [] }));
+    loadDespesasDataMock.mockResolvedValue(makeRaw({ restosHistorico: [] }));
 
     const element = await DespesasPage(props);
     render(element);

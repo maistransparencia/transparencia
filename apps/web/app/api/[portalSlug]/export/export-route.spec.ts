@@ -608,7 +608,13 @@ describe("GET /api/[portalSlug]/export tipo=restos_a_pagar", () => {
     const { getRawRestosAPagarExportRecords } = await import(
       "@transparencia/db"
     );
-    await GET(new Request(`${urlRestos}&entidades=2,3`), contextoPortal);
+    const res = await GET(
+      new Request(`${urlRestos}&entidades=2,3`),
+      contextoPortal,
+    );
+    expect(res.headers.get("content-disposition")).toContain(
+      'filename="restos_a_pagar_porciuncula_prefeitura_2022_23.csv"',
+    );
 
     expect(getRawRestosAPagarExportRecords).toHaveBeenLastCalledWith({
       portalSlug: "porciuncula_prefeitura",

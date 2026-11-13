@@ -8,6 +8,7 @@ const dbMocks = vi.hoisted(() => ({
   getPortalConfig: vi.fn(),
   getPosicaoFiscalDetalhesMetrics: vi.fn(),
   getRadarGastosSensiveisMetrics: vi.fn(),
+  getRestosAPagarHistoricoMetrics: vi.fn(),
   getRestosAPagarResumoMetrics: vi.fn(),
   getTopFornecedoresExecucaoMetrics: vi.fn(),
 }));
@@ -23,6 +24,9 @@ describe("loadDespesasData", () => {
     dbMocks.getAnaliseDespesasMetrics.mockResolvedValue([]);
     dbMocks.getRadarGastosSensiveisMetrics.mockResolvedValue({ itens: [] });
     dbMocks.getRestosAPagarResumoMetrics.mockResolvedValue({});
+    dbMocks.getRestosAPagarHistoricoMetrics.mockResolvedValue([
+      { ano: 2024, restosInscritos: 10, restosPagos: 4, saldoRestos: 6 },
+    ]);
     dbMocks.getPosicaoFiscalDetalhesMetrics.mockResolvedValue({
       restosPendentes: [],
       restosPendentesTotal: 0,
@@ -51,6 +55,14 @@ describe("loadDespesasData", () => {
       empresaIds: ["e1", "e2"],
       limit: 10,
     });
+    expect(dbMocks.getRestosAPagarHistoricoMetrics).toHaveBeenCalledWith(
+      "portal_x",
+      2024,
+      ["e1", "e2"],
+    );
+    expect(resultado.restosHistorico).toEqual([
+      { ano: 2024, restosInscritos: 10, restosPagos: 4, saldoRestos: 6 },
+    ]);
     expect(resultado.areasPorFuncao).toEqual([{ funcaoCodigo: "10" }]);
     expect(resultado.topFornecedores).toEqual([
       { fornecedorNome: "Fornecedor" },

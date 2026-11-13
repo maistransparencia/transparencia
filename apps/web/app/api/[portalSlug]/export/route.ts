@@ -258,6 +258,12 @@ function resolveFilename(options: ResolveFilenameOptions): string {
       : "";
     return `saldo_caixa_siconfi_${portalSlug}_${ano}${sufixo}.csv`;
   }
+  if (tipo === "restos_a_pagar") {
+    const sufixo = entidades
+      ? `_${entidades.replace(/[^a-zA-Z0-9_-]/g, "")}`
+      : "";
+    return `restos_a_pagar_${portalSlug}_${ano}${sufixo}.csv`;
+  }
   if (tipo === "pessoal_regime") {
     const sufixoCategoria = categoria
       ? `_${categoria.replace(/[^a-zA-Z0-9_-]/g, "")}`
@@ -422,6 +428,13 @@ export async function GET(req: Request, context: ExportRouteContext) {
       );
     }
 
+    const filename = resolveFilename({
+      tipo: tipoParam,
+      portalSlug,
+      ano,
+      entidades: entidadesParam ?? undefined,
+    });
+
     const csvHeader = RESTOS_A_PAGAR_CSV_HEADERS.join(delimiter);
     const encoder = new TextEncoder();
 
@@ -443,7 +456,7 @@ export async function GET(req: Request, context: ExportRouteContext) {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="restos_a_pagar_${portalSlug}_${ano}.csv"`,
+        "Content-Disposition": `attachment; filename="${filename}"`,
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });

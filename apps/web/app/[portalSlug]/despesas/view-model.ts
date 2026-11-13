@@ -35,31 +35,6 @@ const dividir = (numerador: number, denominador: number) =>
 
 const limitarLargura = (valor: number) => Math.min(100, Math.max(0, valor));
 
-export interface RestosHistoricoLinha {
-  ano: number;
-  inscrito: number;
-  pago: number;
-  pendente: number;
-}
-
-export function buildRestosHistorico(
-  restosPorAno: DespesasRawData["restosPorAno"],
-): RestosHistoricoLinha[] {
-  const porAno = (restosPorAno ?? []).reduce(
-    (acc, restos) => ({
-      ...acc,
-      [restos.ano]: {
-        ano: restos.ano,
-        inscrito: (acc[restos.ano]?.inscrito ?? 0) + restos.empenhado,
-        pago: (acc[restos.ano]?.pago ?? 0) + restos.pago,
-        pendente: (acc[restos.ano]?.pendente ?? 0) + restos.pendente,
-      },
-    }),
-    {} as Record<number, RestosHistoricoLinha>,
-  );
-  return Object.values(porAno).sort((a, b) => a.ano - b.ano);
-}
-
 export function buildAreasPorEtapa(
   areas: DespesasRawData["areasPorFuncao"],
 ): Record<EtapaDespesa, AreaDespesaLinha[]> {
@@ -140,7 +115,10 @@ export function buildDespesasViewModel(raw: DespesasRawData) {
       restosPagos: 0,
       topFornecedores: [],
     },
-    restosHistorico: buildRestosHistorico(raw.restosPorAno),
+    restosHistorico: raw.restosHistorico ?? [],
+    restosPagosNoAno:
+      raw.restosHistorico?.find((linha) => linha.ano === selectedYear)
+        ?.restosPagos ?? 0,
     opacidadeContabil: raw.opacidadeContabil ?? null,
   };
 }

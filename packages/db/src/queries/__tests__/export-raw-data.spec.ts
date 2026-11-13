@@ -293,6 +293,15 @@ describe("export-raw-data (smoke & parity)", () => {
         portalSlug: portal,
         empresaId: "2",
         ano: 2024,
+        fonte: "restos_a_pagar",
+        fornecedorNome: "Pagou acima do reservado",
+        empenhado: 500,
+        pago: 600,
+      });
+      await seedDespesa({
+        portalSlug: portal,
+        empresaId: "2",
+        ano: 2024,
         fonte: "exercicio",
         fornecedorNome: "Despesa do exercício",
         empenhado: 999,
@@ -313,7 +322,10 @@ describe("export-raw-data (smoke & parity)", () => {
 
       expect(
         registros.map((r) => [r.ano, r.credorNome, r.valorPendente]),
-      ).toEqual([[2024, "Fornecedor recente", 0]]);
+      ).toEqual([
+        [2024, "Pagou acima do reservado", 0],
+        [2024, "Fornecedor recente", 0],
+      ]);
 
       const filtrado = await getRawRestosAPagarExportRecords({
         portalSlug: portal,
