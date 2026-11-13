@@ -232,6 +232,16 @@ export default function PrivacidadePage() {
               <li>
                 <strong>Sem comercialização</strong> ou repasse a anunciantes.
               </li>
+              <li>
+                <strong>Relatos de erro ou sugestão:</strong> o texto que você
+                escreve, o e-mail (só se você informar) e o endereço da página
+                ficam guardados no banco de dados do portal, não no PostHog. Não
+                guardamos seu IP nem dados do navegador nesse relato. O PostHog
+                só registra, de forma anônima, que o formulário foi aberto, sem
+                o conteúdo do relato. Guardamos o relato enquanto for necessário
+                para analisá-lo; para pedir a exclusão, veja Direitos do titular
+                e Contato. Não escreva CPF ou outros dados pessoais no texto.
+              </li>
             </ul>
           </Section>
 

@@ -18,7 +18,7 @@ const subscribeSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const rateLimit = checkIpRateLimit(req, 30);
+    const rateLimit = checkIpRateLimit("push-subscribe", req, { limit: 30 });
     if (!rateLimit.success) {
       return NextResponse.json(
         {

@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const ipLimit = checkIpRateLimit(getClientIp(req));
+    const ipLimit = checkIpRateLimit("city-interest", getClientIp(req));
     if (!ipLimit.success) {
       return NextResponse.json(
         {

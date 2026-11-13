@@ -245,10 +245,10 @@ development_status:
 
   epic-23: in-progress
   23-1-registro-de-coletas-por-fonte-e-frequencia-esperada: done
-  23-2-query-de-frescor-com-estado-fora-do-prazo-previsto: review
+  23-2-query-de-frescor-com-estado-fora-do-prazo-previsto: done
   23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado: backlog
   23-4-selo-fonte-atualizado-em-nos-blocos-e-pagina-como-atualizamos: done
-  23-5-reportar-erro-por-indicador: backlog
+  23-5-reportar-erro-por-indicador: done
   23-6-metodologia-e-fontes-e-sobre: backlog
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: done
   23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: backlog
