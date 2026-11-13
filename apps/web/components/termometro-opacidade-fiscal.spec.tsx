@@ -269,7 +269,7 @@ describe("TermometroOpacidadeFiscal Component", () => {
       />,
     );
     const link = screen.getByRole("button", {
-      name: /baixar os gastos em “outros” de \d{4} \(csv\)/i,
+      name: /baixar os gastos em “outros” de \d{4} \(planilha csv\)/i,
     });
     expect(link).toBeInTheDocument();
     expect(

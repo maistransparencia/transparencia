@@ -560,8 +560,8 @@ export function TermometroOpacidadeFiscal({
       <div className="border-line mt-4 border-t pt-4">
         <ShowYourWorkButton
           variante="link"
-          rotulo={`Baixar os gastos em “Outros” de ${exercicioAtual.ano} (CSV)`}
-          legenda="Traz cada pagamento registrado como “Outros” no ano, com fornecedor, objeto e valores."
+          rotulo={`Baixar os gastos em “Outros” de ${exercicioAtual.ano} (planilha CSV)`}
+          legenda="Traz cada compra ou contrato registrado como “Outros” no ano, com fornecedor, objeto e os valores reservado, entregue e pago."
           portalSlug={portalSlug || data.portalSlug}
           ano={exercicioAtual.ano}
           tipo="opacidade_99"

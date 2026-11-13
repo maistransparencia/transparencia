@@ -248,13 +248,14 @@ describe("RadarGastosSensiveis Component", () => {
     for (const botao of botoes) {
       fireEvent.click(botao);
       expect(
-        screen.getAllByRole("button", { name: "Baixar registros (CSV)" })
-          .length,
+        screen.getAllByRole("button", {
+          name: "Baixar registros (planilha CSV)",
+        }).length,
       ).toBeGreaterThan(0);
     }
   });
 
-  it("oferece o link Baixar registros (CSV) dentro do accordion expandido", () => {
+  it("oferece o link Baixar registros (planilha CSV) dentro do accordion expandido", () => {
     render(
       <RadarGastosSensiveis
         itens={sampleItens}
@@ -265,7 +266,7 @@ describe("RadarGastosSensiveis Component", () => {
     );
 
     expect(
-      screen.queryByText("Baixar registros (CSV)"),
+      screen.queryByText("Baixar registros (planilha CSV)"),
     ).not.toBeInTheDocument();
 
     const botao = screen
@@ -276,7 +277,7 @@ describe("RadarGastosSensiveis Component", () => {
     fireEvent.click(botao as HTMLElement);
 
     expect(
-      screen.getAllByText("Baixar registros (CSV)").length,
+      screen.getAllByText("Baixar registros (planilha CSV)").length,
     ).toBeGreaterThan(0);
   });
 

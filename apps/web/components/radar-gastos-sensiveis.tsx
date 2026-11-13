@@ -152,7 +152,7 @@ function DecomposicaoDivida({
     return (
       <div className="space-y-3">
         <p className="text-mute2 text-xs">
-          Nenhuma dívida pendente registrada para as entidades selecionadas.
+          Não há contas pendentes desta categoria nas entidades selecionadas.
         </p>
         {baixarRegistros}
       </div>
@@ -379,8 +379,8 @@ export function RadarGastosSensiveis({
               portalSlug && (
                 <ShowYourWorkButton
                   variante="link"
-                  rotulo="Baixar registros (CSV)"
-                  legenda="Traz cada pagamento desta categoria no ano, com fornecedor, objeto e valores."
+                  rotulo="Baixar registros (planilha CSV)"
+                  legenda="Traz cada compra ou contrato desta categoria no ano, com fornecedor, objeto e os valores reservado, entregue e pago."
                   portalSlug={portalSlug}
                   ano={anoAtual}
                   tipo="gasto_sensivel"
