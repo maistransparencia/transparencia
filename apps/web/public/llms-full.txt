@@ -384,6 +384,16 @@ Mapeamento cartográfico e fiscalização das obras públicas municipais em exec
 
 ---
 
+### 1.7.3. Como Atualizamos (`/[portalSlug]/como-atualizamos`)
+
+Página que explica de onde vêm os números do portal e quando o portal foi buscá-los em cada fonte oficial. Responde à pergunta do cidadão: "Posso confiar que estes números estão atualizados?".
+
+- **Lista de fontes:** cada fonte mostra o que ela traz em linguagem comum, quem publica (Prefeitura, Estado ou órgão nacional, com link para a página oficial), a frequência com que o portal a busca ("todo dia útil", "toda semana", "todo mês", "uma vez por ano" ou "quando há dado novo") e a data da última busca.
+- **Situação de cada fonte:** "Buscada no prazo", "Sem verificação no prazo" (o aviso no topo avisa que os números dela podem não ser os mais novos), "Sem registro de busca" e "Data não acompanhada" (fontes cuja data de busca o portal não acompanha).
+- **Selo nas páginas:** `/receitas` e `/despesas` mostram a linha "Fonte: ... · verificado em dd/mm/aaaa · Como atualizamos". A data é de quando o portal buscou o dado, não de quando o órgão o publicou. O rodapé também tem o link "Como atualizamos".
+
+---
+
 ### 1.7.2. Detalhes da Obra e Auditoria Físico-Financeira (`/[portalSlug]/obras?idProjeto=[idProjeto]`)
 
 Ficha pública aprofundada por projeto de infraestrutura urbana, apresentada em **modal contextual sobreposto** com suporte a deep linking e sincronização direta com a URL via parâmetro `?idProjeto=...`, permitindo a fiscalização cívica linha a linha do avanço do empreendimento sem descarregar o contexto do mapa:

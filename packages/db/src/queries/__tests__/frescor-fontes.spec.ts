@@ -21,6 +21,10 @@ function linha(dados: {
     fonte: dados.fonte,
     frequencia_esperada: dados.frequencia,
     descricao_dados: `descricao ${dados.fonte}`,
+    nome_fonte: `nome ${dados.fonte}`,
+    url_fonte:
+      dados.fonte === "sem_url" ? null : `https://${dados.fonte}.exemplo`,
+    esfera_fonte: "nacional",
     tolerancia_dias: dados.toleranciaDias,
     situacao_monitoramento: dados.situacao,
     ultima_coleta_em: dados.ultimaColetaEm,
@@ -114,7 +118,7 @@ describe("getFrescorFontes", () => {
     expect(resultado.map(({ fonte, situacao }) => [fonte, situacao])).toEqual([
       ["a_diaria_no_limite", "coleta_em_dia"],
       ["b_diaria_atrasada", "coleta_atrasada"],
-      ["c_sem_registro", "nao_monitorado"],
+      ["c_sem_registro", "coleta_sem_registro"],
       ["d_nao_monitorado", "nao_monitorado"],
       ["e_coleta_vazia", "coleta_em_dia"],
       ["f_sob_demanda", "coleta_em_dia"],
@@ -133,6 +137,11 @@ describe("getFrescorFontes", () => {
     expect(porFonte.a_diaria_no_limite.descricaoDados).toBe(
       "descricao a_diaria_no_limite",
     );
+    expect(porFonte.a_diaria_no_limite).toMatchObject({
+      nomeFonte: "nome a_diaria_no_limite",
+      urlFonte: "https://a_diaria_no_limite.exemplo",
+      esferaFonte: "nacional",
+    });
   });
 
   it("devolve só as fontes do portal pedido", async () => {

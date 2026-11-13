@@ -3287,7 +3287,7 @@ As a maintainer,
 I want each source to run in a workflow with the cadence its data actually changes (daily, weekly, monthly),  
 So that we stop re-fetching unchanged data every business day.
 
-**Origem:** parte da antiga Story 23.8 (dividida em 2026-11-09). Cadências acordadas com o Julio: diária (Fiorilli e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI, SIOPE e SIOPS). Hoje o `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal).
+**Origem:** parte da antiga Story 23.8 (dividida em 2026-11-09). Cadências acordadas com o Julio: diária (portal da prefeitura, código `portal_municipal`, e Farmácia SUS), semanal (PNCP e ObrasGov), mensal (SICONFI, SIOPE e SIOPS). Hoje o `ingestion-pipeline.yml` roda de segunda a sexta e chama `elt.extract.run` sem `--only`, então todas as fontes rodam todo dia útil (o SICONFI faz 12 chamadas mensais por portal a cada execução). Precedente de workflow com cadência própria: `check-inep-ideb-updates.yml` (mensal). O código `portal_municipal` é único para o portal da prefeitura, qualquer que seja o sistema que o município usa (renomeado de `fiorilli` na Story 23.4); o grupo diário referencia esse código, e sistemas novos de portal não criam fonte nova.
 
 **Acceptance Criteria:**
 - **Given** os três grupos de cadência (diária, semanal, mensal)
@@ -3298,6 +3298,9 @@ So that we stop re-fetching unchanged data every business day.
 - **Given** o registro de coletas da Story 23.1
 - **When** a cadência é definida
 - **Then** o valor de `frequencia_esperada` de cada fonte (`diaria`, `semanal`, `mensal`) vem da mesma definição que gera os workflows ou é conferido por teste contra ela, sem duas listas divergentes.
+- **Given** o cron de cada grupo
+- **When** a cadência é definida
+- **Then** a `tolerancia_dias` de cada fonte do grupo cobre o intervalo entre execuções do cron mais uma folga, e um teste confere que nenhuma fonte fica "atrasada" só por seguir o próprio agendamento (por exemplo, fonte mensal com tolerância menor que o intervalo entre execuções).
 
 **Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
 

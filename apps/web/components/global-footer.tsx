@@ -173,11 +173,7 @@ export function GlobalFooter({
           {/* Barra inferior: procedência dos dados + links legais */}
           <div className="border-line flex flex-col gap-3 border-t py-4 text-xs sm:flex-row sm:items-center sm:justify-between">
             {!isRootPage && (displayExtractionDate || officialLink) ? (
-              <p className="text-mute2 flex items-start gap-2 leading-relaxed">
-                <span
-                  className="bg-ok-fill mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-                  aria-hidden="true"
-                />
+              <p className="text-mute2 leading-relaxed">
                 <span>
                   {displayExtractionDate ? (
                     <>
@@ -230,6 +226,14 @@ export function GlobalFooter({
               >
                 Sugestão ou erro
               </button>
+              {!isRootPage && effectivePortalSlug && (
+                <Link
+                  href={`/${effectivePortalSlug}/como-atualizamos`}
+                  className={linkClass}
+                >
+                  Como atualizamos
+                </Link>
+              )}
               <Link href="/termos" className={linkClass}>
                 Termos de uso
               </Link>

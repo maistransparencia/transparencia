@@ -16,6 +16,16 @@ const { default: DespesasPage } = await import("./page");
 
 function makeRaw(overrides: Record<string, unknown> = {}): RawData {
   return {
+    portalSlug: "portal_x",
+    frescorFontes: [
+      {
+        fonte: "portal_municipal",
+        descricaoDados: "sistema contábil da Prefeitura",
+        frequenciaEsperada: "diaria",
+        ultimaColetaEm: "2026-11-12T08:00:00.000Z",
+        situacao: "coleta_em_dia",
+      },
+    ],
     context: {
       selectedYear: 2024,
       isCurrentYear: false,
@@ -246,5 +256,21 @@ describe("DespesasPage", () => {
       screen.queryByText("Para quais áreas o dinheiro foi"),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("Quem mais recebeu")).not.toBeInTheDocument();
+  });
+
+  it("mostra o selo da fonte nas seções e some quando a fonte não vem no DTO", async () => {
+    loadDespesasDataMock.mockResolvedValue(makeRaw());
+    const { unmount } = render(await DespesasPage(props));
+    expect(screen.getAllByTestId("selo-fonte").length).toBeGreaterThanOrEqual(
+      2,
+    );
+    expect(
+      screen.getAllByRole("link", { name: "Como atualizamos" })[0],
+    ).toHaveAttribute("href", "/portal_x/como-atualizamos");
+    unmount();
+
+    loadDespesasDataMock.mockResolvedValue(makeRaw({ frescorFontes: [] }));
+    render(await DespesasPage(props));
+    expect(screen.queryByTestId("selo-fonte")).not.toBeInTheDocument();
   });
 });

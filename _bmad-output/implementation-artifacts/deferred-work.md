@@ -569,3 +569,11 @@ status: open
 ## Deferred from: code review of story 23-1 (2026-11-12)
 
 - Cruzamento total portal x fonte em `fct_coletas_por_fonte`: portal que não usa uma fonte (ex.: sem farmácia/ObrasGov) fica permanentemente `sem_registro`, o que a 23.2 pode ler como atraso. Decisão: adiar; resolver ao calcular o frescor na 23.2 (talvez status `nao_aplicavel`). [elt/transform/models/marts/fct_coletas_por_fonte.sql]
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-23-4-selo-fonte-verificado-em-e-pagina-como-atualizamos.md`
+  summary: Unificar a data do rodapé global ("Dados extraídos em", de `dataExtracao`) com a query de frescor da 23.2 e trocar o texto para "verificado em".
+  evidence: Decisão do Julio (2026-11-13, opção a): o rodapé é client e global, e trocar a origem da data mexe no layout raiz; a 23.4 só acrescenta o link e remove o ponto verde.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-23-4-selo-fonte-verificado-em-e-pagina-como-atualizamos.md`
+  summary: Atualizar `stg_coletas__registro_coletas` e `fct_coletas_por_fonte` no `dbt run` dos alvos de carga avulsa (`make elt/*` que gravam registro de coleta), para a página "Como atualizamos" mostrar a data logo após a carga.
+  evidence: Descoberto em 2026-11-13: após `make elt/farmacia-sus` e `make elt/siconfi-rgf` a página continuou "Sem registro" até um `dbt run` do mart, porque o dbt desses alvos não inclui os dois modelos. Decisão do Julio: fora da 23.8b (que mantém dbt completo nos workflows agendados); mexe em vários alvos do Makefile.

@@ -48,6 +48,15 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       entidadesIds: undefined,
     },
     fonte: makeFonte(),
+    frescorFontes: [
+      {
+        fonte: "portal_municipal",
+        descricaoDados: "sistema contábil da Prefeitura",
+        frequenciaEsperada: "diaria",
+        ultimaColetaEm: "2026-11-12T08:00:00.000Z",
+        situacao: "coleta_em_dia",
+      },
+    ],
     ...overrides,
   } as unknown as RawData;
 }
@@ -162,5 +171,27 @@ describe("ReceitasPage", () => {
     render(element);
 
     expect(screen.getByText("Fontes de Receita")).toBeInTheDocument();
+  });
+
+  it("mostra o selo da fonte em cada seção, com o aviso só na primeira", async () => {
+    loadReceitasDataMock.mockResolvedValue(
+      makeRaw({
+        frescorFontes: [
+          {
+            fonte: "portal_municipal",
+            descricaoDados: "sistema contábil da Prefeitura",
+            frequenciaEsperada: "diaria",
+            ultimaColetaEm: "2026-10-01T08:00:00.000Z",
+            situacao: "coleta_atrasada",
+          },
+        ],
+      }),
+    );
+    render(await ReceitasPage(props));
+    expect(screen.getAllByTestId("selo-fonte")).toHaveLength(2);
+    expect(screen.getAllByText(/verificado em 01\/10\/2026/)).toHaveLength(2);
+    expect(
+      screen.getAllByText(/Não conseguimos verificar esta fonte desde/),
+    ).toHaveLength(1);
   });
 });

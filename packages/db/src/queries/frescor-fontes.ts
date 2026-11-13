@@ -3,11 +3,18 @@ import { db } from "../client";
 export type SituacaoFrescor =
   | "coleta_em_dia"
   | "coleta_atrasada"
+  | "coleta_sem_registro"
   | "nao_monitorado";
 
 export interface FrescorFonteDTO {
   fonte: string;
   descricaoDados: string;
+  /** Quem publica o dado; nulo nas fontes municipais e estaduais, cujo nome varia por portal. */
+  nomeFonte: string | null;
+  /** Página pública da fonte; nula quando não há página única. */
+  urlFonte: string | null;
+  /** Quem resolve o link na tela: nacional usa `urlFonte`; estadual e municipal usam os dados do próprio portal. */
+  esferaFonte: "nacional" | "estadual" | "municipal";
   frequenciaEsperada: string;
   /** Timestamp ISO da última coleta; nulo quando a fonte não é monitorada. */
   ultimaColetaEm: string | null;
@@ -18,6 +25,9 @@ export interface FrescorFonteDTO {
 export interface FrescorFonteLinha {
   fonte: string;
   descricao_dados: string;
+  nome_fonte: string | null;
+  url_fonte: string | null;
+  esfera_fonte: FrescorFonteDTO["esferaFonte"];
   frequencia_esperada: string;
   situacao_monitoramento: string;
   ultima_coleta_em: Date | string | null;
@@ -39,6 +49,9 @@ function situacaoDaFonte(
   ultimaColetaEm: Date | null,
   dataReferencia: string,
 ): SituacaoFrescor {
+  if (linha.situacao_monitoramento === "sem_registro") {
+    return "coleta_sem_registro";
+  }
   if (linha.situacao_monitoramento !== "monitorado" || !ultimaColetaEm) {
     return "nao_monitorado";
   }
@@ -69,6 +82,9 @@ export function montarFrescorFontes(
     return {
       fonte: linha.fonte,
       descricaoDados: linha.descricao_dados,
+      nomeFonte: linha.nome_fonte || null,
+      urlFonte: linha.url_fonte || null,
+      esferaFonte: linha.esfera_fonte,
       frequenciaEsperada: linha.frequencia_esperada,
       ultimaColetaEm: ultimaColetaEm?.toISOString() ?? null,
       situacao: situacaoDaFonte(linha, ultimaColetaEm, dataReferencia),
@@ -87,6 +103,9 @@ export async function getFrescorFontes(
     .select([
       "fonte",
       "descricao_dados",
+      "nome_fonte",
+      "url_fonte",
+      "esfera_fonte",
       "frequencia_esperada",
       "situacao_monitoramento",
       "ultima_coleta_em",
