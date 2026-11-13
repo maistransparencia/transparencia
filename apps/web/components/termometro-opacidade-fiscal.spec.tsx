@@ -261,17 +261,20 @@ describe("TermometroOpacidadeFiscal Component", () => {
     expect(screen.getByText("Equipamentos de Saúde")).toBeInTheDocument();
   });
 
-  it("renderiza o botão de auditoria Show Your Work no cabeçalho", () => {
+  it("mostra o link de download no fim da seção, sem menu escondido", () => {
     render(
       <TermometroOpacidadeFiscal
         data={sampleData}
         portalSlug="porciuncula_prefeitura"
       />,
     );
-    const auditButton = screen.getByRole("button", {
-      name: /opções de auditoria/i,
+    const link = screen.getByRole("button", {
+      name: /baixar os gastos em “outros” de \d{4} \(csv\)/i,
     });
-    expect(auditButton).toBeInTheDocument();
+    expect(link).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /opções de auditoria/i }),
+    ).toBeNull();
   });
 
   it.each([
