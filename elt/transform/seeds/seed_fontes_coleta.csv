@@ -1,14 +1,14 @@
-fonte,frequencia_esperada,monitoramento
-fiorilli,diaria,monitorado
-farmacia_sus,diaria,monitorado
-pncp,semanal,monitorado
-obrasgov,semanal,monitorado
-siconfi_msc,mensal,monitorado
-siconfi_rgf,mensal,monitorado
-siope,mensal,nao_monitorado
-siops,mensal,nao_monitorado
-saude_rede,mensal,nao_monitorado
-inep_censo,anual,nao_monitorado
-inep_ideb,anual,nao_monitorado
-emendas_estaduais,sob_demanda,nao_monitorado
-receitas_csv,sob_demanda,nao_monitorado
+fonte,frequencia_esperada,monitoramento,descricao_dados,tolerancia_dias
+fiorilli,diaria,monitorado,"o que a Prefeitura arrecadou e gastou, contratos, licitações e diárias",4
+farmacia_sus,diaria,monitorado,os remédios disponíveis na farmácia do SUS,4
+pncp,semanal,monitorado,as compras e contratos publicados no portal nacional de contratações,10
+obrasgov,semanal,monitorado,as obras feitas com dinheiro federal,10
+siconfi_msc,mensal,monitorado,as contas da Prefeitura enviadas todo mês ao Tesouro Nacional,40
+siconfi_rgf,mensal,monitorado,"os limites da Lei de Responsabilidade Fiscal, como gasto com pessoal e dívida",40
+siope,mensal,nao_monitorado,quanto a Prefeitura aplica em educação,40
+siops,mensal,nao_monitorado,quanto a Prefeitura aplica em saúde,40
+saude_rede,mensal,nao_monitorado,a população usada nos indicadores de saúde,40
+inep_censo,anual,nao_monitorado,"escolas, turmas e alunos da rede municipal",400
+inep_ideb,anual,nao_monitorado,a nota de qualidade do ensino (Ideb),400
+emendas_estaduais,sob_demanda,nao_monitorado,o dinheiro enviado ao município por emendas de deputados estaduais,
+receitas_csv,sob_demanda,nao_monitorado,o detalhe do dinheiro que entrou nos cofres da Prefeitura,

@@ -243,9 +243,9 @@ development_status:
   20-19-remocao-dos-aliases-e-zeramento-das-excecoes-do-tema: done
   epic-20-retrospective: optional
 
-  epic-23: backlog
+  epic-23: in-progress
   23-1-registro-de-coletas-por-fonte-e-frequencia-esperada: done
-  23-2-query-de-frescor-com-estado-fora-do-prazo-previsto: backlog
+  23-2-query-de-frescor-com-estado-fora-do-prazo-previsto: review
   23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado: backlog
   23-4-selo-fonte-atualizado-em-nos-blocos-e-pagina-como-atualizamos: backlog
   23-5-reportar-erro-por-indicador: backlog
@@ -254,6 +254,7 @@ development_status:
   23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: backlog
   23-8b-grupos-de-cadencia-e-workflows-agendados-por-fonte: backlog
   23-8c-cadencia-dos-seeds-do-ideb-e-das-fontes-de-saude: backlog
+  23-9-periodo-mais-recente-publicado-por-fonte: backlog
 
   epic-24: done
   24-1-ingestao-do-relatorio-gerencial-do-siope: done
