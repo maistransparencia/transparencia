@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 
 export interface ShowYourWorkButtonProps {
   portalSlug: string;
-  /** Obrigatório para todos os tipos, exceto `estoque_farmacia` e `restos_a_pagar`. */
+  /** Obrigatório para todos os tipos, exceto `estoque_farmacia`. */
   ano?: number;
   tipo:
     | "gasto_sensivel"
@@ -167,7 +167,8 @@ export function ShowYourWorkButton({
       const filenameMatch = contentDisposition?.match(/filename="?([^";]+)"?/);
       const defaultFilename = (() => {
         if (tipo === "estoque_farmacia") return `estoque_farmacia_${slug}.csv`;
-        if (tipo === "restos_a_pagar") return `restos_a_pagar_${slug}.csv`;
+        if (tipo === "restos_a_pagar")
+          return `restos_a_pagar_${slug}_${ano}.csv`;
         if (tipo === "saldo_caixa_siconfi")
           return `saldo_caixa_siconfi_${ano}.csv`;
         return `despesas_${tipo}_${ano}.csv`;

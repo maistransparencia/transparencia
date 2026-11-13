@@ -220,19 +220,23 @@ export default async function DespesasPage({
           <Indicator
             label="Pendência mais antiga desde"
             value={restosResumo.dividaMaisAntigaAno}
-            note="Ano estimado a partir do empenho original. Quanto mais antiga, mais atenção merece."
+            note="Ano estimado: o portal não informa em que ano a conta surgiu. Quanto mais antiga, mais atenção merece."
           />
           <Indicator
             label={`Já pago em ${selectedYear}`}
             value={fmtCompact(restosResumo.restosPagos)}
-            note="Pagamentos do ano por contas de anos anteriores."
+            note={
+              isCurrentYear
+                ? "Pago até agora neste ano por contas de anos anteriores."
+                : "Pago no ano por contas de anos anteriores."
+            }
           />
         </IndicatorPanel>
 
         {restosHistorico.length > 0 && (
           <div className="space-y-3" data-testid="restos-historico">
             <h3>
-              A Prefeitura está pagando as dívidas antigas? (
+              A Prefeitura está pagando as contas de anos anteriores? (
               {restosHistorico[0].ano}–
               {restosHistorico[restosHistorico.length - 1].ano})
             </h3>
@@ -242,10 +246,10 @@ export default async function DespesasPage({
                   <tr>
                     <th scope="col">Ano</th>
                     <th scope="col" className="numeric">
-                      Dívida levada para o ano
+                      Contas levadas para o ano
                     </th>
                     <th scope="col" className="numeric">
-                      Já pago
+                      Pago no ano
                     </th>
                     <th scope="col" className="numeric">
                       Ainda a pagar
@@ -265,10 +269,10 @@ export default async function DespesasPage({
               </table>
             </div>
             <p className="caption">
-              Cada linha é a situação daquele ano: o que sobra de um ano é
-              levado para o seguinte, então não some as colunas "Dívida levada"
-              e "Ainda a pagar" entre os anos. "Já pago" é o que a Prefeitura
-              pagou naquele ano.
+              Cada linha mostra a situação daquele ano. O que não é pago passa
+              para o ano seguinte, então a mesma conta aparece em mais de um
+              ano: somar as linhas contaria a mesma conta várias vezes. Só "Pago
+              no ano" pode ser somado.
             </p>
           </div>
         )}
@@ -276,10 +280,11 @@ export default async function DespesasPage({
         <ShowYourWorkButton
           portalSlug={portalSlug}
           tipo="restos_a_pagar"
+          ano={selectedYear}
           entidades={resolvedSearchParams.entidades}
           variante="link"
-          rotulo="Baixar todos os restos a pagar (planilha CSV)"
-          legenda="Traz, de todos os anos, cada conta de anos anteriores com fornecedor, valor reservado, entregue, pago e o que ainda falta pagar. A mesma conta aparece em cada ano em que ficou pendente: não some valores de anos diferentes."
+          rotulo={`Baixar os restos a pagar de ${selectedYear} (planilha CSV)`}
+          legenda="Traz cada conta de anos anteriores com fornecedor, valor reservado, entregue, pago e o que ainda falta pagar, na situação do ano escolhido."
         />
 
         {/* Top 5 Credores com Maior Saldo Pendente */}

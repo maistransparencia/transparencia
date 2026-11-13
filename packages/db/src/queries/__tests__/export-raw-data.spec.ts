@@ -267,7 +267,7 @@ describe("export-raw-data (smoke & parity)", () => {
   });
 
   describe("getRawRestosAPagarExportRecords", () => {
-    it("retorna só restos a pagar do portal, de todos os anos, com o pendente calculado", async () => {
+    it("retorna só restos a pagar do portal no ano pedido, com o pendente calculado", async () => {
       const portal = createFixturePortalSlug();
       const outroPortal = createFixturePortalSlug();
       await seedDespesa({
@@ -308,23 +308,23 @@ describe("export-raw-data (smoke & parity)", () => {
 
       const registros = await getRawRestosAPagarExportRecords({
         portalSlug: portal,
+        ano: 2024,
       });
 
       expect(
         registros.map((r) => [r.ano, r.credorNome, r.valorPendente]),
-      ).toEqual([
-        [2022, "Fornecedor antigo", 600],
-        [2024, "Fornecedor recente", 0],
-      ]);
+      ).toEqual([[2024, "Fornecedor recente", 0]]);
 
       const filtrado = await getRawRestosAPagarExportRecords({
         portalSlug: portal,
+        ano: 2024,
         empresaIds: ["99"],
       });
       expect(filtrado).toEqual([]);
       expect(
         await getRawRestosAPagarExportRecords({
           portalSlug: portal,
+          ano: 2024,
           empresaIds: [],
         }),
       ).toEqual([]);

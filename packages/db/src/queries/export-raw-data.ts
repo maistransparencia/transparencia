@@ -372,16 +372,17 @@ export interface RawRestosAPagarRecordDTO {
 
 export interface RawRestosAPagarExportOptions {
   portalSlug: string;
+  ano: number;
   empresaIds?: string[];
 }
 
 /**
- * Consulta todos os restos a pagar do portal, de todos os anos, na tabela fct_despesas.
+ * Consulta os restos a pagar do portal no ano informado, na tabela fct_despesas.
  */
 export async function getRawRestosAPagarExportRecords(
   options: RawRestosAPagarExportOptions,
 ): Promise<RawRestosAPagarRecordDTO[]> {
-  const { portalSlug, empresaIds } = options;
+  const { portalSlug, ano, empresaIds } = options;
 
   if (Array.isArray(empresaIds) && empresaIds.length === 0) {
     return [];
@@ -408,16 +409,14 @@ export async function getRawRestosAPagarExportRecords(
         "d.pago",
       ])
       .where("d.portal_slug", "=", portalSlug)
+      .where("d.ano", "=", ano)
       .where("d.fonte", "=", "restos_a_pagar");
 
     if (empresaIds && empresaIds.length > 0) {
       query = query.where("d.empresa_id", "in", empresaIds);
     }
 
-    const rows = await query
-      .orderBy("d.ano", "asc")
-      .orderBy("d.pago", "desc")
-      .execute();
+    const rows = await query.orderBy("d.pago", "desc").execute();
 
     return rows.map((r) => {
       const valorEmpenhado = Number(r.empenhado ?? 0);

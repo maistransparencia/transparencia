@@ -142,14 +142,14 @@ describe("DespesasPage", () => {
     expect(anos).toEqual(["2021", "2022"]);
   });
 
-  it("oferece o download de todos os restos a pagar em CSV", async () => {
+  it("oferece o download dos restos a pagar do ano selecionado em CSV", async () => {
     loadDespesasDataMock.mockResolvedValue(makeRaw());
 
     const element = await DespesasPage(props);
     render(element);
 
     expect(
-      screen.getByText("Baixar todos os restos a pagar (planilha CSV)"),
+      screen.getByText("Baixar os restos a pagar de 2024 (planilha CSV)"),
     ).toBeInTheDocument();
   });
 

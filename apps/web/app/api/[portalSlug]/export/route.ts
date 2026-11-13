@@ -333,8 +333,7 @@ export async function GET(req: Request, context: ExportRouteContext) {
   }
 
   const ano = Number(anoParam);
-  const exigeAno =
-    tipoParam !== "estoque_farmacia" && tipoParam !== "restos_a_pagar";
+  const exigeAno = tipoParam !== "estoque_farmacia";
   if (
     exigeAno &&
     (!anoParam || !Number.isInteger(ano) || ano < 2000 || ano > 2100)
@@ -398,7 +397,7 @@ export async function GET(req: Request, context: ExportRouteContext) {
     });
   }
 
-  // Rota especializada para todos os restos a pagar do portal (todos os anos, sem filtro de ano)
+  // Rota especializada para os restos a pagar do portal no ano informado
   if (tipoParam === "restos_a_pagar") {
     const empresaIdsRestos = entidadesParam
       ? entidadesParam
@@ -411,6 +410,7 @@ export async function GET(req: Request, context: ExportRouteContext) {
     try {
       restosRecords = await getRawRestosAPagarExportRecords({
         portalSlug,
+        ano,
         empresaIds: empresaIdsRestos,
       });
     } catch (error) {
@@ -443,7 +443,7 @@ export async function GET(req: Request, context: ExportRouteContext) {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="restos_a_pagar_${portalSlug}.csv"`,
+        "Content-Disposition": `attachment; filename="restos_a_pagar_${portalSlug}_${ano}.csv"`,
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });

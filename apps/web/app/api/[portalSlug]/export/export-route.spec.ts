@@ -580,19 +580,19 @@ describe("GET /api/[portalSlug]/export tipo=restos_a_pagar", () => {
     params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
   };
   const urlRestos =
-    "https://example.com/api/porciuncula_prefeitura/export?tipo=restos_a_pagar";
+    "https://example.com/api/porciuncula_prefeitura/export?tipo=restos_a_pagar&ano=2022";
 
   beforeEach(() => {
     clearRateLimits();
   });
 
-  it("exporta todos os restos a pagar sem exigir ano, com cabeçalho, valores e nome de arquivo", async () => {
+  it("exporta os restos a pagar do ano, com cabeçalho, valores e nome de arquivo", async () => {
     const { GET } = await import("./route");
     const res = await GET(new Request(urlRestos), contextoPortal);
 
     expect(res.status).toBe(200);
     expect(res.headers.get("content-disposition")).toContain(
-      'filename="restos_a_pagar_porciuncula_prefeitura.csv"',
+      'filename="restos_a_pagar_porciuncula_prefeitura_2022.csv"',
     );
     const text = await res.text();
     expect(text).toContain(
@@ -612,8 +612,21 @@ describe("GET /api/[portalSlug]/export tipo=restos_a_pagar", () => {
 
     expect(getRawRestosAPagarExportRecords).toHaveBeenLastCalledWith({
       portalSlug: "porciuncula_prefeitura",
+      ano: 2022,
       empresaIds: ["2", "3"],
     });
+  });
+
+  it("exige o ano", async () => {
+    const { GET } = await import("./route");
+    const res = await GET(
+      new Request(
+        "https://example.com/api/porciuncula_prefeitura/export?tipo=restos_a_pagar",
+      ),
+      contextoPortal,
+    );
+
+    expect(res.status).toBe(400);
   });
 
   it("devolve 500 quando a consulta falha", async () => {
