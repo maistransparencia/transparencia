@@ -71,7 +71,11 @@ Regra 4 (`make test`, `make check`); regra 15 (só banco local/efêmero, 5544 lo
 
 ## Implementation Notes
 
-_(preenchido pelo dev)_
+- `extrair_siope` / `extrair_siops` substituem `extract_and_load_*`: puros, devolvem linhas ou levantam `SiopeError`/`SiopsError`. CLIs próprios removidos.
+- `extract/run.py`: `--only` com `nargs="+"`; blocos `siope`/`siops` só rodam quando nomeados; JSON em `<run_dir>/{siope,siops}_indicadores/indicadores.json` (`default=str` por causa de `Decimal` do SIOPS); erro vai para `failed_requests.csv` sem JSON; log das 3 requisições mais lentas do SIOPS (`slowest_requests`).
+- `load/run.py`: ramo único para `siope_indicadores`/`siops_indicadores`, acumula `rows_loaded["siope"|"siops"]`. A chave é montada por variável, então o teste "toda fonte registrada é monitorada" (regex em `rows_loaded["..."]`) não as enxerga, o que é coerente com `nao_monitorado` no seed.
+- Makefile: `elt/siope` e `elt/siops` exigem `PORTAL` e rodam `extract/run.py --only` + `load/run.py`. `DRY_RUN` removido (opção da spec): o extrator não grava mais no banco, então não havia o que simular.
+- Testes: novo `test_run_siope_siops.py`; caso de carga em `test_coletas_loader.py`. `make check` ok; `make test` 445 passed.
 
 ### Evidência do primeiro run mensal do SIOPS
 
