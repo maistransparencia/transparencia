@@ -70,7 +70,7 @@ Regra 4 (`make test`, `make check`); regra 15 (nada contra produção sem autori
 - `extract/run.py` aceita `portal_municipal` (todas as listagens do portal); testes em `elt/extract/__tests__/test_run_portal_municipal.py`.
 - Workflows em ingles: `ingestion-group.yml` (reutilizavel, ex-`ingestion-pipeline.yml`) e chamadores `ingestion-daily|weekly|monthly.yml`. Concurrency compartilhada no job `load_and_transform`.
 - **Ordem de release (crons):** o cron dispara na branch padrao (`dev`) mas executa o codigo de `main`. Por isso cada chamador so roda por `schedule` se a variavel de repositorio `INGESTION_SCHEDULE_ENABLED` for `true` (testado). `workflow_dispatch` nao e afetado. Passo pos-merge: promover o codigo para `main`, depois mudar a variavel (criada com `false` em 2026-11-13) para `true` e conferir que o primeiro cron diario rodou. Ate la, nenhuma ingestao agendada roda (o pipeline antigo foi removido).
-- Limite do GitHub: com concurrency, no maximo uma execucao fica pendente; uma terceira pode cancelar a pendente.
+- Limite do GitHub: com concurrency, no maximo uma execucao fica pendente; uma terceira pode cancelar a pendente (e a carga dela some em silencio). Com os crons aprovados so duas execucoes coincidem (mensal no dia 3 com o diario ou o semanal), entao so ocorre com um disparo manual extra. Decisao do Julio (2026-11-13): manter o cron mensal `0 23 3 * *`; se acontecer, escalonar o horario (ex.: `0 21 3 * *`) em vez de criar fila. Grupo de concurrency por workflow foi descartado: permitiria dois dbt simultaneos.
 
 ### Evidência do primeiro run mensal do SIOPS
 

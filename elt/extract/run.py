@@ -85,6 +85,7 @@ def main() -> None:
         unknown = sorted(only - set(valid))
         if unknown:
             raise ValueError(f"Unknown listagem: {unknown!r}. Valid: {valid}")
+        # portal_municipal mantem todas as listagens, mesmo combinada com chaves de outras fontes.
         if portal_municipal_key not in only:
             endpoints = [e for e in endpoints if e.listagem in only]
 
