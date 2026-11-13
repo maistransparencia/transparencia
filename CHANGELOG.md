@@ -5,6 +5,10 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Ingestão agendada por grupos de cadência)
+* **Coleta em três grupos, cada um com workflow e cron próprios:** diária (`portal_municipal` e `farmacia_sus`, dias úteis às 23:00 UTC), semanal (`pncp` e `obrasgov`, sábados) e mensal (`siconfi_msc`, `siconfi_rgf`, `siope` e `siops`, dia 3). O `ingestion-pipeline.yml` foi substituído pelo reutilizável `ingestion-group.yml` e pelos chamadores `ingestion-daily.yml`, `ingestion-weekly.yml` e `ingestion-monthly.yml`. A definição dos grupos fica em `elt/core/cadence.py` e testes a conferem contra o seed de fontes e os YAMLs. Nova chave `--only portal_municipal` em `extract.run`.
+* **Cron só liga com a variável `INGESTION_SCHEDULE_ENABLED=true`:** o agendamento roda na `dev`, mas executa o código da `main`; a variável evita rodar antes de o código chegar lá. O disparo manual não depende dela.
+
 ### 🌟 Destaques da Versão (Ajustes da home e do layout)
 * **Atalhos de "Mais detalhes" com resumo:** Despesas, Licitações e Contratos e Pessoal mostram uma frase do ano ativo com número ("R$ 48,1 mi pagos em 2025", "12 contratações em 2025", "340 servidores na folha de Jun/2025"); em ano em andamento o valor é marcado como parcial ("até agora") e, sem dado, volta a descrição de antes, nunca "R$ 0" nem "0 servidores". Os números vêm das mesmas consultas das páginas de destino.
 * **Compartilhar do card leva a página:** o "Compartilhar" dos cards de saúde, obras e educação usa o compartilhamento nativo do celular (ou copia o link) com o endereço da página de detalhe e o ano ativo, para quem recebe ver a prévia da página; o envio direto ao WhatsApp com texto montado saiu. Os remédios de exemplo da busca viram chips com borda.
