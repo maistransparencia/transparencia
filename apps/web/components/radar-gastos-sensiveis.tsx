@@ -150,9 +150,12 @@ function DecomposicaoDivida({
 }) {
   if (linha.dividaReal <= 0) {
     return (
-      <p className="text-mute2 text-xs">
-        Nenhuma dívida pendente registrada para as entidades selecionadas.
-      </p>
+      <div className="space-y-3">
+        <p className="text-mute2 text-xs">
+          Não há contas pendentes desta categoria nas entidades selecionadas.
+        </p>
+        {baixarRegistros}
+      </div>
     );
   }
 
@@ -292,18 +295,6 @@ export function RadarGastosSensiveis({
       maiorPercentual > 0 ? (linha.percentualPago / maiorPercentual) * 100 : 0,
   }));
 
-  const renderMenuAuditoria = (linha: LinhaRadar) =>
-    portalSlug ? (
-      <ShowYourWorkButton
-        portalSlug={portalSlug}
-        ano={anoAtual}
-        tipo="gasto_sensivel"
-        categoria={linha.categoria}
-        entidades={entidades}
-        tituloContexto={linha.titulo}
-      />
-    ) : null;
-
   const renderCategoria = (linha: LinhaRadar) => {
     const Icone = ICONES[linha.icone] ?? Fuel;
     return (
@@ -370,16 +361,6 @@ export function RadarGastosSensiveis({
       className: "whitespace-nowrap",
       renderCell: (linha) => <ValorDivida valor={linha.dividaReal} />,
     },
-    ...(portalSlug
-      ? [
-          {
-            header: "AUDITORIA",
-            align: "right" as const,
-            className: "w-10 whitespace-nowrap",
-            renderCell: renderMenuAuditoria,
-          },
-        ]
-      : []),
   ];
 
   return (
@@ -398,14 +379,14 @@ export function RadarGastosSensiveis({
               portalSlug && (
                 <ShowYourWorkButton
                   variante="link"
-                  rotulo="Baixar registros (CSV)"
+                  rotulo="Baixar registros (planilha CSV)"
+                  legenda="Traz cada compra ou contrato desta categoria no ano, com fornecedor, objeto e os valores reservado, entregue e pago."
                   portalSlug={portalSlug}
                   ano={anoAtual}
                   tipo="gasto_sensivel"
                   categoria={linha.categoria}
                   entidades={entidades}
                   tituloContexto={linha.titulo}
-                  className="sm:hidden"
                 />
               )
             }

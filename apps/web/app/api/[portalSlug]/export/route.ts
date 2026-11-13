@@ -6,9 +6,11 @@ import {
   getPortalConfig,
   getRawDespesasExportRecords,
   getRawPessoalRegimeExportRecords,
+  getRawRestosAPagarExportRecords,
   getRawSaldoCaixaSiconfiExportRecords,
   type RawDespesaRecordDTO,
   type RawPessoalRegimeRecordDTO,
+  type RawRestosAPagarRecordDTO,
   type RawSaldoCaixaSiconfiRecordDTO,
   type TipoExportacao,
 } from "@transparencia/db";
@@ -26,6 +28,7 @@ const VALID_TIPOS: readonly TipoExportacao[] = [
   "saldo_caixa_siconfi",
   "pessoal_regime",
   "estoque_farmacia",
+  "restos_a_pagar",
 ];
 
 const CSV_HEADERS = [
@@ -81,6 +84,19 @@ const ESTOQUE_FARMACIA_CSV_HEADERS = [
   "data_validade",
 ] as const;
 
+const RESTOS_A_PAGAR_CSV_HEADERS = [
+  "ano",
+  "orgao_nome",
+  "numero_empenho",
+  "credor_nome",
+  "credor_cpf_cnpj",
+  "objeto_descricao",
+  "valor_empenhado",
+  "valor_liquidado",
+  "valor_pago",
+  "valor_pendente",
+] as const;
+
 function escapeCsvCell(
   value: string | number | null | undefined,
   delimiter: string,
@@ -129,6 +145,25 @@ function formatEstoqueFarmaciaCsvRow(
     quantidade,
     escapeCsvCell(record.dataPosicaoEstoque, delimiter),
     escapeCsvCell(record.dataValidade, delimiter),
+  ];
+  return cells.join(delimiter);
+}
+
+function formatRestosAPagarCsvRow(
+  record: RawRestosAPagarRecordDTO,
+  delimiter: string,
+): string {
+  const cells = [
+    escapeCsvCell(record.ano, delimiter),
+    escapeCsvCell(record.orgaoNome, delimiter),
+    escapeCsvCell(record.numeroEmpenho, delimiter),
+    escapeCsvCell(record.credorNome, delimiter),
+    escapeCsvCell(record.credorCpfCnpj, delimiter),
+    escapeCsvCell(record.objetoDescricao, delimiter),
+    escapeCsvCell(formatMoney(record.valorEmpenhado, delimiter), delimiter),
+    escapeCsvCell(formatMoney(record.valorLiquidado, delimiter), delimiter),
+    escapeCsvCell(formatMoney(record.valorPago, delimiter), delimiter),
+    escapeCsvCell(formatMoney(record.valorPendente, delimiter), delimiter),
   ];
   return cells.join(delimiter);
 }
@@ -222,6 +257,12 @@ function resolveFilename(options: ResolveFilenameOptions): string {
       ? `_${entidades.replace(/[^a-zA-Z0-9_-]/g, "")}`
       : "";
     return `saldo_caixa_siconfi_${portalSlug}_${ano}${sufixo}.csv`;
+  }
+  if (tipo === "restos_a_pagar") {
+    const sufixo = entidades
+      ? `_${entidades.replace(/[^a-zA-Z0-9_-]/g, "")}`
+      : "";
+    return `restos_a_pagar_${portalSlug}_${ano}${sufixo}.csv`;
   }
   if (tipo === "pessoal_regime") {
     const sufixoCategoria = categoria
@@ -357,6 +398,65 @@ export async function GET(req: Request, context: ExportRouteContext) {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="estoque_farmacia_${portalSlug}.csv"`,
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+      },
+    });
+  }
+
+  // Rota especializada para os restos a pagar do portal no ano informado
+  if (tipoParam === "restos_a_pagar") {
+    const empresaIdsRestos = entidadesParam
+      ? entidadesParam
+          .split(",")
+          .map((e) => e.trim())
+          .filter(Boolean)
+      : undefined;
+
+    let restosRecords: RawRestosAPagarRecordDTO[];
+    try {
+      restosRecords = await getRawRestosAPagarExportRecords({
+        portalSlug,
+        ano,
+        empresaIds: empresaIdsRestos,
+      });
+    } catch (error) {
+      // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
+      console.error("[Export API] Erro ao consultar restos a pagar:", error);
+      return NextResponse.json(
+        { error: "Erro interno ao processar a exportação de dados." },
+        { status: 500 },
+      );
+    }
+
+    const filename = resolveFilename({
+      tipo: tipoParam,
+      portalSlug,
+      ano,
+      entidades: entidadesParam ?? undefined,
+    });
+
+    const csvHeader = RESTOS_A_PAGAR_CSV_HEADERS.join(delimiter);
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`\uFEFF${csvHeader}\r\n`));
+        for (const record of restosRecords) {
+          controller.enqueue(
+            encoder.encode(
+              `${formatRestosAPagarCsvRow(record, delimiter)}\r\n`,
+            ),
+          );
+        }
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${filename}"`,
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });

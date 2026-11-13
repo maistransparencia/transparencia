@@ -152,16 +152,6 @@ export function TermometroOpacidadeFiscal({
         <div className="space-y-1.5">
           <h2>Gastos registrados como &ldquo;Outros&rdquo;</h2>
         </div>
-
-        <div className="flex shrink-0 items-center gap-2">
-          {/* Botão sutil de 3 pontos para Show Your Work */}
-          <ShowYourWorkButton
-            portalSlug={portalSlug || data.portalSlug}
-            ano={exercicioAtual.ano}
-            tipo="opacidade_99"
-            tituloContexto="Gastos registrados como Outros"
-          />
-        </div>
       </div>
 
       {/* Descrição Didática e Cidadã */}
@@ -566,6 +556,18 @@ export function TermometroOpacidadeFiscal({
           </div>
         </details>
       )}
+
+      <div className="border-line mt-4 border-t pt-4">
+        <ShowYourWorkButton
+          variante="link"
+          rotulo={`Baixar os gastos em “Outros” de ${exercicioAtual.ano} (planilha CSV)`}
+          legenda="Traz cada compra ou contrato registrado como “Outros” no ano, com fornecedor, objeto e os valores reservado, entregue e pago."
+          portalSlug={portalSlug || data.portalSlug}
+          ano={exercicioAtual.ano}
+          tipo="opacidade_99"
+          tituloContexto="Gastos registrados como Outros"
+        />
+      </div>
     </div>
   );
 }

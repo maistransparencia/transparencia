@@ -12,6 +12,8 @@ import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-
 import { PageEyebrow } from "@/components/page-eyebrow";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
+import { RestosHistoricoLista } from "@/components/restos-historico-lista";
+import { ShowYourWorkButton } from "@/components/show-your-work-button";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadDespesasData } from "./loader";
@@ -62,6 +64,8 @@ export default async function DespesasPage({
     fornecedoresLinhas,
     radarGastosSensiveis,
     restosResumo,
+    restosHistorico,
+    restosPagosNoAno,
     opacidadeContabil,
   } = viewModel;
 
@@ -218,9 +222,79 @@ export default async function DespesasPage({
           <Indicator
             label="Pendência mais antiga desde"
             value={restosResumo.dividaMaisAntigaAno}
-            note="Ano estimado a partir do empenho original. Quanto mais antiga, mais atenção merece."
+            note="Ano estimado: o portal não informa em que ano a conta surgiu. Quanto mais antiga, mais atenção merece."
+          />
+          <Indicator
+            label={`Já pago em ${selectedYear}`}
+            value={fmtCompact(restosPagosNoAno)}
+            note={
+              isCurrentYear
+                ? "Pago até agora neste ano por contas de anos anteriores."
+                : "Pago no ano por contas de anos anteriores."
+            }
           />
         </IndicatorPanel>
+
+        {restosHistorico.length > 0 && (
+          <div className="space-y-3" data-testid="restos-historico">
+            <h3>
+              A Prefeitura está pagando as contas de anos anteriores? (
+              {restosHistorico[0].ano}–
+              {restosHistorico[restosHistorico.length - 1].ano})
+            </h3>
+            <RestosHistoricoLista linhas={restosHistorico} />
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th scope="col">Ano</th>
+                    <th scope="col" className="numeric">
+                      Contas levadas para o ano
+                    </th>
+                    <th scope="col" className="numeric">
+                      Pago no ano
+                    </th>
+                    <th scope="col" className="numeric">
+                      Ainda a pagar
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {restosHistorico.map((linha) => (
+                    <tr key={linha.ano}>
+                      <td>{linha.ano}</td>
+                      <td className="numeric">
+                        {fmtCompact(linha.restosInscritos)}
+                      </td>
+                      <td className="numeric">
+                        {fmtCompact(linha.restosPagos)}
+                      </td>
+                      <td className="numeric">
+                        {fmtCompact(linha.saldoRestos)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="caption">
+              Cada linha mostra a situação daquele ano. O que não é pago passa
+              para o ano seguinte, então a mesma conta aparece em mais de um
+              ano: somar as linhas contaria a mesma conta várias vezes. Só "Pago
+              no ano" pode ser somado.
+            </p>
+          </div>
+        )}
+
+        <ShowYourWorkButton
+          portalSlug={portalSlug}
+          tipo="restos_a_pagar"
+          ano={selectedYear}
+          entidades={resolvedSearchParams.entidades}
+          variante="link"
+          rotulo={`Baixar os restos a pagar de ${selectedYear} (planilha CSV)`}
+          legenda="Traz cada conta de anos anteriores com fornecedor, valor reservado, entregue, pago e o que ainda falta pagar, na situação do ano escolhido."
+        />
 
         {/* Top 5 Credores com Maior Saldo Pendente */}
         {restosResumo.topFornecedores.length > 0 && (

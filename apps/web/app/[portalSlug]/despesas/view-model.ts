@@ -112,8 +112,13 @@ export function buildDespesasViewModel(raw: DespesasRawData) {
       totalLiquidadoPendente: 0,
       fornecedoresAguardando: 0,
       dividaMaisAntigaAno: selectedYear,
+      restosPagos: 0,
       topFornecedores: [],
     },
+    restosHistorico: raw.restosHistorico ?? [],
+    restosPagosNoAno:
+      raw.restosHistorico?.find((linha) => linha.ano === selectedYear)
+        ?.restosPagos ?? 0,
     opacidadeContabil: raw.opacidadeContabil ?? null,
   };
 }
