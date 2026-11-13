@@ -3,7 +3,13 @@ import type {
   OpacidadeCredorDTO,
   OpacidadeMetricasExercicioDTO,
 } from "@transparencia/db";
-import { Badge, fmtCompact, fmtNumber, fmtPercent } from "@transparencia/ui";
+import {
+  Badge,
+  fmtCompact,
+  fmtNumber,
+  fmtPercent,
+  MeterMarker,
+} from "@transparencia/ui";
 import { ChevronDown, ExternalLink, Lightbulb } from "lucide-react";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 import { ShowYourWorkButton } from "./show-your-work-button";
@@ -203,7 +209,7 @@ export function TermometroOpacidadeFiscal({
 
         {/* Faixas empilhadas (verde, amarelo, vermelho) com um único marcador da taxa atual */}
         <div
-          className="relative py-1"
+          className="relative my-0.5"
           role="img"
           aria-label={`${fmtPercent(exercicioAtual.taxaValorOpacidadePct)} dos pagamentos em Outros`}
         >
@@ -223,11 +229,7 @@ export function TermometroOpacidadeFiscal({
               style={{ width: `${100 - limiares.limiteCriticoPct}%` }}
             />
           </div>
-          <div
-            className="bg-ink absolute top-0 bottom-0 w-1 -translate-x-1/2"
-            style={{ left: `${taxaExibida}%` }}
-            data-testid="termometro-marcador"
-          />
+          <MeterMarker position={taxaExibida} testId="termometro-marcador" />
         </div>
 
         {/* Legendas com Posicionamento Absoluto Exato e Responsivo */}
