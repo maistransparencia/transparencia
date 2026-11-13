@@ -1,9 +1,15 @@
+import { getPortalSlugs } from "@transparencia/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageEyebrow } from "@/components/page-eyebrow";
 import { createPortalMetadata } from "@/lib/metadata";
 
 export const dynamic = "force-static";
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return (await getPortalSlugs()).map((portalSlug) => ({ portalSlug }));
+}
 
 interface SobrePageProps {
   params: Promise<{ portalSlug: string }>;

@@ -1,6 +1,8 @@
+import { getPortalSlugs } from "@transparencia/db";
 import { SectionHeader } from "@transparencia/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { LeiLink } from "@/components/lei-e-fonte";
 import { PageEyebrow } from "@/components/page-eyebrow";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -32,6 +34,7 @@ export default async function MetodologiaPage({
   params,
 }: MetodologiaPageProps) {
   const { portalSlug } = await params;
+  if (!(await getPortalSlugs()).includes(portalSlug)) notFound();
   const { fontes, cobertura, lacunas, divergencias } =
     buildMetodologiaViewModel(await loadMetodologiaData(portalSlug));
 

@@ -3,6 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 
 const { loadMock } = vi.hoisted(() => ({ loadMock: vi.fn() }));
 
+vi.mock("@transparencia/db", () => ({
+  getPortalSlugs: vi.fn().mockResolvedValue(["portal_x"]),
+}));
+vi.mock("next/navigation", () => ({
+  notFound: () => {
+    throw new Error("NEXT_NOT_FOUND");
+  },
+}));
 vi.mock("./loader", () => ({ loadMetodologiaData: loadMock }));
 vi.mock("@/lib/metadata", () => ({ createPortalMetadata: vi.fn() }));
 
@@ -70,5 +78,13 @@ describe("MetodologiaPage", () => {
       screen.getByText("Nenhuma lacuna conhecida no momento."),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("metodologia-divergencias")).toBeNull();
+  });
+
+  it("retorna 404 para município inexistente", async () => {
+    await expect(
+      MetodologiaPage({
+        params: Promise.resolve({ portalSlug: "desconhecido" }),
+      }),
+    ).rejects.toThrow("NEXT_NOT_FOUND");
   });
 });
