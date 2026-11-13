@@ -53,6 +53,27 @@ describe("FeedbackModal", () => {
     );
   });
 
+  it("tem acessibilidade básica: grupo rotulado, foco no texto e erro anunciado", async () => {
+    render(<FeedbackModal isOpen={true} onClose={vi.fn()} />);
+
+    expect(
+      screen.getByRole("radiogroup", { name: /tipo/i }),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText(/descrição do problema ou sugestão/i),
+      ).toHaveFocus(),
+    );
+
+    const form = screen.getByRole("dialog").querySelector("form");
+    if (!form) throw new Error("Form not found");
+    fireEvent.submit(form);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /pelo menos 10 caracteres/i,
+    );
+  });
+
   it("valida obrigatoriedade e tamanho mínimo da mensagem", async () => {
     render(<FeedbackModal isOpen={true} onClose={vi.fn()} />);
 

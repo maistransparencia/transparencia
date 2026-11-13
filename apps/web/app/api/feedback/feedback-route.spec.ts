@@ -60,10 +60,30 @@ describe("POST /api/feedback", () => {
     ["e-mail inválido", { emailRetorno: "x" }],
     ["tipo inválido", { tipoRelato: "outro" }],
     ["rota inválida", { rotaPagina: "http://externo.com" }],
+    ["rota com host implícito", { rotaPagina: "//externo.com" }],
+    ["rota com caractere de controle", { rotaPagina: "/portal_a\nx" }],
   ])("rejeita %s com 400", async (_nome, patch) => {
     const res = await POST(makeRequest({ ...validBody, ...patch }));
     expect(res.status).toBe(400);
     expect((await res.json()).error).toBeTruthy();
+    expect(registerFeedbackReport).not.toHaveBeenCalled();
+  });
+
+  it("rejeita corpo que não é JSON com 400", async () => {
+    const req = new Request("http://localhost:3001/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{nao e json",
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    expect(registerFeedbackReport).not.toHaveBeenCalled();
+  });
+
+  it("responde 500 quando a consulta de portais falha", async () => {
+    getAllPortais.mockRejectedValueOnce(new Error("banco fora"));
+    const res = await POST(makeRequest(validBody));
+    expect(res.status).toBe(500);
     expect(registerFeedbackReport).not.toHaveBeenCalled();
   });
 

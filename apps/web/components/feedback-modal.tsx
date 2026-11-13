@@ -310,7 +310,10 @@ export function FeedbackModal({
           <p className="text-mute2 text-[11px] leading-relaxed">
             Guardamos seu texto, o e-mail (se você informar) e o endereço desta
             página. Não guardamos seu IP nem dados do seu navegador. A mensagem
-            e o e-mail não são enviados a ferramentas de análise de uso.
+            e o e-mail não são enviados a ferramentas de análise de uso; só
+            registramos, sem o conteúdo, que o formulário foi aberto. Não
+            escreva CPF ou outros dados pessoais. Para pedir a exclusão do
+            relato, veja a Política de Privacidade.
           </p>
 
           {/* Botões de Ação */}

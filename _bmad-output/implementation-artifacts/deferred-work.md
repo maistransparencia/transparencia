@@ -577,3 +577,8 @@ status: open
 - source_spec: `_bmad-output/implementation-artifacts/spec-23-4-selo-fonte-verificado-em-e-pagina-como-atualizamos.md`
   summary: Atualizar `stg_coletas__registro_coletas` e `fct_coletas_por_fonte` no `dbt run` dos alvos de carga avulsa (`make elt/*` que gravam registro de coleta), para a página "Como atualizamos" mostrar a data logo após a carga.
   evidence: Descoberto em 2026-11-13: após `make elt/farmacia-sus` e `make elt/siconfi-rgf` a página continuou "Sem registro" até um `dbt run` do mart, porque o dbt desses alvos não inclui os dois modelos. Decisão do Julio: fora da 23.8b (que mantém dbt completo nos workflows agendados); mexe em vários alvos do Makefile.
+
+## Deferred from: code review of spec-23-5-reportar-erro-grava-relato-no-banco-com-a-rota-da-pagina (2026-11-13)
+
+- `grant_readonly.sql:54`: `read_only` recebe SELECT/INSERT/UPDATE/DELETE e política `FOR ALL USING (true)` em `feedback_reports` (e-mails de cidadãos); grant é pulado em silêncio se rodar antes da migração 005; nenhum teste executa o script. Antes de produção: conferir INSERT como `read_only` após o grant e avaliar papel só de INSERT.
+- Relatos sem triagem: só existe `registerFeedbackReport`; nada lê, notifica ou muda `status`, embora o modal diga que a equipe lê os relatos. Precisa de story própria.

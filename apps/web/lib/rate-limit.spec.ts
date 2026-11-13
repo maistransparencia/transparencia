@@ -27,13 +27,20 @@ describe("rate-limit", () => {
     expect(result3.resetInSeconds).toBeGreaterThan(0);
   });
 
+  it("deve isolar a cota de IP por escopo", () => {
+    const ip = "192.168.1.101";
+    for (let i = 0; i < 5; i++) checkIpRateLimit("rota-a", ip);
+    expect(checkIpRateLimit("rota-a", ip).success).toBe(false);
+    expect(checkIpRateLimit("rota-b", ip).success).toBe(true);
+  });
+
   it("deve aplicar regra de IP (5 reqs a cada 10 min)", () => {
     const ip = "192.168.1.100";
     for (let i = 0; i < 5; i++) {
-      const res = checkIpRateLimit(ip);
+      const res = checkIpRateLimit("teste", ip);
       expect(res.success).toBe(true);
     }
-    const blocked = checkIpRateLimit(ip);
+    const blocked = checkIpRateLimit("teste", ip);
     expect(blocked.success).toBe(false);
     expect(blocked.resetInSeconds).toBeGreaterThan(0);
   });

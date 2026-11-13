@@ -21,7 +21,12 @@ const feedbackSchema = z.object({
     .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "E-mail inválido.")
     .optional()
     .or(z.literal("")),
-  rotaPagina: z.string().trim().max(300).regex(/^\//, "Rota inválida."),
+  rotaPagina: z
+    .string()
+    .trim()
+    .max(300)
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: rejeita caracteres de controle na rota
+    .regex(/^\/(?!\/)[^\x00-\x1f]*$/, "Rota inválida."),
   portalSlug: z.string().trim().max(100).nullish(),
 });
 
@@ -52,7 +57,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const ipLimit = checkIpRateLimit(getClientIp(req));
+    const ipLimit = checkIpRateLimit("feedback", getClientIp(req));
     if (!ipLimit.success) {
       return NextResponse.json(
         {
