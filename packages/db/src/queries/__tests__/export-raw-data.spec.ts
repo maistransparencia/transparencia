@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   cleanupFixtures,
   createFixturePortalSlug,
+  seedDespesa,
   seedSaldoCaixaSiconfi,
 } from "../../../tests/fixtures/seed";
 import { PORTAL_SLUG, TEST_YEAR } from "../../test-helpers";
@@ -11,6 +12,7 @@ import {
 } from "../despesas-metrics";
 import {
   getRawDespesasExportRecords,
+  getRawRestosAPagarExportRecords,
   getRawSaldoCaixaSiconfiExportRecords,
   type RawDespesaRecordDTO,
 } from "../export-raw-data";
@@ -261,6 +263,76 @@ describe("export-raw-data (smoke & parity)", () => {
       expect(previdenciaRows[0].saldoCaixaBancos).toBe(5000000);
 
       await cleanupFixtures(FIXTURE_PORTAL);
+    });
+  });
+
+  describe("getRawRestosAPagarExportRecords", () => {
+    it("retorna só restos a pagar do portal, de todos os anos, com o pendente calculado", async () => {
+      const portal = createFixturePortalSlug();
+      const outroPortal = createFixturePortalSlug();
+      await seedDespesa({
+        portalSlug: portal,
+        empresaId: "2",
+        ano: 2022,
+        fonte: "restos_a_pagar",
+        fornecedorNome: "Fornecedor antigo",
+        empenhado: 1000,
+        liquidado: 600,
+        pago: 400,
+      });
+      await seedDespesa({
+        portalSlug: portal,
+        empresaId: "2",
+        ano: 2024,
+        fonte: "restos_a_pagar",
+        fornecedorNome: "Fornecedor recente",
+        empenhado: 500,
+        pago: 500,
+      });
+      await seedDespesa({
+        portalSlug: portal,
+        empresaId: "2",
+        ano: 2024,
+        fonte: "exercicio",
+        fornecedorNome: "Despesa do exercício",
+        empenhado: 999,
+      });
+      await seedDespesa({
+        portalSlug: outroPortal,
+        empresaId: "2",
+        ano: 2024,
+        fonte: "restos_a_pagar",
+        fornecedorNome: "Outro município",
+        empenhado: 777,
+      });
+
+      const registros = await getRawRestosAPagarExportRecords({
+        portalSlug: portal,
+      });
+
+      expect(
+        registros.map((r) => [r.ano, r.credorNome, r.valorPendente]),
+      ).toEqual([
+        [2022, "Fornecedor antigo", 600],
+        [2024, "Fornecedor recente", 0],
+      ]);
+
+      const filtrado = await getRawRestosAPagarExportRecords({
+        portalSlug: portal,
+        empresaIds: ["99"],
+      });
+      expect(filtrado).toEqual([]);
+      expect(
+        await getRawRestosAPagarExportRecords({
+          portalSlug: portal,
+          empresaIds: [],
+        }),
+      ).toEqual([]);
+
+      await Promise.all([
+        cleanupFixtures(portal),
+        cleanupFixtures(outroPortal),
+      ]);
     });
   });
 });

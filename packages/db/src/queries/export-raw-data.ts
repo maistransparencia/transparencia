@@ -8,6 +8,7 @@ export const TIPOS_EXPORTACAO = [
   "saldo_caixa_siconfi",
   "pessoal_regime",
   "estoque_farmacia",
+  "restos_a_pagar",
 ] as const;
 
 export type TipoExportacao = (typeof TIPOS_EXPORTACAO)[number];
@@ -352,6 +353,93 @@ export async function getRawPessoalRegimeExportRecords(
       "[getRawPessoalRegimeExportRecords] Erro na consulta:",
       error,
     );
+    throw error;
+  }
+}
+
+export interface RawRestosAPagarRecordDTO {
+  ano: number;
+  orgaoNome: string;
+  numeroEmpenho: string;
+  credorNome: string;
+  credorCpfCnpj: string | null;
+  objetoDescricao: string | null;
+  valorEmpenhado: number;
+  valorLiquidado: number;
+  valorPago: number;
+  valorPendente: number;
+}
+
+export interface RawRestosAPagarExportOptions {
+  portalSlug: string;
+  empresaIds?: string[];
+}
+
+/**
+ * Consulta todos os restos a pagar do portal, de todos os anos, na tabela fct_despesas.
+ */
+export async function getRawRestosAPagarExportRecords(
+  options: RawRestosAPagarExportOptions,
+): Promise<RawRestosAPagarRecordDTO[]> {
+  const { portalSlug, empresaIds } = options;
+
+  if (Array.isArray(empresaIds) && empresaIds.length === 0) {
+    return [];
+  }
+
+  try {
+    let query = db
+      .selectFrom("fct_despesas as d")
+      .leftJoin("dim_orgao as o", (join) =>
+        join
+          .onRef("o.portal_slug", "=", "d.portal_slug")
+          .onRef("o.empresa_id", "=", "d.empresa_id"),
+      )
+      .select([
+        "d.ano",
+        "o.orgao_nome",
+        "d.orgao_codigo",
+        "d.empenho_id",
+        "d.fornecedor_nome",
+        "d.fornecedor_cpf_cnpj",
+        "d.descricao",
+        "d.empenhado",
+        "d.liquidado",
+        "d.pago",
+      ])
+      .where("d.portal_slug", "=", portalSlug)
+      .where("d.fonte", "=", "restos_a_pagar");
+
+    if (empresaIds && empresaIds.length > 0) {
+      query = query.where("d.empresa_id", "in", empresaIds);
+    }
+
+    const rows = await query
+      .orderBy("d.ano", "asc")
+      .orderBy("d.pago", "desc")
+      .execute();
+
+    return rows.map((r) => {
+      const valorEmpenhado = Number(r.empenhado ?? 0);
+      const valorPago = Number(r.pago ?? 0);
+      return {
+        ano: Number(r.ano),
+        orgaoNome: (r.orgao_nome ||
+          r.orgao_codigo ||
+          "Não informado") as string,
+        numeroEmpenho: String(r.empenho_id ?? ""),
+        credorNome: (r.fornecedor_nome ?? "Não informado") as string,
+        credorCpfCnpj: (r.fornecedor_cpf_cnpj ?? null) as string | null,
+        objetoDescricao: (r.descricao ?? null) as string | null,
+        valorEmpenhado,
+        valorLiquidado: Number(r.liquidado ?? 0),
+        valorPago,
+        valorPendente: valorEmpenhado - valorPago,
+      };
+    });
+  } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: log de erro crítico para rastreabilidade
+    console.error("[getRawRestosAPagarExportRecords] Erro na consulta:", error);
     throw error;
   }
 }
