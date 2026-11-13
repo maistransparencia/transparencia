@@ -29,6 +29,42 @@ export interface ThresholdMeterProps {
 const emPercentual = (valor: number, max: number) =>
   max > 0 ? Math.min(100, Math.max(0, (valor / max) * 100)) : 0;
 
+export type MeterMarkerTone = "ink" | "warn";
+
+const MARKER_CLASS: Record<MeterMarkerTone, string> = {
+  ink: "bg-ink",
+  warn: "bg-warn-fill",
+};
+
+export interface MeterMarkerProps {
+  /** Posição do marcador, em % da largura do trilho (0 a 100). */
+  position: number;
+  tone?: MeterMarkerTone;
+  testId?: string;
+}
+
+/**
+ * Marcador vertical de barra: 4px, centrado na posição e passando 2px acima e
+ * abaixo do trilho. Único desenho de marcador do app (DESIGN.md > barras).
+ */
+export function MeterMarker({
+  position,
+  tone = "ink",
+  testId,
+}: MeterMarkerProps) {
+  return (
+    <span
+      data-testid={testId}
+      aria-hidden="true"
+      className={cn(
+        "absolute top-[-0.125rem] bottom-[-0.125rem] block w-1 -translate-x-1/2",
+        MARKER_CLASS[tone],
+      )}
+      style={{ left: `${Math.min(100, Math.max(0, position))}%` }}
+    />
+  );
+}
+
 /** Barra quadrada com marcador de mínimo ou meta (DESIGN.md > barras). */
 export function ThresholdMeter({
   value,
@@ -41,8 +77,6 @@ export function ThresholdMeter({
   className,
 }: ThresholdMeterProps) {
   if (value === null) return null;
-  const temMarcador = threshold !== undefined;
-  const posicaoMarcador = temMarcador ? emPercentual(threshold, max) : 0;
   return (
     // biome-ignore lint/a11y/useSemanticElements: <meter> não aceita o marcador nem o estilo quadrado de barra
     <span
@@ -52,31 +86,29 @@ export function ThresholdMeter({
       aria-valuemax={max}
       aria-valuenow={Math.min(max, Math.max(0, value))}
       aria-valuetext={valueText}
-      className={cn("relative block", className)}
+      className={cn("block", className)}
     >
-      <span className="bg-track block h-4 w-full">
+      {/* Marcadores ancorados no trilho: o contêiner pode ser esticado pelo layout (grid) */}
+      <span className="bg-track relative block h-3.5 w-full">
         <span
           data-testid="threshold-meter-fill"
           className={cn("block h-full", FILL_CLASS[tone])}
           style={{ width: `${emPercentual(value, max)}%` }}
         />
+        {secondaryThreshold !== undefined && (
+          <MeterMarker
+            position={emPercentual(secondaryThreshold, max)}
+            tone="warn"
+            testId="threshold-meter-secondary-marker"
+          />
+        )}
+        {threshold !== undefined && (
+          <MeterMarker
+            position={emPercentual(threshold, max)}
+            testId="threshold-meter-marker"
+          />
+        )}
       </span>
-      {secondaryThreshold !== undefined && (
-        <span
-          data-testid="threshold-meter-secondary-marker"
-          aria-hidden="true"
-          className="bg-warn-fill absolute top-[-0.25rem] bottom-[-0.25rem] block w-0.5"
-          style={{ left: `${emPercentual(secondaryThreshold, max)}%` }}
-        />
-      )}
-      {temMarcador && (
-        <span
-          data-testid="threshold-meter-marker"
-          aria-hidden="true"
-          className="bg-ink absolute top-[-0.25rem] bottom-[-0.25rem] block w-0.5"
-          style={{ left: `${posicaoMarcador}%` }}
-        />
-      )}
     </span>
   );
 }

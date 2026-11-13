@@ -49,8 +49,8 @@ describe("CardsSecundariosVisaoGeral", () => {
     expect(cores).toContain("var(--line)");
   });
 
-  it("barra de progresso da folha usa brand", () => {
-    const { container } = render(
+  it("barra da folha usa o ThresholdMeter com marcador no limite da LRF", () => {
+    render(
       <CardsSecundariosVisaoGeral
         pessoal={{
           receitaFolhaPercentFormatted: "40%",
@@ -58,7 +58,10 @@ describe("CardsSecundariosVisaoGeral", () => {
         }}
       />,
     );
-    expect(coresDeFundo(container)).toContain("var(--brand-fill)");
+    expect(screen.getByTestId("threshold-meter-fill").className).toContain(
+      "bg-brand-fill",
+    );
+    expect(screen.getByTestId("threshold-meter-marker").style.left).toBe("54%");
   });
 
   it("usa uma única régua superior e cabeçalhos de coluna com link de detalhes", () => {
