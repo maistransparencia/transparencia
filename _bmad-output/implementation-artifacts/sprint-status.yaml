@@ -249,7 +249,7 @@ development_status:
   23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado: backlog
   23-4-selo-fonte-atualizado-em-nos-blocos-e-pagina-como-atualizamos: done
   23-5-reportar-erro-por-indicador: done
-  23-6-metodologia-e-fontes-e-sobre: backlog
+  23-6-metodologia-e-fontes-e-sobre: ready-for-dev
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: done
   23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: backlog
   23-8b-grupos-de-cadencia-e-workflows-agendados-por-fonte: backlog
