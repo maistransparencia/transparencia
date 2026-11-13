@@ -71,3 +71,22 @@ def test_latest_collection_wins_and_portals_are_isolated(conn, coleta, portais):
     assert a["pncp"][1] == "sem_registro"
     assert b["fiorilli"][1] == "sem_registro"
     assert b["pncp"][1:] == ("monitorado", "2026-11-01 08:00:00", 1, 9)
+
+
+@pytest.mark.usefixtures("coleta")
+def test_catalog_description_and_tolerance_are_passed_through(conn, portais):
+    rows = conn.execute(
+        text(
+            "SELECT fonte, descricao_dados, tolerancia_dias FROM analytics.fct_coletas_por_fonte WHERE portal_slug = :p"
+        ),
+        {"p": portais[0]},
+    ).fetchall()
+    by_source = {row[0]: row[1:] for row in rows}
+
+    assert all(descricao for descricao, _ in by_source.values())
+    assert by_source["fiorilli"][1] == 4
+    assert by_source["receitas_csv"][1] is None
+    assert {fonte for fonte, (_, tolerancia) in by_source.items() if tolerancia is None} == {
+        "emendas_estaduais",
+        "receitas_csv",
+    }

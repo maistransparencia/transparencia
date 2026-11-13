@@ -33,6 +33,14 @@ models:
           - accepted_values:
               arguments:
                 values: [diaria, semanal, mensal, anual, sob_demanda]
+      - name: descricao_dados
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "O que a fonte traz, em linguagem cidadã (texto do catálogo)."
+      - name: tolerancia_dias
+        data_type: integer
+        description: "Dias sem coleta aceitos antes de a coleta ser considerada atrasada. Nulo em fontes sob demanda."
       - name: situacao_monitoramento
         data_type: text
         constraints:

@@ -32,6 +32,8 @@ select
     p.portal_slug,
     f.fonte,
     f.frequencia_esperada,
+    f.descricao_dados,
+    f.tolerancia_dias,
     case
         when f.monitoramento = 'nao_monitorado' then 'nao_monitorado'
         when c.ultima_coleta_em is null then 'sem_registro'

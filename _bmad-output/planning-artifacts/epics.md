@@ -3047,27 +3047,44 @@ So that I do not trust a stale number.
 
 **Origem:** pesquisa competitiva do politicometro.org (recomendação 1: selo de frescor). A Story 23.1 já entregou a base: o modelo `fct_coletas_por_fonte` (uma linha por `portal_slug` e `fonte`, com `frequencia_esperada`, `situacao_monitoramento`, `ultima_coleta_em`, `ultima_coleta_total_linhas`) e o catálogo `seed_fontes_coleta`. Falta transformar isso em resposta para o cidadão. Esta story é só dados: nenhuma tela (a tela é a 23.4).
 
-**Decisões de produto (a confirmar com o Julio na revisão):**
-- **Tolerância por frequência fica no catálogo, não no código.** O `seed_fontes_coleta` ganha a coluna `tolerancia_dias`. Proposta inicial: `diaria` 4 dias (cobre fim de semana e feriado), `semanal` 10, `mensal` 40, `anual` 400. `sob_demanda` nunca vira `fora_do_prazo`.
-- **A fonte cuja carga não grava registro continua `nao_monitorado`**, nunca presumida em dia (herdado da 23.1).
-- **`descricao_dados` é texto do catálogo**, em linguagem cidadã (ex.: "o que a Prefeitura recebeu e pagou"), revisado pelo `editor-cidadao`; códigos de `fonte` e `situacao` ficam em snake_case e a UI traduz (Regra 10).
+**Decisões de produto (confirmadas pelo Julio em 2026-11-12):**
+- **Tolerância por frequência fica no catálogo, não no código.** O `seed_fontes_coleta` ganha a coluna `tolerancia_dias`: `diaria` 4 dias (cobre fim de semana e feriado), `semanal` 10, `mensal` 40, `anual` 400. `sob_demanda` nunca vira `coleta_atrasada` (coluna vazia).
+- **A situação mede a nossa coleta, não a publicação da fonte.** Uma fonte que parou de publicar continua `coleta_em_dia` enquanto a busca roda; por isso os códigos dizem "coleta" e o período mais recente publicado fica na Story 23.9 (decisão do Julio, 2026-11-12, a partir de nota de revisão).
+- **A fonte cuja carga não grava registro continua `nao_monitorado`**, nunca presumida em dia (herdado da 23.1). As 7 fontes ainda `nao_monitorado` podem aparecer assim no selo da 23.4; a Story 23.8 vem depois do selo ("não monitorado" é honesto e não esconde nada).
+- **`descricao_dados` é texto do catálogo**, em linguagem cidadã, revisado pelo `editor-cidadao`; códigos de `fonte` e `situacao` ficam em snake_case e a UI traduz (Regra 10). Rascunho para revisão (o dev ajusta só com aprovação):
+
+  | fonte | descricao_dados |
+  |---|---|
+  | `fiorilli` | o que a Prefeitura arrecadou e gastou, contratos, licitações e diárias |
+  | `farmacia_sus` | os remédios disponíveis na farmácia do SUS |
+  | `pncp` | as compras e contratos publicados no portal nacional de contratações |
+  | `obrasgov` | as obras feitas com dinheiro federal |
+  | `siconfi_msc` | as contas da Prefeitura enviadas todo mês ao Tesouro Nacional |
+  | `siconfi_rgf` | os limites da Lei de Responsabilidade Fiscal, como gasto com pessoal e dívida |
+  | `siope` | quanto a Prefeitura aplica em educação |
+  | `siops` | quanto a Prefeitura aplica em saúde |
+  | `saude_rede` | a população usada nos indicadores de saúde |
+  | `inep_censo` | escolas, turmas e alunos da rede municipal |
+  | `inep_ideb` | a nota de qualidade do ensino (Ideb) |
+  | `emendas_estaduais` | o dinheiro enviado ao município por emendas de deputados estaduais |
+  | `receitas_csv` | o detalhe do dinheiro que entrou nos cofres da Prefeitura |
 
 **Acceptance Criteria:**
 - **Given** `fct_coletas_por_fonte` e o seed `seed_fontes_coleta` com a nova coluna `descricao_dados` e `tolerancia_dias` por fonte
 - **When** `@transparencia/db` consulta o frescor de um `portalSlug` (nova query em `packages/db/src/queries/`, tipada com Kysely)
-- **Then** retorna por fonte: `fonte`, `descricaoDados`, `frequenciaEsperada`, `ultimaAtualizacao` e `situacao` (`em_dia`, `fora_do_prazo`, `nao_monitorado`), em `camelCase` e com nomes explícitos (Regra 9), ordenado de forma estável
-- **And** `fora_do_prazo` ocorre quando `ultima_coleta_em` é mais antiga que `tolerancia_dias`, medido contra a data corrente passada como parâmetro (nunca `now()` escondido, para o teste ser determinístico); o cálculo existe só na camada de dados.
+- **Then** retorna por fonte: `fonte`, `descricaoDados`, `frequenciaEsperada`, `ultimaColetaEm` e `situacao` (`coleta_em_dia`, `coleta_atrasada`, `nao_monitorado`), em `camelCase` e com nomes explícitos (Regra 9), ordenado de forma estável
+- **And** `coleta_atrasada` ocorre quando `ultima_coleta_em` é mais antiga que `tolerancia_dias`, medido contra a data corrente passada como parâmetro (nunca `now()` escondido, para o teste ser determinístico); o cálculo existe só na camada de dados.
 - **Given** fontes `sem_registro` e `nao_monitorado`
 - **When** a query roda
-- **Then** ambas saem como `nao_monitorado` com `ultimaAtualizacao` nulo, e uma coleta com `ultima_coleta_total_linhas` zero continua `em_dia` (fonte respondeu sem registros não é falha).
+- **Then** ambas saem como `nao_monitorado` com `ultimaColetaEm` nulo, e uma coleta com `ultima_coleta_total_linhas` zero continua `coleta_em_dia` (fonte respondeu sem registros não é falha).
 - **Given** dois portais com fontes de mesmo nome e datas diferentes
 - **When** a query roda para um deles
 - **Then** só aparecem as fontes dele (isolamento por `portal_slug`, Regra 23), sem literais de município, UF ou ano.
-- **And** há teste de paridade (banco local) cobrindo os três estados, a fronteira exata da tolerância (dia limite em dia, dia seguinte fora do prazo) e `sob_demanda`; `make test/ts` e `pnpm typecheck` passam.
+- **And** há teste de paridade (banco local) cobrindo os três estados, a fronteira exata da tolerância (dia limite `coleta_em_dia`, dia seguinte `coleta_atrasada`) e `sob_demanda`; `make test/ts` e `pnpm typecheck` passam.
 
 **Fora do escopo:** qualquer componente ou texto na tela (Story 23.4); registrar falha de carga (Story 23.3); mudar o que cada extrator coleta; confirmar com cada fonte a frequência real de publicação.
 
-**Riscos:** a tolerância é uma estimativa; tolerância curta demais gera falso alarme ("fora do prazo" sem motivo) e prejudica a confiança que a epic quer construir. Por isso fica no seed, ajustável sem deploy de código.
+**Riscos:** a tolerância é uma estimativa; tolerância curta demais gera falso alarme ("coleta atrasada" sem motivo) e prejudica a confiança que a epic quer construir. Por isso fica no seed, ajustável sem deploy de código.
 
 **Dependências:** Story 23.1 (concluída). Alinhamento de `frequencia_esperada` com a Story 23.8b. Mudança de seed roda só no banco local do Docker (Regra 15).
 
@@ -3093,7 +3110,7 @@ So that wrong data never overwrites good data.
 - **And** `fct_coletas_por_fonte` passa a expor a última tentativa com falha (`ultima_falha_em`, `ultimo_erro_codigo`) sem sobrescrever `ultima_coleta_em`, que continua sendo a última coleta bem-sucedida.
 - **Given** uma fonte cuja última tentativa falhou
 - **When** a query da Story 23.2 consulta o frescor
-- **Then** a fonte aparece como `fora_do_prazo` assim que a tolerância vence, com a data da última coleta boa preservada (a falha sozinha não troca a situação antes do prazo, para não alarmar por um tropeço de um dia).
+- **Then** a fonte aparece como `coleta_atrasada` assim que a tolerância vence, com a data da última coleta boa preservada (a falha sozinha não troca a situação antes do prazo, para não alarmar por um tropeço de um dia).
 - **Given** um campo ausente na fonte em um bloco já existente
 - **When** a tela renderiza
 - **Then** mostra "—" com a explicação do que significa, não `0` nem `R$ 0,00`, com teste em pelo menos um bloco real e lista dos demais blocos auditados registrada na story.
@@ -3107,7 +3124,7 @@ So that wrong data never overwrites good data.
 
 ---
 
-### Story 23.4: Selo "Fonte · atualizado em" nos Blocos e Página "Como Atualizamos"
+### Story 23.4: Selo "Fonte · verificado em" nos Blocos e Página "Como Atualizamos"
 
 As a citizen,  
 I want each block to show its source and update date, and a page listing all sources,  
@@ -3118,18 +3135,18 @@ So that I can judge how current and how reliable what I see is.
 **Pergunta do cidadão (Regra 27):** "Estes números estão atualizados? De onde vieram?"
 
 **Decisões de produto:**
-- **Selo discreto no rodapé do bloco**, uma linha: "Fonte: {descrição} · atualizado em {data}". Em `fora_do_prazo`, o selo ganha o aviso "Atualização atrasada: o último dado é de {data}"; em `nao_monitorado`, "Não acompanhamos a data de atualização desta fonte". Nunca finge frescor.
-- **Página "Como atualizamos"** por município: tabela com fonte, o que traz, frequência, última atualização e situação. Fica no rodapé/menu e é linkada pelo selo; o texto da frequência é em linguagem comum ("todo dia útil", "toda semana", "todo mês").
+- **Selo discreto no rodapé do bloco**, uma linha: "Fonte: {descrição} · verificado em {data}". A data é a da nossa última coleta, não a do dado: o selo nunca diz "atualizado em" nem afirma que o número é recente até a Story 23.9 entregar o período mais recente publicado (decisão do Julio, 2026-11-12). Em `coleta_atrasada`, o selo ganha o aviso "Não conseguimos verificar esta fonte desde {data}"; em `nao_monitorado`, "Não acompanhamos a data de atualização desta fonte". Nunca finge frescor.
+- **Página "Como atualizamos"** por município: tabela com fonte, o que traz, frequência, última verificação e situação. Fica no rodapé/menu e é linkada pelo selo; o texto da frequência é em linguagem comum ("todo dia útil", "toda semana", "todo mês").
 - **Tom não acusatório:** "atrasada" descreve a coleta do portal, não a conduta da Prefeitura, salvo quando a fonte original for a que não publica (distinção a revisar com o `editor-cidadao`).
 
 **Acceptance Criteria:**
 - **Given** a query da Story 23.2
 - **When** o usuário abre um bloco de dados de qualquer página do município
-- **Then** o bloco mostra "Fonte: … · atualizado em …", com a fonte vinda do DTO (um mapeamento bloco → `fonte` por página, definido na camada de dados ou no view-model, nunca em JSX solto) e a data formatada em `pt-BR`
-- **And** em `fora_do_prazo` e `nao_monitorado` aparece o aviso correspondente, com ícone e texto (não só cor) e legível em leitor de tela.
+- **Then** o bloco mostra "Fonte: … · verificado em …", com a fonte vinda do DTO (um mapeamento bloco → `fonte` por página, definido na camada de dados ou no view-model, nunca em JSX solto) e a data formatada em `pt-BR`
+- **And** em `coleta_atrasada` e `nao_monitorado` aparece o aviso correspondente, com ícone e texto (não só cor) e legível em leitor de tela.
 - **Given** a página "Como atualizamos" do município
 - **When** o usuário a abre
-- **Then** vê a tabela de todas as fontes do portal (fonte, o que traz, frequência, última atualização, situação), com aviso claro no topo se qualquer fonte estiver `fora_do_prazo`, e a tabela é legível no celular sem rolagem horizontal da página
+- **Then** vê a tabela de todas as fontes do portal (fonte, o que traz, frequência, última verificação, situação), com aviso claro no topo se qualquer fonte estiver `coleta_atrasada`, e a tabela é legível no celular sem rolagem horizontal da página
 - **And** o cabeçalho ou rodapé do site leva à página, e o texto "Dados atualizados em" geral, se existir, deriva da mesma query (uma só fonte de verdade).
 - **Given** um portal sem nenhuma fonte monitorada
 - **When** a página abre
@@ -3138,7 +3155,7 @@ So that I can judge how current and how reliable what I see is.
 
 **Fora do escopo:** reportar erro (23.5); página de metodologia (23.6); notificação por e-mail de dados novos; histórico de atualizações por fonte.
 
-**Dependências:** Story 23.2 (query). A cobertura do selo cresce conforme as fontes ganham registro de coleta (Stories 23.1 e 23.8).
+**Dependências:** Story 23.2 (query). A Story 23.9 acrescenta "dados até {período}" ao selo depois. A cobertura do selo cresce conforme as fontes ganham registro de coleta (Stories 23.1 e 23.8).
 
 ---
 
@@ -3314,6 +3331,36 @@ So that the national IDEB average does not go stale and the health network does 
 
 **Dependências:** Story 23.8b (grupos e workflow mensal) e Story 23.1 (registro de coletas); Stories 25.6a, 25.6b e 25.6c (fontes de saúde; a 25.6c entrega a cadência por UF). Os critérios de saúde só entram no workflow mensal depois da 25.6c. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).
 
+
+---
+
+### Story 23.9: Período Mais Recente Publicado por Fonte ("Dados até")
+
+As a citizen,  
+I want to know until which period the data of each source goes,  
+So that a source that stopped publishing does not look current just because the portal keeps checking it.
+
+**Origem:** revisão da spec da Story 23.2 (2026-11-12). A situação da 23.2 mede quando o portal buscou a fonte, não quando a fonte publicou dado novo: se o Tesouro parar de publicar, a busca continua e a coleta sai "em dia". Decisão do Julio: separar as duas perguntas; esta story responde "o número é recente?".
+
+**Pergunta do cidadão (Regra 27):** "Até quando vão estes números?"
+
+**Decisões de produto:**
+- **Por fonte, o período mais recente que existe no mart** (ex.: mês para a MSC, quadrimestre para o RGF, data da posição de estoque para a farmácia), devolvido junto do DTO da 23.2 como `periodoMaisRecente` e `granularidadePeriodo`.
+- **Começa pelas fontes em que o período é direto:** `siconfi_msc`, `siconfi_rgf` e `farmacia_sus` (precedente: o "apagão" da farmácia já usa a data da posição). As demais ficam sem período ("ainda não disponível"), nunca presumidas.
+- **Defasagem esperada de publicação** (quanto tempo a fonte costuma levar para publicar) fica no catálogo `seed_fontes_coleta`, nunca no código; valores marcados "NÃO VERIFICADO" até confirmação com a fonte.
+
+**Acceptance Criteria:**
+- **Given** um portal com dados de MSC, RGF e farmácia
+- **When** `@transparencia/db` consulta o frescor do portal
+- **Then** cada uma dessas fontes traz o período mais recente do próprio mart, isolado por `portal_slug`, sem literais de tenant, UF ou ano
+- **And** quando o período é mais antigo que a defasagem esperada, medida contra a data de referência passada como parâmetro, a situação do dado é `dado_defasado`; senão, `dado_recente`; sem período, `periodo_nao_disponivel`.
+- **And** há teste de paridade cobrindo os três estados e a fronteira da defasagem; `make test/ts` e `pnpm typecheck` passam.
+
+**Fora do escopo:** tela (o selo da 23.4 ganha "dados até {período}" numa mudança pequena depois desta); fontes fora das três iniciais; confirmar prazos com cada fonte.
+
+**Riscos:** prazos de publicação não verificados geram falso alarme; por isso ficam no seed, marcados como estimativa, e a UI diz que é estimativa (Regra 27).
+
+**Dependências:** Story 23.2. Story 23.4 para exibir.
 
 ---
 

@@ -19,6 +19,7 @@ export * from "./queries/execucao-orcamentaria-metrics";
 export * from "./queries/export-raw-data";
 export * from "./queries/farmacia";
 export * from "./queries/fontes-receita-metrics";
+export * from "./queries/frescor-fontes";
 export * from "./queries/historia-caprem-metrics";
 export * from "./queries/historia-previdencia-metrics";
 export * from "./queries/historia-saude-metrics";
