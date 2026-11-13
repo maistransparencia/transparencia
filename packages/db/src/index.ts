@@ -24,6 +24,7 @@ export * from "./queries/frescor-fontes";
 export * from "./queries/historia-caprem-metrics";
 export * from "./queries/historia-previdencia-metrics";
 export * from "./queries/historia-saude-metrics";
+export * from "./queries/lacunas-conhecidas";
 export * from "./queries/licitacoes-contratos-search";
 export * from "./queries/licitacoes-metrics";
 export * from "./queries/metadata";

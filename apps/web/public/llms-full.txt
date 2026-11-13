@@ -394,6 +394,18 @@ Página que explica de onde vêm os números do portal e quando o portal foi bus
 
 ---
 
+### 1.7.4. Metodologia e fontes (`/[portalSlug]/metodologia`) e Sobre (`/[portalSlug]/sobre`)
+
+"Metodologia e fontes" responde: "De onde vêm os números, o que o portal ainda não cobre e o que ele promete?".
+
+- **De onde vêm:** lista das fontes oficiais com o que cada uma traz e quem publica (link oficial). A situação de cada fonte não se repete aqui: fica em "Como atualizamos".
+- **Cobertura:** diz se o portal acompanha o dia em que busca cada fonte. Fonte ainda sem acompanhamento aparece assim, nunca como atraso.
+- **Lacunas e divergências:** vêm de um catálogo na camada de dados, vigentes na data da consulta (por exemplo: dados anteriores ao ano inicial do portal não são importados; o Fundeb é exibido sem conferência do conselho; "verificado em" mede a busca do portal, não a publicação da fonte).
+- **Promessas:** o texto de "Sugestão ou erro" não vai para a ferramenta de análise de uso e o relato guarda a página de origem; não é um processo formal de resposta.
+- **Sobre:** página curta com links para a metodologia, "Como atualizamos" e "Sugestão ou erro". O rodapé do município tem os três links.
+
+---
+
 ### 1.7.2. Detalhes da Obra e Auditoria Físico-Financeira (`/[portalSlug]/obras?idProjeto=[idProjeto]`)
 
 Ficha pública aprofundada por projeto de infraestrutura urbana, apresentada em **modal contextual sobreposto** com suporte a deep linking e sincronização direta com a URL via parâmetro `?idProjeto=...`, permitindo a fiscalização cívica linha a linha do avanço do empreendimento sem descarregar o contexto do mapa:

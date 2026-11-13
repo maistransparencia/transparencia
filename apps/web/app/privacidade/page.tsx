@@ -1,6 +1,7 @@
 import { AlertBox } from "@transparencia/ui";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { PortalPagesLinks } from "@/components/portal-pages-links";
 import { env } from "@/env";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 
@@ -110,6 +111,9 @@ export default function PrivacidadePage() {
           </a>
           .
         </p>
+        <div className="mt-4">
+          <PortalPagesLinks />
+        </div>
       </header>
 
       {/* Resumo */}

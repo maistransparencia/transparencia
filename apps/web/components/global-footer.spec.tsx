@@ -168,6 +168,13 @@ describe("GlobalFooter", () => {
     expect(
       screen.getByRole("link", { name: "Como atualizamos" }),
     ).toHaveAttribute("href", "/porciuncula_prefeitura/como-atualizamos");
+    expect(
+      screen.getByRole("link", { name: "Metodologia e fontes" }),
+    ).toHaveAttribute("href", "/porciuncula_prefeitura/metodologia");
+    expect(screen.getByRole("link", { name: "Sobre" })).toHaveAttribute(
+      "href",
+      "/porciuncula_prefeitura/sobre",
+    );
     expect(container.querySelector(".bg-ok-fill")).toBeNull();
   });
 
