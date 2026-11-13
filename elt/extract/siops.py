@@ -12,22 +12,18 @@ Toda resposta é validada antes de gravar; qualquer divergência de formato ence
 duas vias não aborta a carga: as duas linhas são gravadas e o dbt expõe a divergência.
 """
 
-import argparse
 import html
 import logging
 import re
 import time
 from datetime import date, datetime, timezone
 from decimal import Decimal
-from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
 import requests
 
 from elt.core.config import PortalConfig
-from elt.core.db import Connectable, get_engine
-from elt.load.siops import SCHEMA, ensure_siops_table, load_siops_indicadores
 
 logger = logging.getLogger(__name__)
 
@@ -361,49 +357,15 @@ class SiopsExtractor:
         return linhas
 
 
-def extract_and_load_siops(
+def extrair_siops(
     portais: list[PortalConfig],
     years: list[int] | None = None,
-    db: Connectable | None = None,
     extractor: SiopsExtractor | None = None,
-) -> int:
-    """Extrai os indicadores dos portais e grava no raw; sem `db`, só extrai. Erro não grava nada."""
-    linhas = (extractor or SiopsExtractor()).extrair(portais, years)
-    if db is None:
-        return len(linhas)
-    ensure_siops_table(db, SCHEMA)
-    return load_siops_indicadores(db, linhas, schema=SCHEMA)
+) -> list[dict[str, Any]]:
+    """Extrai os indicadores dos portais e devolve as linhas; não grava em lugar nenhum. Erro levanta `SiopsError`."""
+    return (extractor or SiopsExtractor()).extrair(portais, years)
 
 
-def _todos_os_portais() -> list[str]:
-    return sorted(p.stem for p in (Path(__file__).parent.parent / "portals").glob("*.yml"))
-
-
-def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    parser = argparse.ArgumentParser(description="Extrai e carrega indicadores de saúde do SIOPS")
-    parser.add_argument("--portal", nargs="*", help="Slugs dos portais (default: todos os de elt/portals)")
-    parser.add_argument("--years", nargs="+", type=int, help="Anos (default: ano_inicial até o ano corrente)")
-    parser.add_argument("--dry-run", action="store_true", help="Só extrai e valida, sem gravar no banco")
-    args = parser.parse_args()
-
-    portais = [PortalConfig.load(slug) for slug in (args.portal or _todos_os_portais())]
-    extractor = SiopsExtractor()
-    try:
-        total = extract_and_load_siops(
-            portais, args.years, db=None if args.dry_run else get_engine(), extractor=extractor
-        )
-    except SiopsError as err:
-        logger.error("Carga do SIOPS abortada, nada foi gravado: %s", err)
-        raise SystemExit(1) from err
-    lentas = sorted(extractor.metricas, key=lambda m: m[1], reverse=True)[:3]
-    logger.info(
-        "SIOPS: %d registros %s; requisições mais lentas: %s",
-        total,
-        "validados" if args.dry_run else "gravados",
-        lentas,
-    )
-
-
-if __name__ == "__main__":
-    main()
+def slowest_requests(extractor: SiopsExtractor, limit: int = 3) -> list[tuple[str, float]]:
+    """Requisições mais lentas da coleta (URL, segundos), para medir timeout e limite de taxa."""
+    return sorted(extractor.metricas, key=lambda metrica: metrica[1], reverse=True)[:limit]
