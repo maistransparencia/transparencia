@@ -251,8 +251,8 @@ development_status:
   23-5-reportar-erro-por-indicador: done
   23-6-metodologia-e-fontes-e-sobre: done
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: done
-  23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: ready-for-dev
-  23-8b-grupos-de-cadencia-e-workflows-agendados-por-fonte: backlog
+  23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: done
+  23-8b-grupos-de-cadencia-e-workflows-agendados-por-fonte: ready-for-dev
   23-8c-cadencia-dos-seeds-do-ideb-e-das-fontes-de-saude: backlog
   23-9-periodo-mais-recente-publicado-por-fonte: backlog
 
