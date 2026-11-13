@@ -39,6 +39,15 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       entidadesIds: undefined,
     },
     fonte: makeFonte(),
+    frescorFontes: [
+      {
+        fonte: "portal_municipal",
+        descricaoDados: "sistema contábil da Prefeitura",
+        frequenciaEsperada: "diaria",
+        ultimaColetaEm: "2026-11-12T08:00:00.000Z",
+        situacao: "coleta_em_dia",
+      },
+    ],
     ...overrides,
   } as unknown as RawData;
 }
@@ -172,5 +181,20 @@ describe("buildReceitasViewModel", () => {
     );
     expect(vm.cardDependencia?.valorObservadoFormatted).toBe("5%");
     expect(vm.cardDependencia?.valorEsperadoFormatted).toBe("10%");
+  });
+
+  it("monta o selo da fonte portal_municipal com link para a página do portal", () => {
+    const vm = buildReceitasViewModel(makeRaw());
+    expect(vm.seloFonte).toMatchObject({
+      dataVerificacao: "12/11/2026",
+      aviso: null,
+      href: "/porciuncula_prefeitura/como-atualizamos",
+    });
+  });
+
+  it("sem linha da fonte portal_municipal não há selo", () => {
+    expect(
+      buildReceitasViewModel(makeRaw({ frescorFontes: [] })).seloFonte,
+    ).toBeNull();
   });
 });

@@ -17,6 +17,8 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 
 SCHEMA = "raw_coletas"
+# Código único para o portal da prefeitura, qualquer que seja o sistema (`provider`): o catálogo tem uma linha por tipo de fonte.
+MUNICIPAL_PORTAL_SOURCE = "portal_municipal"
 SOURCE_CATALOG_PATH = Path(__file__).resolve().parents[1] / "transform" / "seeds" / "seed_fontes_coleta.csv"
 
 

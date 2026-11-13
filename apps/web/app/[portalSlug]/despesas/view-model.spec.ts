@@ -6,6 +6,16 @@ type RawData = Awaited<ReturnType<typeof loadDespesasData>>;
 
 function makeRaw(overrides: Record<string, unknown> = {}): RawData {
   return {
+    portalSlug: "portal_x",
+    frescorFontes: [
+      {
+        fonte: "portal_municipal",
+        descricaoDados: "sistema contábil da Prefeitura",
+        frequenciaEsperada: "diaria",
+        ultimaColetaEm: "2026-11-12T08:00:00.000Z",
+        situacao: "coleta_em_dia",
+      },
+    ],
     context: {
       selectedYear: 2024,
       isCurrentYear: false,
@@ -186,5 +196,15 @@ describe("buildDespesasViewModel", () => {
       }),
     );
     expect(vm.fornecedoresLinhas[0]?.percentualTotalPago).toBe(0);
+  });
+
+  it("monta o selo da fonte portal_municipal e some sem linha da fonte", () => {
+    expect(buildDespesasViewModel(makeRaw()).seloFonte).toMatchObject({
+      dataVerificacao: "12/11/2026",
+      href: "/portal_x/como-atualizamos",
+    });
+    expect(
+      buildDespesasViewModel(makeRaw({ frescorFontes: [] })).seloFonte,
+    ).toBeNull();
   });
 });

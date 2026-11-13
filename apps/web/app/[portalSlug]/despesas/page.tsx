@@ -13,6 +13,7 @@ import { PageEyebrow } from "@/components/page-eyebrow";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
 import { RestosHistoricoLista } from "@/components/restos-historico-lista";
+import { SeloFonte } from "@/components/selo-fonte";
 import { ShowYourWorkButton } from "@/components/show-your-work-button";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
 import { createPortalMetadata } from "@/lib/metadata";
@@ -67,6 +68,7 @@ export default async function DespesasPage({
     restosHistorico,
     restosPagosNoAno,
     opacidadeContabil,
+    seloFonte,
   } = viewModel;
 
   return (
@@ -142,6 +144,7 @@ export default async function DespesasPage({
             </p>
           </div>
         </details>
+        <SeloFonte selo={seloFonte} />
       </section>
 
       {/* 2. Para quais áreas o dinheiro foi */}
@@ -152,6 +155,7 @@ export default async function DespesasPage({
             description="Saúde, educação, obras e outras áreas, da maior para a menor. Toque numa área para ver os detalhes."
           />
           <DespesasAreasSection areasPorEtapa={areasPorEtapa} />
+          <SeloFonte selo={seloFonte} showWarning={false} />
         </section>
       )}
 
@@ -167,6 +171,7 @@ export default async function DespesasPage({
             portalSlug={portalSlug}
             ano={selectedYear}
           />
+          <SeloFonte selo={seloFonte} showWarning={false} />
         </section>
       )}
 
@@ -194,6 +199,7 @@ export default async function DespesasPage({
             entidades={resolvedSearchParams.entidades}
           />
         )}
+        <SeloFonte selo={seloFonte} showWarning={false} />
       </section>
 
       {/* 5. Dívidas de anos anteriores */}
@@ -334,6 +340,7 @@ export default async function DespesasPage({
             </p>
           </div>
         </details>
+        <SeloFonte selo={seloFonte} showWarning={false} />
       </section>
     </div>
   );

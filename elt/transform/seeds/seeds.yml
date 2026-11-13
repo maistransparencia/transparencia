@@ -255,6 +255,9 @@ seeds:
         monitoramento: text
         descricao_dados: text
         tolerancia_dias: integer
+        nome_fonte: text
+        url_fonte: text
+        esfera_fonte: text
     columns:
       - name: fonte
         tests:
@@ -273,3 +276,18 @@ seeds:
           - accepted_values:
               arguments:
                 values: [monitorado, nao_monitorado]
+      - name: nome_fonte
+        description: "Quem publica o dado, em linguagem cidadã. Só nas fontes nacionais; nas municipais e estaduais o nome varia por portal e vem dos dados do próprio portal."
+        tests:
+          - not_null:
+              config:
+                where: "esfera_fonte = 'nacional'"
+      - name: url_fonte
+        description: "Página pública da fonte. Só nas fontes nacionais; vazio quando a fonte não tem página única."
+      - name: esfera_fonte
+        description: "Quem resolve o link na tela: `nacional` usa `url_fonte`; `municipal` usa o nome e o portal da Prefeitura de cada portal; `estadual` usa o órgão e a página oficial do Estado do portal."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [nacional, estadual, municipal]

@@ -1,14 +1,13 @@
-fonte,frequencia_esperada,monitoramento,descricao_dados,tolerancia_dias
-fiorilli,diaria,monitorado,"o que a Prefeitura arrecadou e gastou, contratos, licitações e diárias",4
-farmacia_sus,diaria,monitorado,os remédios disponíveis na farmácia do SUS,4
-pncp,semanal,monitorado,as compras e contratos publicados no portal nacional de contratações,10
-obrasgov,semanal,monitorado,as obras feitas com dinheiro federal,10
-siconfi_msc,mensal,monitorado,as contas da Prefeitura enviadas todo mês ao Tesouro Nacional,40
-siconfi_rgf,mensal,monitorado,"os limites da Lei de Responsabilidade Fiscal, como gasto com pessoal e dívida",40
-siope,mensal,nao_monitorado,quanto a Prefeitura aplica em educação,40
-siops,mensal,nao_monitorado,quanto a Prefeitura aplica em saúde,40
-saude_rede,mensal,nao_monitorado,a população usada nos indicadores de saúde,40
-inep_censo,anual,nao_monitorado,"escolas, turmas e alunos da rede municipal",400
-inep_ideb,anual,nao_monitorado,a nota de qualidade do ensino (Ideb),400
-emendas_estaduais,sob_demanda,nao_monitorado,o dinheiro enviado ao município por emendas de deputados estaduais,
-receitas_csv,sob_demanda,nao_monitorado,o detalhe do dinheiro que entrou nos cofres da Prefeitura,
+fonte,frequencia_esperada,monitoramento,descricao_dados,tolerancia_dias,nome_fonte,url_fonte,esfera_fonte
+portal_municipal,diaria,monitorado,os dados do portal de transparência da Prefeitura,4,,,municipal
+farmacia_sus,diaria,monitorado,os remédios disponíveis na farmácia do SUS,4,BNAFAR/Hórus,https://opendatasus.saude.gov.br/dataset/bnafar-posicao-de-estoque,nacional
+pncp,semanal,monitorado,as compras e contratos publicados no portal nacional de contratações,10,PNCP,https://pncp.gov.br,nacional
+obrasgov,semanal,monitorado,as obras feitas com dinheiro federal,10,ObrasGov.br,https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html,nacional
+siconfi_msc,mensal,monitorado,as contas da Prefeitura enviadas todo mês ao Tesouro Nacional,40,Siconfi,https://siconfi.tesouro.gov.br/,nacional
+siconfi_rgf,mensal,monitorado,"os limites da Lei de Responsabilidade Fiscal, como gasto com pessoal e dívida",40,Siconfi,https://siconfi.tesouro.gov.br/,nacional
+siope,mensal,nao_monitorado,quanto a Prefeitura aplica em educação,40,SIOPE,https://www.fnde.gov.br/siope/,nacional
+siops,mensal,nao_monitorado,quanto a Prefeitura aplica em saúde,40,SIOPS,https://siops.saude.gov.br/,nacional
+saude_rede,mensal,nao_monitorado,a população usada nos indicadores de saúde,40,Ministério da Saúde (dados abertos),https://apidadosabertos.saude.gov.br/,nacional
+inep_censo,anual,nao_monitorado,"escolas, turmas e alunos da rede municipal",400,Censo Escolar (INEP),https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/censo-escolar,nacional
+inep_ideb,anual,nao_monitorado,a nota de qualidade do ensino (Ideb),400,INEP,https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/ideb/resultados,nacional
+emendas_estaduais,sob_demanda,nao_monitorado,o dinheiro enviado ao município por emendas de deputados estaduais,,,,estadual

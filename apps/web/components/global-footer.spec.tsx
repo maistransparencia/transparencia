@@ -157,6 +157,20 @@ describe("GlobalFooter", () => {
     expect(screen.getByText(/Dados extraídos em/i)).toBeInTheDocument();
   });
 
+  it("mostra o link 'Como atualizamos' do portal e não usa o ponto verde", () => {
+    const { container } = render(
+      <GlobalFooter
+        portalName="Porciúncula"
+        portalSlug="porciuncula_prefeitura"
+        lastExtractionDate="2026-09-20T10:00:00Z"
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Como atualizamos" }),
+    ).toHaveAttribute("href", "/porciuncula_prefeitura/como-atualizamos");
+    expect(container.querySelector(".bg-ok-fill")).toBeNull();
+  });
+
   it("não renderiza link para portal oficial nem nome de prefeitura na página raiz ('/')", () => {
     mockPathname = "/";
     render(

@@ -8,14 +8,12 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-import yaml
 from elt.load import run as load_run
-from elt.load.coletas import SCHEMA, load_source_catalog, record_collections
+from elt.load.coletas import MUNICIPAL_PORTAL_SOURCE, SCHEMA, load_source_catalog, record_collections
 from elt.load.run import _farmacia_collection_succeeded
 from sqlalchemy import text
 
 _RUN_PY = Path(__file__).resolve().parents[1] / "run.py"
-_PORTALS_DIR = Path(__file__).resolve().parents[2] / "portals"
 _COLLECTED_AT = datetime(2026, 11, 10, 8, 30, tzinfo=timezone.utc)
 
 
@@ -43,12 +41,12 @@ def clean(engine):
 
 @pytest.mark.usefixtures("clean")
 def test_records_one_row_per_source_with_catalog_frequency_and_isolates_portals(engine):
-    record_collections(engine, "portal_a", {"fiorilli": 120, "pncp": 0}, _COLLECTED_AT)
+    record_collections(engine, "portal_a", {"portal_municipal": 120, "pncp": 0}, _COLLECTED_AT)
     record_collections(engine, "portal_b", {"siconfi_rgf": 7}, _COLLECTED_AT)
 
     assert _rows(engine, "portal_a") == [
-        ("fiorilli", _COLLECTED_AT.isoformat(), "diaria", "120"),
         ("pncp", _COLLECTED_AT.isoformat(), "semanal", "0"),
+        ("portal_municipal", _COLLECTED_AT.isoformat(), "diaria", "120"),
     ]
     assert _rows(engine, "portal_b") == [("siconfi_rgf", _COLLECTED_AT.isoformat(), "mensal", "7")]
 
@@ -56,9 +54,9 @@ def test_records_one_row_per_source_with_catalog_frequency_and_isolates_portals(
 @pytest.mark.usefixtures("clean")
 def test_reloading_same_run_is_idempotent_and_new_run_appends(engine):
     later = datetime(2026, 11, 11, 8, 30, tzinfo=timezone.utc)
-    record_collections(engine, "portal_a", {"fiorilli": 1}, _COLLECTED_AT)
-    record_collections(engine, "portal_a", {"fiorilli": 1}, _COLLECTED_AT)
-    record_collections(engine, "portal_a", {"fiorilli": 1}, later)
+    record_collections(engine, "portal_a", {"portal_municipal": 1}, _COLLECTED_AT)
+    record_collections(engine, "portal_a", {"portal_municipal": 1}, _COLLECTED_AT)
+    record_collections(engine, "portal_a", {"portal_municipal": 1}, later)
 
     assert [row[1] for row in _rows(engine, "portal_a")] == [_COLLECTED_AT.isoformat(), later.isoformat()]
 
@@ -66,7 +64,7 @@ def test_reloading_same_run_is_idempotent_and_new_run_appends(engine):
 @pytest.mark.usefixtures("clean")
 def test_unknown_source_is_rejected_and_nothing_is_written(engine):
     with pytest.raises(ValueError, match="fonte_inventada"):
-        record_collections(engine, "portal_a", {"fiorilli": 1, "fonte_inventada": 1}, _COLLECTED_AT)
+        record_collections(engine, "portal_a", {"portal_municipal": 1, "fonte_inventada": 1}, _COLLECTED_AT)
 
     assert _rows(engine, "portal_a") == []
 
@@ -74,9 +72,8 @@ def test_unknown_source_is_rejected_and_nothing_is_written(engine):
 def test_every_source_recorded_by_load_runner_is_monitored_in_catalog():
     catalog = load_source_catalog()
     added = set(re.findall(r'rows_loaded\["([a-z_]+)"\]', _RUN_PY.read_text(encoding="utf-8")))
-    providers = {yaml.safe_load(path.read_text(encoding="utf-8"))["provider"] for path in _PORTALS_DIR.glob("*.yml")}
 
-    recorded = added | providers
+    recorded = added | {MUNICIPAL_PORTAL_SOURCE}
     assert recorded <= catalog.keys()
     assert {fonte for fonte in recorded if catalog[fonte]["monitoramento"] != "monitorado"} == set()
     assert {fonte for fonte, row in catalog.items() if row["monitoramento"] == "monitorado"} == recorded

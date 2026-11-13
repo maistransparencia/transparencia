@@ -38,6 +38,17 @@ models:
         constraints:
           - type: not_null
         description: "O que a fonte traz, em linguagem cidadã (texto do catálogo)."
+      - name: nome_fonte
+        data_type: text
+        description: "Quem publica o dado (texto do catálogo); nulo nas fontes municipais e estaduais, que variam por portal."
+      - name: url_fonte
+        data_type: text
+        description: "Página pública da fonte; nulo nas fontes municipais e estaduais e quando não há página única."
+      - name: esfera_fonte
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "`nacional`, `estadual` ou `municipal`: define de onde a tela tira o link."
       - name: tolerancia_dias
         data_type: integer
         description: "Dias sem coleta aceitos antes de a coleta ser considerada atrasada. Nulo em fontes sob demanda."

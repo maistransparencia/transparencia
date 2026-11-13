@@ -1,6 +1,10 @@
 import { getPartialYearPeriod } from "@transparencia/ui";
+import { buildSourceSeal } from "@/lib/frescor-fontes";
 import { buildRadarCivicoCards } from "../view-model";
 import type { loadReceitasData } from "./loader";
+
+/** Fonte de origem dos números de /receitas (conferida pelo lineage do dbt). */
+const FONTE_RECEITAS = "portal_municipal";
 
 type ReceitasRawData = Awaited<ReturnType<typeof loadReceitasData>>;
 
@@ -133,5 +137,10 @@ export function buildReceitasViewModel(raw: ReceitasRawData) {
     totalExtraOrcamentario: rec.receitaExtraOrcamentariaArrecadado,
     comparacaoArrecadacao,
     cardDependencia,
+    seloFonte: buildSourceSeal(
+      raw.frescorFontes,
+      FONTE_RECEITAS,
+      raw.portalSlug,
+    ),
   };
 }

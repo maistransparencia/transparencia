@@ -17,7 +17,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from elt.core.config import PortalConfig
 from elt.core.db import get_engine
 from elt.extract.base import EndpointConfig
-from elt.load.coletas import record_collections
+from elt.load.coletas import MUNICIPAL_PORTAL_SOURCE, record_collections
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -303,7 +303,7 @@ def main() -> None:
         normalised = _normalize(rows, year, empresa_id, config.post_process)
         count = _upsert_raw(engine, schema, target_table, normalised, key_cols)
         logger.info("Loaded %s / %s / %d → %d rows into %s.%s", table, empresa_id, year, count, schema, target_table)
-        rows_loaded[portal.provider] += count
+        rows_loaded[MUNICIPAL_PORTAL_SOURCE] += count
 
     if extraction_date:
         _upsert_raw(
