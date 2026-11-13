@@ -253,7 +253,7 @@ development_status:
   23-7-origem-das-entradas-fora-do-orcamento-em-receitas: done
   23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: done
   23-8b-grupos-de-cadencia-e-workflows-agendados-por-fonte: done
-  23-8c-cadencia-dos-seeds-do-ideb-e-das-fontes-de-saude: backlog
+  23-8c-cadencia-dos-seeds-do-ideb-e-das-fontes-de-saude: ready-for-dev
   23-9-periodo-mais-recente-publicado-por-fonte: backlog
 
   epic-24: done

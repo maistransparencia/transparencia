@@ -2,14 +2,14 @@
 title: 'Cadência dos seeds do IDEB e das fontes de saúde'
 type: 'feature'
 created: '2026-11-13'
-status: 'draft'
+status: 'ready-for-dev'
 baseline_commit: '14ee4ebc'
 context: ['{project-root}/.claude/rules/dbt-sql.md']
 ---
 
 # Story 23.8c: Cadência dos Seeds do IDEB e das Fontes de Saúde
 
-Fonte dos critérios: `_bmad-output/planning-artifacts/epics.md`, seção "Story 23.8c". **Status `draft`: três decisões abertas (seção "Decisões abertas") precisam do Julio antes de `ready-for-dev`.**
+Fonte dos critérios: `_bmad-output/planning-artifacts/epics.md`, seção "Story 23.8c". Decisões fechadas com o Julio em 2026-11-13 (seção "Decisões").
 
 ## Estado atual (conferido em 2026-11-13)
 
@@ -25,11 +25,11 @@ Fonte dos critérios: `_bmad-output/planning-artifacts/epics.md`, seção "Story
 - `seed_fontes_coleta.csv` tem `saude_rede` (mensal, 40, `nao_monitorado`); **não há `saude_producao`**. Hoje a coleta é manual: `make elt/saude-datasus` (roda o dbt do mart ao final).
 - `cadence.py` lista `saude_rede` em `UNSCHEDULED_SOURCES` com motivo "Story 23.8c".
 
-## Decisões abertas (Julio)
+## Decisões (fechadas pelo Julio em 2026-11-13)
 
-1. **Valor de `frequencia_esperada` do IDEB.** O epic pede `mensal`, mas o INEP publica a cada dois anos e hoje o seed diz `anual`. Recomendação: manter o nome de fonte e o valor que descrevem a **publicação** (`bienal`/`anual`) e tratar o `check-inep-ideb-updates.yml` mensal como a verificação, não como a cadência dos dados. Se `mensal` for mesmo o desejado, fica registrado como "verificação mensal" na descrição.
-2. **Como seed entra no registro de coletas.** Seed não passa pelo `load.run`. Recomendação: o catálogo `seed_fontes_coleta.csv` ganha uma linha por seed do IDEB (municipal, estados, Brasil) como **catálogo apenas** (`nao_monitorado`, sem linha em `registro_coletas`), para o texto "como atualizamos" listar a fonte; monitorar a idade do seed fica fora desta story.
-3. **Nome das fontes de saúde e onde roda.** Recomendação: manter `saude_rede` (população e rede) e criar `saude_producao` (SIA e SIH) no catálogo, ambas mensais. Como o extrator é por UF e tem custo de disco (~3,4 GB no SIA), rodar como **job próprio dentro do workflow mensal** (uma execução por UF, não uma por portal), e não dentro da matriz por portal do `extract.run`; o job registra a coleta de cada portal da UF no fim. Alternativa: adaptar ao padrão de JSON por portal da 23.8a (rebaixaria o mesmo arquivo da UF para cada portal).
+1. **Valor de `frequencia_esperada` do IDEB.** O epic pedia `mensal`, mas o INEP publica a cada dois anos e hoje o seed diz `anual`. **Decidido: manter.** Manter o nome de fonte e o valor que descrevem a **publicação** (`bienal`/`anual`) e tratar o `check-inep-ideb-updates.yml` mensal como a verificação, não como a cadência dos dados. O texto do epic ("`mensal`") fica superado por esta decisão; ajustar o `epics.md` junto.
+2. **Como seed entra no registro de coletas.** Seed não passa pelo `load.run`. **Decidido: sim.** O catálogo `seed_fontes_coleta.csv` ganha uma linha por seed do IDEB (municipal, estados, Brasil) como **catálogo apenas** (`nao_monitorado`, sem linha em `registro_coletas`), para o texto "como atualizamos" listar a fonte; monitorar a idade do seed fica fora desta story.
+3. **Nome das fontes de saúde e onde roda.** **Decidido: sim.** Manter `saude_rede` (população e rede) e criar `saude_producao` (SIA e SIH) no catálogo, ambas mensais. Como o extrator é por UF e tem custo de disco (~3,4 GB no SIA), rodar como **job próprio dentro do workflow mensal** (uma execução por UF, não uma por portal), e não dentro da matriz por portal do `extract.run`; o job registra a coleta de cada portal da UF no fim. Alternativa descartada: adaptar ao padrão de JSON por portal da 23.8a (rebaixaria o mesmo arquivo da UF para cada portal).
 
 ## Critérios de aceitação
 
