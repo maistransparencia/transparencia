@@ -227,6 +227,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     # Os três grupos compartilham a fase de carga e dbt: dois dbt simultâneos conflitam.
+    # Limite do GitHub: um run em execução e UM pendente por grupo; um terceiro run cancela o pendente. Pelos crons
+    # só dois grupos coincidem (o mensal no dia 3 com o diário ou com o semanal), então nada é descartado; ao
+    # disparar manualmente, espere o run anterior terminar se já houver dois na fila.
     concurrency:
       group: ingestion-load-and-dbt
       cancel-in-progress: false
