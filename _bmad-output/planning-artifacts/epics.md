@@ -3268,12 +3268,12 @@ So that a scheduled workflow can run them (Story 23.8b) without them writing str
 **Acceptance Criteria:**
 - **Given** o SIOPE com extrator próprio (Story 24.1) que hoje grava direto no banco
 - **When** a story é concluída
-- **Then** o SIOPE grava JSON em `data/raw_runs/<portal>/siope_indicadores/` e é registrado em `elt/extract/run.py` (chave `siope`) e em `elt/load/run.py`, como o SICONFI, mantendo o tudo-ou-nada da 24.1
+- **Then** o SIOPE grava JSON em `data/raw_runs/<portal>/<timestamp>/siope_indicadores/indicadores.json` e é registrado em `elt/extract/run.py` (chave `siope`) e em `elt/load/run.py`, como o SICONFI, mantendo o tudo-ou-nada da 24.1
 - **And** `--only` em `elt.extract.run` aceita mais de uma chave, para um workflow chamar um grupo de fontes.
 - **Given** o SIOPS com extrator próprio (Story 25.2, `elt/extract/siops.py`), que hoje grava direto no banco com tudo-ou-nada, duas vias (TABNET e consulta por ano) e erro explícito quando o 3.2 diverge entre elas
 - **When** a story é concluída
-- **Then** o SIOPS é tratado **da mesma forma que o SIOPE**: grava JSON em `data/raw_runs/<portal>/siops_indicadores/`, é registrado em `elt/extract/run.py` e `elt/load/run.py` (chave `siops`), entra no grupo **mensal** e no registro de coletas da Story 23.1 com `frequencia_esperada` `mensal`
-- **And** o primeiro run mensal mede timeout, limite de taxa e repetição a partir do CI (critério que a 25.2 deixou), e o resultado é registrado.
+- **Then** o SIOPS é tratado **da mesma forma que o SIOPE**: grava JSON em `data/raw_runs/<portal>/<timestamp>/siops_indicadores/indicadores.json`, é registrado em `elt/extract/run.py` e `elt/load/run.py` (chave `siops`), entra no grupo **mensal** e no registro de coletas da Story 23.1 com `frequencia_esperada` `mensal`
+- **And** o primeiro run mensal mede timeout, limite de taxa e repetição a partir do CI (critério que a 25.2 deixou), e o resultado é registrado. **Esse run depende do workflow da Story 23.8b e de autorização do Julio (Regra 15): a 23.8a entrega o log e deixa a evidência PENDENTE, que fecha junto com a 23.8b.**
 
 **Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
 
