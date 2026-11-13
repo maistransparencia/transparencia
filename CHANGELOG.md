@@ -6,6 +6,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 ## [Unreleased]
 
 ### 🌟 Destaques da Versão (Ingestão agendada por grupos de cadência)
+* **Saúde no grupo mensal e IDEB com os três seeds:** o workflow mensal ganha um job de saúde (DATASUS) por UF, com as 4 últimas competências fechadas e coleta registrada por portal (`saude_rede` e `saude_producao`). A verificação do IDEB passa a atualizar a média do Brasil e a validar os três seeds; o seed de estados segue manual. Novo `docs/checklist-de-release.md` (rodar `dbt seed` antes do deploy).
 * **Coleta em três grupos, cada um com workflow e cron próprios:** diária (`portal_municipal` e `farmacia_sus`, dias úteis às 23:00 UTC), semanal (`pncp` e `obrasgov`, sábados) e mensal (`siconfi_msc`, `siconfi_rgf`, `siope` e `siops`, dia 3). O `ingestion-pipeline.yml` foi substituído pelo reutilizável `ingestion-group.yml` e pelos chamadores `ingestion-daily.yml`, `ingestion-weekly.yml` e `ingestion-monthly.yml`. A definição dos grupos fica em `elt/core/cadence.py` e testes a conferem contra o seed de fontes e os YAMLs. Nova chave `--only portal_municipal` em `extract.run`.
 * **Cron só liga com a variável `INGESTION_SCHEDULE_ENABLED=true`:** o agendamento roda na `dev`, mas executa o código da `main`; a variável evita rodar antes de o código chegar lá. O disparo manual não depende dela.
 

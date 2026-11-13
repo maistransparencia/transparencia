@@ -3330,6 +3330,8 @@ So that the national IDEB average does not go stale and the health network does 
 - **And** o primeiro run mensal mede o tempo do job por UF no runner (ubuntu-latest), incluindo o acesso ao FTP, e registra o resultado; o resultado do teste de contrato da 25.6a (API) e o da 25.6c (FTP) são a linha de base. Se o total não couber no limite do job, divide-se por UF em matriz
 - **And** os dois grupos só entram no workflow mensal depois da 25.6c, para não fixar na pipeline o custo da API; até lá continuam manuais (`make elt/saude-rede` e `make elt/saude-producao`) e um teste confere que nenhuma fonte de saúde roda na carga diária por omissão.
 
+**Decisão de 2026-11-13 (Julio, após análise da Mary):** `seed_inep_ideb_estados` não tem gerador no repositório (colunas `cod_uf`/`sigla_uf`; `sync_inep_ideb_seed.py` só escreve `cod_ibge`), então a atualização dele fica **manual a cada ciclo bienal**, com aviso no workflow e no PR de atualização. Um gerador fica como ideia futura. A tela de educação precisa mostrar o ano de cada média (estadual e do Brasil) para nunca comparar ciclos diferentes sem dizer; isso já está em andamento em outra frente.
+
 **Fora do escopo:** execução em produção sem autorização explícita; mudar o que cada extrator coleta; dbt seletivo por grupo (decisão: dbt completo); confirmar com cada fonte a frequência real de publicação além da estimativa acordada, que a Story 23.1 pode ajustar.
 
 **Dependências:** Story 23.8b (grupos e workflow mensal) e Story 23.1 (registro de coletas); Stories 25.6a, 25.6b e 25.6c (fontes de saúde; a 25.6c entrega a cadência por UF). Os critérios de saúde só entram no workflow mensal depois da 25.6c. Qualquer execução em produção exige autorização explícita do Julio (Regra 15).

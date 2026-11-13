@@ -69,7 +69,10 @@ Regra 4; regra 15 (a carga de saúde em produção só no workflow e com gate `I
 
 ## Implementation Notes
 
-_(preenchido pelo dev)_
+- **AC1:** `check-inep-ideb-updates.yml` passa a rodar `sync_ibge_ideb_brasil.py` e a semear/testar os três seeds. **`seed_inep_ideb_estados` não tem gerador**: `sync_inep_ideb_seed.py` só escreve linhas por município (`cod_ibge`), o seed de estados tem `cod_uf`/`sigla_uf`. Fica manual; o workflow emite aviso e o PR pede a conferência. Teste: `test_ideb_workflow_coverage.py`.
+- **AC2:** catálogo ganha `inep_ideb_estados`, `inep_ideb_brasil` (anuais, `nao_monitorado`, em `UNSCHEDULED_SOURCES`) e `saude_producao`; `saude_rede` com descrição ampliada (leitos, profissionais, população).
+- **AC3:** o deploy é da Vercel e não roda dbt; `release.yml` só publica notas. Garantia mínima: `docs/checklist-de-release.md` (dbt seed antes do deploy) + aviso no PR do IDEB. O `dbt seed` do ingestion-group cobre só a próxima execução do cron.
+- **AC4:** `CadenceGroup.dedicated_keys` (mensal: `saude_rede`, `saude_producao`). `ingestion-group.yml` ganha input `saude` e job `saude` (matriz por UF descoberta dos YAMLs de portal, 120 min, limpeza do tmp); `load_and_transform` depende dele. `saude_datasus.py` ganha `--uf`, `--list-ufs` e registra coleta por portal. Sem concurrency no job de saúde (cancelaria itens pendentes da matriz); o dbt segue serializado.
 
 ### Evidência do primeiro run mensal de saúde
 
