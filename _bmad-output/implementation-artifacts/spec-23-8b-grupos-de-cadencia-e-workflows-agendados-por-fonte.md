@@ -66,7 +66,11 @@ Regra 4 (`make test`, `make check`); regra 15 (nada contra produção sem autori
 
 ## Implementation Notes
 
-_(preenchido pelo dev)_
+- `elt/core/cadence.py` define grupos, chaves de `--only`, cron, intervalo maximo e arquivo do workflow. Testes em `elt/tests/test_cadence.py` (AC2, AC3, AC4, YAMLs).
+- `extract/run.py` aceita `portal_municipal` (todas as listagens do portal); testes em `elt/extract/__tests__/test_run_portal_municipal.py`.
+- Workflows em ingles: `ingestion-group.yml` (reutilizavel, ex-`ingestion-pipeline.yml`) e chamadores `ingestion-daily|weekly|monthly.yml`. Concurrency compartilhada no job `load_and_transform`.
+- **Ordem de release (crons):** o cron dispara na branch padrao (`dev`) mas executa o codigo de `main`. Por isso cada chamador so roda por `schedule` se a variavel de repositorio `INGESTION_SCHEDULE_ENABLED` for `true` (testado). `workflow_dispatch` nao e afetado. Passo pos-merge: promover o codigo para `main`, depois criar a variavel com `true`. Ate la, nenhuma ingestao agendada roda (o pipeline antigo foi removido).
+- Limite do GitHub: com concurrency, no maximo uma execucao fica pendente; uma terceira pode cancelar a pendente.
 
 ### Evidência do primeiro run mensal do SIOPS
 

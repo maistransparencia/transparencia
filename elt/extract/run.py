@@ -68,6 +68,8 @@ def main() -> None:
     # SIOPE e SIOPS só rodam quando nomeados: sem --only o pipeline diário não os inclui.
     siope_keys = {"siope"}
     siops_keys = {"siops"}
+    # Chave de grupo: todas as listagens do portal da prefeitura (sem criar fonte nova por sistema).
+    portal_municipal_key = "portal_municipal"
     only = set(args.only or [])
     if only:
         valid = (
@@ -78,11 +80,13 @@ def main() -> None:
             + list(farmacia_sus_keys)
             + list(siope_keys)
             + list(siops_keys)
+            + [portal_municipal_key]
         )
         unknown = sorted(only - set(valid))
         if unknown:
             raise ValueError(f"Unknown listagem: {unknown!r}. Valid: {valid}")
-        endpoints = [e for e in endpoints if e.listagem in only]
+        if portal_municipal_key not in only:
+            endpoints = [e for e in endpoints if e.listagem in only]
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = Path(f"data/raw_runs/{portal.slug}/{timestamp}")

@@ -1,27 +1,24 @@
-name: Scheduled Ingestion Pipeline
+name: Ingestion Group
 
 on:
-  schedule:
-    # Todos os dias uteis as 23:00 UTC (20:00 BRT)
-    - cron: "0 23 * * 1-5"
-  workflow_dispatch:
+  workflow_call:
     inputs:
+      only:
+        description: "Chaves de --only do grupo de cadência (separadas por espaço)"
+        type: string
+        required: true
       portal:
         description: "Slug do portal específico (ou 'all' para todos os cadastrados)"
-        required: false
+        type: string
         default: "all"
       years:
-        description: "Anos para extrair (ex: 2026, ou vazio para o ano atual)"
-        required: false
+        description: "Anos para extrair (vazio para o ano atual)"
+        type: string
         default: ""
       dry_run:
         description: "Executar em modo dry-run (sem gravar no banco nem webhook de produção)"
         type: boolean
         default: false
-
-concurrency:
-  group: scheduled-ingestion-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   # ==========================================================
@@ -42,7 +39,7 @@ jobs:
       - name: Resolve Target Portals
         id: discover
         run: |
-          PORTAL_INPUT="${{ github.event.inputs.portal }}"
+          PORTAL_INPUT="$INPUT_PORTAL"
           PORTALS_JSON=$(python3 -c "
           import json, sys
           from pathlib import Path
@@ -62,6 +59,8 @@ jobs:
 
           echo "Portais selecionados para execução: $PORTALS_JSON"
           echo "portals=$PORTALS_JSON" >> "$GITHUB_OUTPUT"
+        env:
+          INPUT_PORTAL: ${{ inputs.portal }}
 
   # ==========================================================
   # FASE 1: Extração Paralela (Fan-out)
@@ -103,13 +102,16 @@ jobs:
 
       - name: Extract Raw Municipal Data
         run: |
-          TARGET_YEAR="${{ github.event.inputs.years }}"
+          TARGET_YEAR="$INPUT_YEARS"
           if [ -z "$TARGET_YEAR" ]; then
             TARGET_YEAR=$(date +%Y)
           fi
-          echo "Iniciando extração do portal ${{ matrix.portal }} para o ano: $TARGET_YEAR"
-          uv run --project elt python -m elt.extract.run --portal "${{ matrix.portal }}" --years $TARGET_YEAR
+          echo "Iniciando extração do portal ${{ matrix.portal }} (fontes: $INPUT_ONLY) para o ano: $TARGET_YEAR"
+          # shellcheck disable=SC2086
+          uv run --project elt python -m elt.extract.run --portal "${{ matrix.portal }}" --years $TARGET_YEAR --only $INPUT_ONLY
         env:
+          INPUT_YEARS: ${{ inputs.years }}
+          INPUT_ONLY: ${{ inputs.only }}
           FLARESOLVERR_URL: http://localhost:8191/v1
 
       - name: Sync Raw Data to Cloudflare R2 (Bronze Layer)
@@ -148,6 +150,10 @@ jobs:
     if: ${{ !cancelled() && needs.setup.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # Os três grupos compartilham a fase de carga e dbt: dois dbt simultâneos conflitam.
+    concurrency:
+      group: ingestion-load-and-dbt
+      cancel-in-progress: false
 
     steps:
       - name: Checkout repository
@@ -192,7 +198,7 @@ jobs:
           ls -la data/raw_runs/
 
       - name: Load Data into PostgreSQL
-        if: github.event.inputs.dry_run != 'true'
+        if: ${{ !inputs.dry_run }}
         run: |
           for portal in $(echo '${{ needs.setup.outputs.portals }}' | jq -r '.[]'); do
             if [ -d "data/raw_runs/$portal" ]; then
@@ -206,7 +212,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Install dbt packages & seeds
-        if: github.event.inputs.dry_run != 'true'
+        if: ${{ !inputs.dry_run }}
         run: |
           uv run --project elt python elt/scripts/run_dbt.py deps
           uv run --project elt python elt/scripts/run_dbt.py seed
@@ -214,21 +220,21 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Run dbt Transformations
-        if: github.event.inputs.dry_run != 'true'
+        if: ${{ !inputs.dry_run }}
         run: |
           uv run --project elt python elt/scripts/run_dbt.py run
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Run dbt Tests
-        if: github.event.inputs.dry_run != 'true'
+        if: ${{ !inputs.dry_run }}
         run: |
           uv run --project elt python elt/scripts/run_dbt.py test
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Notify Webhook / Revalidate Cache
-        if: success() && github.event.inputs.dry_run != 'true'
+        if: ${{ success() && !inputs.dry_run }}
         run: |
           if [ -z "$WEBHOOK_URL" ]; then
             echo "WEBHOOK_URL não configurada nos Secrets. Pulando notificação."

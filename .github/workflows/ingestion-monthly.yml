@@ -1,0 +1,33 @@
+name: Ingestion (monthly)
+
+on:
+  schedule:
+    # 0 23 3 * *
+    - cron: "0 23 3 * *"
+  workflow_dispatch:
+    inputs:
+      portal:
+        description: "Slug do portal específico (ou 'all' para todos os cadastrados)"
+        required: false
+        default: "all"
+      years:
+        description: "Anos para extrair (ex: 2026, ou vazio para o ano atual)"
+        required: false
+        default: ""
+      dry_run:
+        description: "Executar em modo dry-run (sem gravar no banco nem webhook de produção)"
+        type: boolean
+        default: false
+
+jobs:
+  ingest:
+    # O cron roda na branch padrao (dev) mas executa o codigo de main: so liga depois que main tiver
+    # cadence.py e a chave portal_municipal. Ligar com a variavel de repositorio INGESTION_SCHEDULE_ENABLED=true.
+    if: ${{ github.event_name != 'schedule' || vars.INGESTION_SCHEDULE_ENABLED == 'true' }}
+    uses: ./.github/workflows/ingestion-group.yml
+    with:
+      only: "siconfi_msc siconfi_rgf siope siops"
+      portal: ${{ inputs.portal || 'all' }}
+      years: ${{ inputs.years || '' }}
+      dry_run: ${{ inputs.dry_run || false }}
+    secrets: inherit
