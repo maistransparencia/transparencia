@@ -168,3 +168,26 @@ def test_main_records_nothing_when_run_directory_has_no_timestamp(monkeypatch, e
     _run_main(monkeypatch, engine, run_dir)
 
     assert _rows(engine, "portal_a") == []
+
+
+@pytest.mark.usefixtures("clean")
+def test_main_loads_siope_and_siops_json_and_records_collections_with_catalog_frequency(monkeypatch, engine, tmp_path):
+    run_dir = tmp_path / "20261110_083000"
+    for table in ("siope_indicadores", "siops_indicadores"):
+        (run_dir / table).mkdir(parents=True)
+        (run_dir / table / "indicadores.json").write_text(json.dumps([{"portal_slug": "portal_a"}]))
+    loaded = {}
+    for source in ("siope", "siops"):
+        monkeypatch.setattr(f"elt.load.{source}.ensure_{source}_table", lambda *args: None)
+        monkeypatch.setattr(
+            f"elt.load.{source}.load_{source}_indicadores",
+            lambda db, rows, schema, source=source: loaded.setdefault(source, len(rows)),
+        )
+
+    _run_main(monkeypatch, engine, run_dir)
+
+    assert loaded == {"siope": 1, "siops": 1}
+    assert [(fonte, frequencia, total) for fonte, _, frequencia, total in _rows(engine, "portal_a")] == [
+        ("siope", "mensal", "1"),
+        ("siops", "mensal", "1"),
+    ]

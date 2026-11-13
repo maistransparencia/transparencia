@@ -10,7 +10,7 @@ from elt.extract.siops import (
     SiopsExtractor,
     codigo_siops,
     divergencias_entre_vias,
-    extract_and_load_siops,
+    extrair_siops,
     parse_consulta_ano,
     parse_tabnet,
     validar_faixa,
@@ -242,11 +242,11 @@ def test_extrair_municipio_ausente_no_tabnet_falha():
         SiopsExtractor(min_interval_seconds=0).extrair([portal], [2024])
 
 
-def test_extract_and_load_sem_db_so_valida():
+def test_extrair_siops_devolve_linhas_do_extrator():
     portal = PortalConfig.load("porciuncula_prefeitura")
     extrator = MagicMock()
     extrator.extrair.return_value = [{"x": 1}, {"x": 2}]
-    assert extract_and_load_siops([portal], [2024], db=None, extractor=extrator) == 2
+    assert extrair_siops([portal], [2024], extractor=extrator) == [{"x": 1}, {"x": 2}]
 
 
 def test_extrair_divergencia_do_minimo_entre_vias_falha_e_a_dos_demais_so_avisa():

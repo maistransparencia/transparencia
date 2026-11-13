@@ -8,7 +8,7 @@ from elt.extract.siope import (
     SiopeExtractor,
     codigo_siope,
     codigo_uf,
-    extract_and_load_siope,
+    extrair_siope,
 )
 
 IDS = {"1.1": 24, "1.2": 67, "4.1": 44, "4.2": 45, "4.8": 56, "4.9": 57}
@@ -176,10 +176,10 @@ def test_retry_em_falha_transitoria():
         assert SiopeExtractor(min_interval_seconds=0)._request("GET", {}) == []
 
 
-def test_extract_and_load_sem_db_nao_grava():
+def test_extrair_siope_devolve_linhas_sem_gravar():
     dados = {g: [_linha(c) for c in cs] for g, cs in INDICADORES_POR_GRUPO.items()}
     with patch.object(SiopeExtractor, "_request", _fake_request(dados)):
-        assert extract_and_load_siope(_portal(), [2024], db=None, extractor=SiopeExtractor(min_interval_seconds=0)) == 6
+        assert len(extrair_siope(_portal(), [2024], extractor=SiopeExtractor(min_interval_seconds=0))) == 6
 
 
 def _bimestres(ano, periodos, omitir=()):

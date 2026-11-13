@@ -4,14 +4,13 @@ Usa apenas a API JSON do Relatório Gerencial, aberta e sem captcha. A consulta 
 do SIOPE exige reCAPTCHA e não é automatizada nem contornada.
 
 A API é interna e não documentada: toda resposta é validada antes de gravar e qualquer
-divergência encerra a carga sem gravar nada (ver `SiopeError`).
+divergência encerra a coleta sem gerar arquivo (ver `SiopeError`).
 
 Cada município é pedido sozinho. Em lote, a API devolve a média dos municípios com
 `codEnte` zerado (verificado em 2026-11-01: Porciúncula 16.789,15 e Natividade 19.463,73
 viram 18.126,44 em lote), então o lote não serve para ler cada município.
 """
 
-import argparse
 import logging
 import time
 from collections import Counter
@@ -21,8 +20,6 @@ from typing import Any
 import requests
 
 from elt.core.config import PortalConfig
-from elt.core.db import Connectable, get_engine
-from elt.load.siope import SCHEMA, ensure_siope_table, load_siope_indicadores
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +57,7 @@ CAMPOS_LINHA = ("codEnte", "numAno", "numPeri", "codIndi", "codExib", "valIndi")
 
 
 class SiopeError(RuntimeError):
-    """Resposta inesperada, incompleta ou indisponível: a carga termina sem gravar nada."""
+    """Resposta inesperada, incompleta ou indisponível: a coleta termina sem gerar nenhum arquivo."""
 
 
 def codigo_siope(cod_ibge: int) -> str:
@@ -295,37 +292,11 @@ class SiopeExtractor:
         ]
 
 
-def extract_and_load_siope(
+def extrair_siope(
     portal: PortalConfig,
     years: list[int] | None = None,
-    db: Connectable | None = None,
     extractor: SiopeExtractor | None = None,
-) -> int:
-    """Extrai os indicadores do portal e grava no raw; sem `db`, só extrai. Erro não grava nada."""
+) -> list[dict[str, Any]]:
+    """Extrai os indicadores do portal e devolve as linhas; não grava em lugar nenhum. Erro levanta `SiopeError`."""
     anos = years or list(range(max(portal.ano_inicial, PRIMEIRO_ANO_SIOPE), date.today().year + 1))
-    linhas = (extractor or SiopeExtractor()).extrair_portal(portal, anos)
-    if db is None:
-        return len(linhas)
-    ensure_siope_table(db, SCHEMA)
-    return load_siope_indicadores(db, linhas, schema=SCHEMA)
-
-
-def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    parser = argparse.ArgumentParser(description="Extrai e carrega indicadores do Relatório Gerencial do SIOPE")
-    parser.add_argument("--portal", required=True, help="Slug do portal (ex: porciuncula_prefeitura)")
-    parser.add_argument("--years", nargs="+", type=int, help="Anos (default: ano_inicial até o ano corrente)")
-    parser.add_argument("--dry-run", action="store_true", help="Só extrai e valida, sem gravar no banco")
-    args = parser.parse_args()
-
-    portal = PortalConfig.load(args.portal)
-    try:
-        total = extract_and_load_siope(portal, args.years, db=None if args.dry_run else get_engine())
-    except SiopeError as err:
-        logger.error("Carga do SIOPE abortada, nada foi gravado: %s", err)
-        raise SystemExit(1) from err
-    logger.info("SIOPE %s: %d registros %s", portal.slug, total, "validados" if args.dry_run else "gravados")
-
-
-if __name__ == "__main__":
-    main()
+    return (extractor or SiopeExtractor()).extrair_portal(portal, anos)

@@ -208,6 +208,22 @@ def main() -> None:
                 logger.info("Loaded siconfi_rgf (%s) → %d rows into %s.siconfi_rgf", json_file.name, count, schema)
                 rows_loaded["siconfi_rgf"] += count
                 continue
+            if table in ("siope_indicadores", "siops_indicadores"):
+                source = table.removesuffix("_indicadores")
+                if source == "siope":
+                    from elt.load.siope import SCHEMA, ensure_siope_table, load_siope_indicadores
+
+                    ensure_loader, row_loader = ensure_siope_table, load_siope_indicadores
+                else:
+                    from elt.load.siops import SCHEMA, ensure_siops_table, load_siops_indicadores
+
+                    ensure_loader, row_loader = ensure_siops_table, load_siops_indicadores
+                ensure_loader(engine, SCHEMA)
+                rows = json.loads(json_file.read_text(encoding="utf-8"))
+                count = row_loader(engine, rows, schema=SCHEMA)
+                logger.info("Loaded %s (%s) → %d rows into %s.%s", table, json_file.name, count, SCHEMA, table)
+                rows_loaded[source] += count
+                continue
             if table == "pncp":
                 from elt.load.pncp import (
                     ensure_pncp_tables,

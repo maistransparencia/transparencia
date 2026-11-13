@@ -88,12 +88,17 @@ endif
 
 elt/siope:
 ifndef PORTAL
-	$(error PORTAL is required. Usage: make elt/siope PORTAL=porciuncula_prefeitura [YEARS="2024 2025"] [DRY_RUN=1])
+	$(error PORTAL is required. Usage: make elt/siope PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
 endif
-	PYTHONPATH=. uv run --project elt python elt/extract/siope.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
+	PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS)) --only siope
+	PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $(PORTAL)
 
 elt/siops:
-	PYTHONPATH=. uv run --project elt python elt/extract/siops.py $(if $(PORTAL),--portal $(PORTAL)) $(if $(YEARS),--years $(YEARS)) $(if $(DRY_RUN),--dry-run)
+ifndef PORTAL
+	$(error PORTAL is required. Usage: make elt/siops PORTAL=porciuncula_prefeitura [YEARS="2024 2025"])
+endif
+	PYTHONPATH=. uv run --project elt python elt/extract/run.py --portal $(PORTAL) $(if $(YEARS),--years $(YEARS)) --only siops
+	PYTHONPATH=. uv run --project elt python elt/load/run.py --portal $(PORTAL)
 
 elt/inep-censo:
 ifndef PORTAL
