@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { loadDespesasData } from "./loader";
 
@@ -49,8 +49,13 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       totalLiquidadoPendente: 50_000,
       fornecedoresAguardando: 5,
       dividaMaisAntigaAno: 2021,
+      restosPagos: 80_000,
       topFornecedores: [],
     },
+    restosHistorico: [
+      { ano: 2021, restosInscritos: 500, restosPagos: 450, saldoRestos: 50 },
+      { ano: 2022, restosInscritos: 300, restosPagos: 100, saldoRestos: 200 },
+    ],
     ...overrides,
   } as unknown as RawData;
 }
@@ -105,6 +110,42 @@ describe("DespesasPage", () => {
 
     // topFornecedores de restos vazio -> não renderiza nome
     expect(screen.queryByText("Fornecedor X")).not.toBeInTheDocument();
+  });
+
+  it("mostra o quanto já foi pago de dívidas antigas e o histórico a partir do ano mais antigo", async () => {
+    loadDespesasDataMock.mockResolvedValue(makeRaw());
+
+    const element = await DespesasPage(props);
+    render(element);
+
+    expect(screen.getByText("Já pago em 2024")).toBeInTheDocument();
+    const historico = screen.getByTestId("restos-historico");
+    expect(historico).toHaveTextContent("2021–2022");
+    const anos = within(historico)
+      .getAllByRole("row")
+      .slice(1)
+      .map((linha) => linha.textContent?.slice(0, 4));
+    expect(anos).toEqual(["2021", "2022"]);
+  });
+
+  it("oferece o download dos restos a pagar do ano selecionado em CSV", async () => {
+    loadDespesasDataMock.mockResolvedValue(makeRaw());
+
+    const element = await DespesasPage(props);
+    render(element);
+
+    expect(
+      screen.getByText("Baixar os restos a pagar de 2024 (planilha CSV)"),
+    ).toBeInTheDocument();
+  });
+
+  it("não mostra o histórico quando não há dívidas de anos anteriores", async () => {
+    loadDespesasDataMock.mockResolvedValue(makeRaw({ restosHistorico: [] }));
+
+    const element = await DespesasPage(props);
+    render(element);
+
+    expect(screen.queryByTestId("restos-historico")).toBeNull();
   });
 
   it("exibe seções condicionais quando os dados vêm populados", async () => {

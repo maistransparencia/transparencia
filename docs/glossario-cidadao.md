@@ -10,6 +10,7 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Dotação orçamentária | Verba prevista para uma finalidade neste ano | "Dinheiro disponível" |
 | Dotação atualizada | Verba prevista, já com os ajustes feitos no ano | |
 | Restos a pagar | Contas de anos anteriores que ainda estão sendo pagas | "Dívida" sem contexto |
+| Levada para o ano | Conta de anos anteriores que ainda não foi paga e passou para o ano seguinte. A mesma conta aparece em mais de um ano, então só o valor pago no ano pode ser somado | "Dívida" sem contexto |
 | Restos a pagar processados | Já entregues e conferidos: o fornecedor cumpriu a sua parte e falta o pagamento | "Direito adquirido do credor" |
 | Restos a pagar não processados | Ainda em andamento: depende de conferência antes do pagamento | "Pendente de liquidação" |
 | Entidade (filtro da sidebar) | Órgão: parte da Prefeitura com orçamento próprio, como a própria Prefeitura, os fundos municipais e o instituto de previdência | "Entidade", "Perímetro institucional", "Consolidado" |

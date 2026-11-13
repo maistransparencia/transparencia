@@ -1,4 +1,9 @@
-import { cn, corDoGrafico, type TokenCorGrafico } from "@transparencia/ui";
+import {
+  cn,
+  corDoGrafico,
+  ThresholdMeter,
+  type TokenCorGrafico,
+} from "@transparencia/ui";
 import Link from "next/link";
 
 export interface AntiguidadeBarItem {
@@ -328,29 +333,15 @@ export function CardsSecundariosVisaoGeral({
           {/* Barra de Progresso + Marcador LRF */}
           {pessoalPercentFormatted && (
             <div className="my-3 space-y-1.5">
-              <div className="bg-track relative h-2 w-full overflow-visible">
-                {/* Progresso da Folha */}
-                <div
-                  className="h-full transition-all duration-500"
-                  style={{
-                    backgroundColor: corDoGrafico("brand"),
-                    width: `${Math.min(100, Math.max(0, pessoalPercentVal))}%`,
-                  }}
-                />
-                {/* Linha Vermelha de Limite LRF */}
-                <div
-                  className="bg-danger-fill absolute top-[-3px] z-10 h-3.5 w-0.5"
-                  style={{
-                    left: `${Math.min(100, Math.max(0, lrfLimitVal))}%`,
-                  }}
-                  title={`Limite LRF: ${lrfLimitFormatted}`}
-                />
-              </div>
+              <ThresholdMeter
+                value={pessoalPercentVal}
+                threshold={lrfLimitVal}
+                label="Gasto com pessoal em relação à receita"
+                valueText={`${pessoalPercentVal}% da receita; limite da LRF: ${lrfLimitFormatted}`}
+              />
               <div className="numeric text-mute2 flex items-center justify-between text-left text-[10.5px]">
                 <span>{pessoalPercentVal}% atual</span>
-                <span className="text-danger-text">
-                  limite LRF: {lrfLimitFormatted}
-                </span>
+                <span>limite LRF: {lrfLimitFormatted}</span>
               </div>
             </div>
           )}

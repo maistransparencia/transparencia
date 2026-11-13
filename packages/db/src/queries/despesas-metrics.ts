@@ -280,6 +280,51 @@ export async function getRestosAPagarResumoMetrics(
   }
 }
 
+export interface RestosAPagarHistoricoLinhaDTO {
+  ano: number;
+  restosInscritos: number;
+  restosPagos: number;
+  saldoRestos: number;
+}
+
+/**
+ * Situação dos restos a pagar de cada ano até o ano selecionado, a partir do ano mais antigo dos dados.
+ * Cada linha é uma foto do ano: o saldo de um ano é levado para o seguinte, então só restosPagos soma entre anos.
+ */
+export async function getRestosAPagarHistoricoMetrics(
+  portalSlug: string,
+  year: number,
+  empresaIds: string[],
+): Promise<RestosAPagarHistoricoLinhaDTO[]> {
+  if (empresaIds.length === 0) return [];
+
+  try {
+    const rows = await db
+      .selectFrom("fct_despesas_restos_metricas")
+      .select((eb) => [
+        "ano",
+        eb.fn.sum<string>("restos_inscritos").as("restos_inscritos"),
+        eb.fn.sum<string>("restos_pagos").as("restos_pagos"),
+        eb.fn.sum<string>("saldo_restos").as("saldo_restos"),
+      ])
+      .where("portal_slug", "=", portalSlug)
+      .where("ano", "<=", year)
+      .where("empresa_id", "in", empresaIds)
+      .groupBy("ano")
+      .orderBy("ano", "asc")
+      .execute();
+
+    return rows.map((row) => ({
+      ano: Number(row.ano),
+      restosInscritos: Number(row.restos_inscritos ?? 0),
+      restosPagos: Number(row.restos_pagos ?? 0),
+      saldoRestos: Number(row.saldo_restos ?? 0),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getRadarGastosSensiveisMetrics(
   portalSlug: string,
   year: number,

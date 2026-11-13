@@ -101,7 +101,7 @@ describe("RadarGastosSensiveis Component", () => {
     expect(screen.getAllByText("Sem histórico").length).toBeGreaterThan(0);
   });
 
-  it("posiciona o menu de auditoria na última coluna da linha", () => {
+  it("não tem coluna de auditoria nem menu de três pontos na tabela", () => {
     const { container } = render(
       <RadarGastosSensiveis
         itens={sampleItens}
@@ -111,14 +111,14 @@ describe("RadarGastosSensiveis Component", () => {
       />,
     );
 
+    expect(screen.queryByText("AUDITORIA")).toBeNull();
+    expect(screen.queryByText("Baixar CSV")).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /opções de auditoria/i }),
+    ).toBeNull();
     const primeiraLinha = container.querySelector("tbody tr");
-    const celulas = primeiraLinha?.querySelectorAll("td") ?? [];
-    const celulaMenu = celulas[celulas.length - 1];
     expect(
-      celulaMenu?.querySelector("button[aria-label*='auditoria' i]"),
-    ).not.toBeNull();
-    expect(
-      celulas[0]?.querySelector("button[aria-label*='Expandir' i]"),
+      primeiraLinha?.querySelector("button[aria-label*='Expandir' i]"),
     ).not.toBeNull();
   });
 
@@ -233,7 +233,7 @@ describe("RadarGastosSensiveis Component", () => {
     expect(screen.getAllByText("50,0%").length).toBeGreaterThan(0);
   });
 
-  it("renderiza botões de auditoria Show Your Work para cada categoria", () => {
+  it("oferece o link de CSV no accordion de toda categoria, inclusive sem dívida", () => {
     render(
       <RadarGastosSensiveis
         itens={sampleItens}
@@ -243,13 +243,19 @@ describe("RadarGastosSensiveis Component", () => {
       />,
     );
 
-    const auditButtons = screen.getAllByRole("button", {
-      name: /opções de auditoria/i,
-    });
-    expect(auditButtons.length).toBe(6);
+    const botoes = screen.getAllByRole("button", { name: /expandir/i });
+    expect(botoes).toHaveLength(6);
+    for (const botao of botoes) {
+      fireEvent.click(botao);
+      expect(
+        screen.getAllByRole("button", {
+          name: "Baixar registros (planilha CSV)",
+        }).length,
+      ).toBeGreaterThan(0);
+    }
   });
 
-  it("oferece o link Baixar registros (CSV) dentro do accordion expandido", () => {
+  it("oferece o link Baixar registros (planilha CSV) dentro do accordion expandido", () => {
     render(
       <RadarGastosSensiveis
         itens={sampleItens}
@@ -260,7 +266,7 @@ describe("RadarGastosSensiveis Component", () => {
     );
 
     expect(
-      screen.queryByText("Baixar registros (CSV)"),
+      screen.queryByText("Baixar registros (planilha CSV)"),
     ).not.toBeInTheDocument();
 
     const botao = screen
@@ -271,7 +277,7 @@ describe("RadarGastosSensiveis Component", () => {
     fireEvent.click(botao as HTMLElement);
 
     expect(
-      screen.getAllByText("Baixar registros (CSV)").length,
+      screen.getAllByText("Baixar registros (planilha CSV)").length,
     ).toBeGreaterThan(0);
   });
 

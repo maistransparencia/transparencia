@@ -20,7 +20,8 @@ export interface ShowYourWorkButtonProps {
     | "funcao"
     | "saldo_caixa_siconfi"
     | "pessoal_regime"
-    | "estoque_farmacia";
+    | "estoque_farmacia"
+    | "restos_a_pagar";
   /** `menu` (padrão): três pontos com menu; `link`: botão de download direto com rótulo e legenda. */
   variante?: "menu" | "link";
   rotulo?: string;

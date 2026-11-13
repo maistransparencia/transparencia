@@ -66,6 +66,7 @@ export function buildOrcamentoViewModel(raw: OrcamentoRawData) {
     funnelStages,
     funcItems,
     execucaoAnoAnterior: raw.execucaoAnoAnterior,
+    restosPagosNoAno: raw.restosPagosNoAno,
     posicaoFinanceira: raw.posicaoFinanceira,
     evolucaoMensal: raw.evolucaoMensal,
     hasEntityFilter: Boolean(

@@ -235,6 +235,8 @@ export async function getSaudeFornecedoresCountMetrics(
       .select(sql<number>`count(distinct fornecedor_nome)`.as("count"))
       .where("portal_slug", "=", portalSlug)
       .where("ano", "=", ano)
+      // restos a pagar são despesas de exercícios anteriores: ficam fora dos fornecedores do ano
+      .where("fonte", "=", "exercicio")
       .where((eb) =>
         eb.or([
           eb("empresa_id", "in", empresaIds),

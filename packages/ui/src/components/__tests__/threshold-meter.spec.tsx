@@ -18,10 +18,10 @@ describe("ThresholdMeter", () => {
     );
   });
 
-  it("é quadrada: trilho bg-track h-4, sem rounded, e posiciona fill e marcador", () => {
+  it("é quadrada: trilho bg-track h-3.5, sem rounded, e posiciona fill e marcador", () => {
     const { container } = render(<ThresholdMeter value={40} {...propsBase} />);
     const trilho = container.querySelector(".bg-track");
-    expect(trilho?.className).toContain("h-4");
+    expect(trilho?.className).toContain("h-3.5");
     expect(container.innerHTML).not.toMatch(/rounded/);
     const preenchimento = container.querySelector<HTMLElement>(
       "[data-testid='threshold-meter-fill']",

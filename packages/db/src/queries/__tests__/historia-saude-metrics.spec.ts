@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   cleanupFixtures,
   createFixturePortalSlug,
+  seedDespesa,
   seedHistoriaSaudeMetrica,
   seedLicitacaoMetrica,
 } from "../../../tests/fixtures/seed";
@@ -48,6 +49,29 @@ describe("getSaudeFornecedoresCountMetrics", () => {
     );
     expect(typeof saudeFornecedoresCount).toBe("number");
     expect(saudeFornecedoresCount).toBeGreaterThanOrEqual(0);
+  });
+
+  it("não conta fornecedor que só aparece em restos a pagar", async () => {
+    await seedDespesa({
+      portalSlug: PORTAL_A,
+      empresaId: "2",
+      ano: TEST_YEAR,
+      fonte: "exercicio",
+      fornecedorNome: "Fornecedor do exercício",
+    });
+    await seedDespesa({
+      portalSlug: PORTAL_A,
+      empresaId: "2",
+      ano: TEST_YEAR,
+      fonte: "restos_a_pagar",
+      fornecedorNome: "Fornecedor só de restos",
+    });
+
+    const total = await getSaudeFornecedoresCountMetrics(PORTAL_A, TEST_YEAR, [
+      "2",
+    ]);
+
+    expect(total).toBe(1);
   });
 });
 

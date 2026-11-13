@@ -1,25 +1,59 @@
 {{ config(materialized='table') }}
 
-with restos_com_origem as (
+with restos as (
     select
-        f.portal_slug,
-        f.empresa_id,
-        f.ano,
-        coalesce(
-            g.ano,
-            f.ano
-        ) as ano_origem,
-        coalesce(f.empenhado, 0) as empenhado,
-        coalesce(f.liquidado, 0) as liquidado,
-        coalesce(f.pago, 0) as pago,
-        coalesce(f.valor_anulacoes, 0) as valor_anulacoes
-    from {{ ref('fct_despesas') }} f
-    left join {{ ref('fct_despesas') }} g
-        on f.empenho_id = g.empenho_id
-       and f.empresa_id = g.empresa_id
-       and g.fonte = 'exercicio'
-       and g.portal_slug = f.portal_slug
-    where f.fonte = 'restos_a_pagar'
+        despesa_id,
+        portal_slug,
+        empresa_id,
+        empenho_id,
+        ano,
+        coalesce(empenhado, 0) as empenhado,
+        coalesce(liquidado, 0) as liquidado,
+        coalesce(pago, 0) as pago,
+        coalesce(valor_anulacoes, 0) as valor_anulacoes
+    from {{ ref('fct_despesas') }}
+    where fonte = 'restos_a_pagar'
+),
+
+exercicios_por_empenho as (
+    select distinct
+        portal_slug,
+        empresa_id,
+        empenho_id,
+        ano
+    from {{ ref('fct_despesas') }}
+    where fonte = 'exercicio'
+),
+
+-- o mesmo empenho_id se repete em vários exercícios (a numeração reinicia a cada ano) e a linha
+-- de restos não traz o ano de origem; o exercício mais recente anterior ao ano do resto é a origem
+-- mais provável. Agregar por despesa_id antes do join evita multiplicar as linhas de restos.
+origem_por_resto as (
+    select
+        r.despesa_id,
+        max(e.ano) as ano_origem
+    from restos as r
+    inner join exercicios_por_empenho as e
+        on r.portal_slug = e.portal_slug
+       and r.empresa_id = e.empresa_id
+       and r.empenho_id = e.empenho_id
+       and e.ano < r.ano
+    group by r.despesa_id
+),
+
+restos_com_origem as (
+    select
+        r.portal_slug,
+        r.empresa_id,
+        r.ano,
+        coalesce(o.ano_origem, r.ano) as ano_origem,
+        r.empenhado,
+        r.liquidado,
+        r.pago,
+        r.valor_anulacoes
+    from restos as r
+    left join origem_por_resto as o
+        on r.despesa_id = o.despesa_id
 ),
 
 restos_agregados as (

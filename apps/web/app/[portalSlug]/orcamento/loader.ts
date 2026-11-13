@@ -4,6 +4,7 @@ import {
   getExecucaoOrcamentariaMetrics,
   getOrcamentoFuncionalMetrics,
   getPortalConfig,
+  getPosicaoFiscalMetrics,
   getSiconfiEvolucaoMensal,
   getSiconfiPosicaoFinanceira,
 } from "@transparencia/db";
@@ -142,6 +143,7 @@ async function fetchRawOrcamentoData(
     posicaoFinanceira,
     evolucaoMensal,
     execucaoAnoAnterior,
+    posicaoFiscal,
   ] = await Promise.all([
     getExecucaoOrcamentariaMetrics(tenantSlug, selectedYear, empresaIds),
     getOrcamentoFuncionalMetrics(tenantSlug, selectedYear, empresaIds),
@@ -149,6 +151,7 @@ async function fetchRawOrcamentoData(
     getSiconfiPosicaoFinanceira(tenantSlug, selectedYear),
     getSiconfiEvolucaoMensal(tenantSlug, selectedYear),
     getExecucaoAnoAnterior(tenantSlug, selectedYear, empresaIds),
+    getPosicaoFiscalMetrics(tenantSlug, selectedYear, empresaIds),
   ]);
 
   const items = mapExecucaoMetricsToLegacyItems(execucaoMetrics);
@@ -161,6 +164,7 @@ async function fetchRawOrcamentoData(
     funcionalData,
     summary: summarizeExecucao(items),
     execucaoAnoAnterior,
+    restosPagosNoAno: posicaoFiscal?.restosPagosNoAno ?? 0,
     posicaoFinanceira,
     evolucaoMensal,
   };
