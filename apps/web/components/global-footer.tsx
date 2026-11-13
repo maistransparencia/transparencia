@@ -227,12 +227,26 @@ export function GlobalFooter({
                 Sugestão ou erro
               </button>
               {!isRootPage && effectivePortalSlug && (
-                <Link
-                  href={`/${effectivePortalSlug}/como-atualizamos`}
-                  className={linkClass}
-                >
-                  Como atualizamos
-                </Link>
+                <>
+                  <Link
+                    href={`/${effectivePortalSlug}/como-atualizamos`}
+                    className={linkClass}
+                  >
+                    Como atualizamos
+                  </Link>
+                  <Link
+                    href={`/${effectivePortalSlug}/metodologia`}
+                    className={linkClass}
+                  >
+                    Metodologia e fontes
+                  </Link>
+                  <Link
+                    href={`/${effectivePortalSlug}/sobre`}
+                    className={linkClass}
+                  >
+                    Sobre
+                  </Link>
+                </>
               )}
               <Link href="/termos" className={linkClass}>
                 Termos de uso

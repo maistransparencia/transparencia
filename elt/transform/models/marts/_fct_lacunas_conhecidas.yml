@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: fct_lacunas_conhecidas
+    description: "Lacunas e divergências conhecidas do portal, do catálogo seed_lacunas_conhecidas, repetidas por portal. `tipo`: `lacuna` (o portal não traz ou não confere o dado) ou `divergencia` (o número do portal pode diferir de outra publicação oficial). Vigente quando a data de referência está entre `vigencia_inicio` e `vigencia_fim` (nulo = ainda vigente)."
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - portal_slug
+              - codigo
+    columns:
+      - name: id_registro
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: codigo
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Código da lacuna em lowercase snake_case."
+      - name: fonte
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Fonte do catálogo seed_fontes_coleta a que a lacuna se refere, ou `todas_as_fontes`."
+      - name: tipo
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - accepted_values:
+              arguments:
+                values: [lacuna, divergencia]
+      - name: texto_cidadao
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "O que o cidadão precisa saber, em linguagem comum."
+      - name: vigencia_inicio
+        data_type: date
+        constraints:
+          - type: not_null
+      - name: vigencia_fim
+        data_type: date
+        description: "Último dia em que a lacuna vale; nulo enquanto ela continua vigente."

@@ -77,6 +77,9 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Coleta | Ida do portal à fonte oficial para trazer os dados. O portal confere a data em que isso aconteceu, não o conteúdo | "Extração", "ETL", "sincronização" |
 | Não conseguimos verificar esta fonte desde | A última ida do portal à fonte passou do prazo previsto. Os números mostrados podem não ser os mais novos da fonte | "Fonte fora do ar", "dado desatualizado" |
 | Não acompanhamos a data de atualização | O portal ainda não registra quando busca esta fonte. O número vale, mas não dá para dizer até quando está em dia | "Sem dados", "fonte quebrada" |
+| Lacuna conhecida | Limite que o portal já sabe que tem, dito de forma simples (por exemplo: "dados anteriores a um ano não foram importados"). Vem do catálogo de lacunas, não é escrita na tela | "Falha", "erro do portal" |
+| Ainda sem acompanhamento | O portal ainda não registra o dia em que busca esta fonte. Não quer dizer que a fonte esteja atrasada | "Atrasada", "desatualizada" |
+| Verificado em | Dia em que o portal foi buscar o dado na fonte. Não diz quando a fonte o publicou nem se ele é recente | "Atualizado em" |
 
 ## Como acrescentar um termo
 1. Definir o texto ao cidadão em até uma frase, sem sigla não explicada.
