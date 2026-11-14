@@ -258,11 +258,16 @@ seeds:
         nome_fonte: text
         url_fonte: text
         esfera_fonte: text
+        resposta_vazia_e_suspeita: boolean
     columns:
       - name: fonte
         tests:
           - not_null
           - unique
+      - name: resposta_vazia_e_suspeita
+        description: "`true` quando uma resposta sem linhas, vinda de uma fonte que antes trouxe dados, deve ser tratada como falha e não gravada (o carregador lê este campo). `false` quando a fonte pode legitimamente vir vazia."
+        tests:
+          - not_null
       - name: descricao_dados
         tests:
           - not_null

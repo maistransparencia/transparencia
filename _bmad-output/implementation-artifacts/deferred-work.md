@@ -582,3 +582,11 @@ status: open
 
 - `grant_readonly.sql:54`: `read_only` recebe SELECT/INSERT/UPDATE/DELETE e política `FOR ALL USING (true)` em `feedback_reports` (e-mails de cidadãos); grant é pulado em silêncio se rodar antes da migração 005; nenhum teste executa o script. Antes de produção: conferir INSERT como `read_only` após o grant e avaliar papel só de INSERT.
 - Relatos sem triagem: só existe `registerFeedbackReport`; nada lê, notifica ou muda `status`, embora o modal diga que a equipe lê os relatos. Precisa de story própria.
+
+- source_spec: none
+  summary: Campo ausente na fonte aparece como "—" com explicação (nunca `0` nem `R$ 0,00`) nos blocos existentes, com teste em um bloco real e lista dos blocos auditados (parte "ausente é —" da Story 23.3).
+  evidence: Separado da carga segura da 23.3 por decisão do Julio (2026-11-13): é auditoria de UI/view-model independente do loader, com revisão do `contador-publico` e do `editor-cidadao`, e pode ser entregue em PR própria.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado.md`
+  summary: No workflow de ingestão, portal sem `data/raw_runs/$portal` só loga "Pulando load" e não reprova o job.
+  evidence: comportamento anterior à story 23.3, apontado na revisão; uma extração que não gerou diretório passaria como verde.

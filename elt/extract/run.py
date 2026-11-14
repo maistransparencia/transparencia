@@ -11,19 +11,31 @@ from typing import Any, cast
 
 from elt.core.config import PortalConfig
 from elt.extract.base import EndpointConfig
+from elt.extract.errors import UNEXPECTED_ERROR, classify_error
+from elt.load.coletas import MUNICIPAL_PORTAL_SOURCE
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def _log_failed(run_dir: Path, listagem: str, empresa: str, year: int, error: Exception) -> None:
+def _log_failed(
+    run_dir: Path,
+    listagem: str,
+    empresa: str,
+    year: int,
+    error: Exception | str,
+    fonte: str = MUNICIPAL_PORTAL_SOURCE,
+    erro_codigo: str | None = None,
+) -> None:
+    """Registra a falha com a fonte do catálogo e o código estável; o loader decide por eles, não pelo texto."""
+    codigo = erro_codigo or (classify_error(error) if isinstance(error, BaseException) else UNEXPECTED_ERROR)
     log_file = run_dir / "failed_requests.csv"
     file_exists = log_file.exists()
     with open(log_file, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         if not file_exists:
-            writer.writerow(["timestamp", "listagem", "empresa", "year", "error"])
-        writer.writerow([datetime.now().isoformat(), listagem, empresa, year, str(error)])
+            writer.writerow(["timestamp", "listagem", "empresa", "year", "error", "fonte", "erro_codigo"])
+        writer.writerow([datetime.now().isoformat(), listagem, empresa, year, str(error), fonte, codigo])
 
 
 def _write_json(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -156,7 +168,7 @@ def main() -> None:
                 )
             except Exception as exc:
                 logger.warning("Failed: siconfi_msc_patrimonial / %s / %d: %s", portal.slug, year, exc)
-                _log_failed(run_dir, "siconfi_msc_patrimonial", str(portal.cod_ibge), year, exc)
+                _log_failed(run_dir, "siconfi_msc_patrimonial", str(portal.cod_ibge), year, exc, fonte="siconfi_msc")
 
     if not only or only & siconfi_rgf_keys:
         from elt.extract.siconfi_rgf import SiconfiRgfExtractor
@@ -172,7 +184,7 @@ def main() -> None:
                 logger.info("Extracted siconfi_rgf / %s / %d → %d rows", portal.slug, year, len(rgf_rows))
             except Exception as exc:
                 logger.warning("Failed: siconfi_rgf / %s / %d: %s", portal.slug, year, exc)
-                _log_failed(run_dir, "siconfi_rgf", str(portal.cod_ibge), year, exc)
+                _log_failed(run_dir, "siconfi_rgf", str(portal.cod_ibge), year, exc, fonte="siconfi_rgf")
 
     if not only or only & pncp_keys:
         from elt.extract.pncp import extract_and_load_pncp
@@ -202,7 +214,7 @@ def main() -> None:
             logger.info("Extracted PNCP data for %s", portal.slug)
         except Exception as exc:
             logger.warning("Failed: pncp / %s: %s", portal.slug, exc)
-            _log_failed(run_dir, "pncp", portal.slug, years[-1] if years else 0, exc)
+            _log_failed(run_dir, "pncp", portal.slug, years[-1] if years else 0, exc, fonte="pncp")
 
     if not only or only & obrasgov_keys:
         from elt.extract.obrasgov import ObrasGovExtractor
@@ -219,14 +231,27 @@ def main() -> None:
                 logger.info("Extracted obrasgov / %s / %s → %d rows", portal.slug, key, len(rows))
         except Exception as exc:
             logger.warning("Failed: obrasgov / %s: %s", portal.slug, exc)
-            _log_failed(run_dir, "obrasgov", portal.slug, years[-1] if years else 0, exc)
+            _log_failed(run_dir, "obrasgov", portal.slug, years[-1] if years else 0, exc, fonte="obrasgov")
 
     if not only or only & farmacia_sus_keys:
         from elt.extract.farmacia_sus import FarmaciaSusExtractor
 
         logger.info("Extracting Farmácia SUS data for %s (cod_ibge: %s)...", portal.slug, portal.cod_ibge)
         try:
-            farmacia_data = FarmaciaSusExtractor().extract(portal_slug=portal.slug, cod_ibge=portal.cod_ibge)
+            farmacia_extractor = FarmaciaSusExtractor()
+            farmacia_data = farmacia_extractor.extract(portal_slug=portal.slug, cod_ibge=portal.cod_ibge)
+            farmacia_error_code = getattr(farmacia_extractor, "last_error_code", None)
+            if farmacia_error_code:
+                # A coleta com falha preserva o estoque e só gera coletas.json; o código segue para o loader pelo CSV.
+                _log_failed(
+                    run_dir,
+                    "farmacia_sus",
+                    portal.slug,
+                    years[-1] if years else 0,
+                    farmacia_extractor.last_error_message or farmacia_error_code,
+                    fonte="farmacia_sus",
+                    erro_codigo=farmacia_error_code,
+                )
             farmacia_dir = run_dir / "farmacia_sus"
             farmacia_dir.mkdir(parents=True, exist_ok=True)
             for key, rows in farmacia_data.items():
@@ -235,7 +260,7 @@ def main() -> None:
                 logger.info("Extracted farmacia_sus / %s / %s → %d rows", portal.slug, key, len(rows))
         except Exception as exc:
             logger.warning("Failed: farmacia_sus / %s: %s", portal.slug, exc)
-            _log_failed(run_dir, "farmacia_sus", portal.slug, years[-1] if years else 0, exc)
+            _log_failed(run_dir, "farmacia_sus", portal.slug, years[-1] if years else 0, exc, fonte="farmacia_sus")
 
     if only & siope_keys:
         from elt.extract.siope import extrair_siope
@@ -247,7 +272,7 @@ def main() -> None:
             logger.info("Extracted siope_indicadores / %s → %d rows", portal.slug, len(siope_rows))
         except Exception as exc:
             logger.warning("Failed: siope / %s: %s", portal.slug, exc)
-            _log_failed(run_dir, "siope", portal.slug, years[-1] if years else 0, exc)
+            _log_failed(run_dir, "siope", portal.slug, years[-1] if years else 0, exc, fonte="siope")
 
     if only & siops_keys:
         from elt.extract.siops import SiopsExtractor, extrair_siops, slowest_requests
@@ -260,7 +285,7 @@ def main() -> None:
             logger.info("Extracted siops_indicadores / %s → %d rows", portal.slug, len(siops_rows))
         except Exception as exc:
             logger.warning("Failed: siops / %s: %s", portal.slug, exc)
-            _log_failed(run_dir, "siops", portal.slug, years[-1] if years else 0, exc)
+            _log_failed(run_dir, "siops", portal.slug, years[-1] if years else 0, exc, fonte="siops")
         logger.info("SIOPS slowest requests for %s: %s", portal.slug, slowest_requests(siops_extractor))
 
     logger.info("Extraction complete → %s", run_dir)

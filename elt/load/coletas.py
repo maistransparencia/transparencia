@@ -19,6 +19,8 @@ from sqlalchemy.engine import Engine
 SCHEMA = "raw_coletas"
 # Código único para o portal da prefeitura, qualquer que seja o sistema (`provider`): o catálogo tem uma linha por tipo de fonte.
 MUNICIPAL_PORTAL_SOURCE = "portal_municipal"
+RESULT_SUCCESS = "sucesso"
+RESULT_FAILURE = "falha"
 SOURCE_CATALOG_PATH = Path(__file__).resolve().parents[1] / "transform" / "seeds" / "seed_fontes_coleta.csv"
 
 
@@ -41,9 +43,13 @@ def ensure_collection_log_table(engine: Engine) -> None:
                     "coletado_em" TEXT NOT NULL,
                     "frequencia_esperada" TEXT NOT NULL,
                     "total_linhas" TEXT,
+                    "resultado" TEXT,
+                    "erro_codigo" TEXT,
                     PRIMARY KEY ("portal_slug", "fonte", "coletado_em")
                 );
                 ALTER TABLE "{SCHEMA}"."registro_coletas" ADD COLUMN IF NOT EXISTS "total_linhas" TEXT;
+                ALTER TABLE "{SCHEMA}"."registro_coletas" ADD COLUMN IF NOT EXISTS "resultado" TEXT;
+                ALTER TABLE "{SCHEMA}"."registro_coletas" ADD COLUMN IF NOT EXISTS "erro_codigo" TEXT;
                 """
             )
         )
@@ -69,17 +75,78 @@ def record_collections(
             "coletado_em": coletado_em.isoformat(),
             "frequencia_esperada": catalog[fonte]["frequencia_esperada"],
             "total_linhas": str(rows_by_source[fonte]),
+            "resultado": RESULT_SUCCESS,
+            "erro_codigo": None,
         }
         for fonte in sorted(fontes)
     ]
     with engine.begin() as conn:
         conn.execute(
             text(
-                f'INSERT INTO "{SCHEMA}"."registro_coletas" (portal_slug, fonte, coletado_em, frequencia_esperada, total_linhas) '
-                "VALUES (:portal_slug, :fonte, :coletado_em, :frequencia_esperada, :total_linhas) "
+                f'INSERT INTO "{SCHEMA}"."registro_coletas" (portal_slug, fonte, coletado_em, frequencia_esperada, total_linhas, resultado, erro_codigo) '
+                "VALUES (:portal_slug, :fonte, :coletado_em, :frequencia_esperada, :total_linhas, :resultado, :erro_codigo) "
                 "ON CONFLICT (portal_slug, fonte, coletado_em) "
-                "DO UPDATE SET frequencia_esperada = EXCLUDED.frequencia_esperada, total_linhas = EXCLUDED.total_linhas"
+                "DO UPDATE SET frequencia_esperada = EXCLUDED.frequencia_esperada, total_linhas = EXCLUDED.total_linhas, "
+                "resultado = EXCLUDED.resultado, erro_codigo = EXCLUDED.erro_codigo"
             ),
             rows,
         )
     return len(rows)
+
+
+def record_failures(engine: Engine, portal_slug: str, error_by_source: Mapping[str, str], coletado_em: datetime) -> int:
+    """Grava a tentativa que falhou (`resultado` falha + `erro_codigo`), sem tocar nas coletas com sucesso anteriores."""
+    catalog = load_source_catalog()
+    fontes = set(error_by_source)
+    unknown = sorted(fontes - catalog.keys())
+    if unknown:
+        raise ValueError(f"Fonte(s) fora de seed_fontes_coleta.csv: {unknown}")
+    if not fontes:
+        return 0
+
+    ensure_collection_log_table(engine)
+    rows = [
+        {
+            "portal_slug": portal_slug,
+            "fonte": fonte,
+            "coletado_em": coletado_em.isoformat(),
+            "frequencia_esperada": catalog[fonte]["frequencia_esperada"],
+            "total_linhas": None,
+            "resultado": RESULT_FAILURE,
+            "erro_codigo": error_by_source[fonte],
+        }
+        for fonte in sorted(fontes)
+    ]
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                f'INSERT INTO "{SCHEMA}"."registro_coletas" (portal_slug, fonte, coletado_em, frequencia_esperada, total_linhas, resultado, erro_codigo) '
+                "VALUES (:portal_slug, :fonte, :coletado_em, :frequencia_esperada, :total_linhas, :resultado, :erro_codigo) "
+                "ON CONFLICT (portal_slug, fonte, coletado_em) "
+                "DO UPDATE SET frequencia_esperada = EXCLUDED.frequencia_esperada, total_linhas = EXCLUDED.total_linhas, "
+                "resultado = EXCLUDED.resultado, erro_codigo = EXCLUDED.erro_codigo"
+            ),
+            rows,
+        )
+    return len(rows)
+
+
+def empty_response_is_suspicious(fonte: str) -> bool:
+    """O catálogo marca as fontes cuja resposta vazia deve ser tratada como falha."""
+    return load_source_catalog()[fonte].get("resposta_vazia_e_suspeita", "false").strip().lower() == "true"
+
+
+def last_successful_total_rows(engine: Engine, portal_slug: str, fonte: str) -> int | None:
+    """Linhas da última coleta com sucesso (registros antigos sem `resultado` contam como sucesso); nulo se não houver."""
+    ensure_collection_log_table(engine)
+    with engine.connect() as conn:
+        value = conn.execute(
+            text(
+                f'SELECT "total_linhas" FROM "{SCHEMA}"."registro_coletas" '
+                'WHERE "portal_slug" = :portal_slug AND "fonte" = :fonte '
+                "AND coalesce(nullif(\"resultado\", ''), :sucesso) = :sucesso "
+                'ORDER BY "coletado_em" DESC LIMIT 1'
+            ),
+            {"portal_slug": portal_slug, "fonte": fonte, "sucesso": RESULT_SUCCESS},
+        ).scalar()
+    return int(value) if value not in (None, "") else None

@@ -15,3 +15,7 @@ sources:
           - name: coletado_em
           - name: frequencia_esperada
           - name: total_linhas
+          - name: resultado
+            description: "`sucesso` ou `falha`; registros antigos sem valor contam como sucesso"
+          - name: erro_codigo
+            description: "Código snake_case da falha (fonte_fora_do_ar, formato_mudou, resposta_vazia_suspeita, erro_inesperado); nulo em sucesso"

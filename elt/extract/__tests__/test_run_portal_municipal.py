@@ -4,6 +4,7 @@ import sys
 from types import SimpleNamespace
 
 import pytest
+import requests
 from elt.extract import run as extract_run
 
 
@@ -78,3 +79,40 @@ def test_single_listing_key_still_filters_listings(harness):
 
     assert FakeExtractor.extracted == ["receitas"]
     assert harness.farmacia_calls == []
+
+
+def test_failed_listing_is_logged_with_catalog_source_and_error_code(harness, monkeypatch):
+    import csv
+
+    def broken_extract(self, empresa_id, year):
+        raise requests.ConnectionError("down") if self.listagem == "despesas" else RuntimeError("x")
+
+    monkeypatch.setattr(FakeExtractor, "extract", broken_extract)
+
+    run_dir = harness.run("portal_municipal")
+
+    with open(run_dir / "failed_requests.csv", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    assert sorted((r["listagem"], r["fonte"], r["erro_codigo"]) for r in rows) == [
+        ("despesas", "portal_municipal", "fonte_fora_do_ar"),
+        ("receitas", "portal_municipal", "erro_inesperado"),
+    ]
+
+
+def test_farmacia_failure_code_is_handed_off_to_failed_requests_csv(harness, monkeypatch):
+    import csv
+
+    stub = SimpleNamespace(
+        extract=lambda **kw: {"coletas": [{"status_coleta": "falha"}]},
+        last_error_code="fonte_fora_do_ar",
+        last_error_message="HTTP 503",
+    )
+    monkeypatch.setattr("elt.extract.farmacia_sus.FarmaciaSusExtractor", lambda: stub)
+
+    run_dir = harness.run("farmacia_sus")
+
+    with open(run_dir / "failed_requests.csv", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    assert [(r["fonte"], r["erro_codigo"], r["error"]) for r in rows] == [
+        ("farmacia_sus", "fonte_fora_do_ar", "HTTP 503")
+    ]
