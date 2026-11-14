@@ -7,6 +7,7 @@ import json
 import logging
 import re
 import sys
+import time
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -27,6 +28,7 @@ from elt.load.coletas import (
     record_collections,
     record_failures,
 )
+from elt.load.scale_monitor import log_scale_report
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -223,6 +225,7 @@ def main() -> None:
     parser.add_argument("--dir", help="Raw run directory path (default: latest under data/raw_runs/)")
     args = parser.parse_args()
 
+    started_at = time.monotonic()
     portal = PortalConfig.load(args.portal)
     mod = importlib.import_module(f"elt.extract.{portal.provider}.{portal.slug}.api_endpoints")
     endpoint_configs = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
@@ -446,6 +449,7 @@ def main() -> None:
     else:
         logger.warning("Run directory %s has no timestamp; collections not recorded", run_dir.name)
 
+    log_scale_report(engine, f"raw_{portal.provider}", time.monotonic() - started_at)
     logger.info("Load complete → schema: %s", schema)
     if failures:
         logger.error("Load finished with failed source(s): %s", sorted(failures))

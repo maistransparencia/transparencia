@@ -6,6 +6,14 @@ from typing import Any
 
 import yaml
 
+# Limiares de escala do raw_<fonte> (um schema por provedor, portal_slug na chave): ao ultrapassar qualquer um,
+# o log da carga mensal destaca e aponta docs/raw-por-fonte-escala.md. Calibrar com 5 a 10 municípios.
+SCALE_MAX_MUNICIPALITIES_PER_PROVIDER = 20
+SCALE_MAX_ROWS_PER_TABLE = 5_000_000
+SCALE_MAX_LOAD_MINUTES = 10
+SCALE_MAX_COLUMNS_PER_TABLE = 150
+SCALE_DESIGN_NOTE = "docs/raw-por-fonte-escala.md"
+
 # Tabelas já migradas para o schema único da fonte (raw_<provider>), com portal_slug na chave primária.
 # Única fonte da verdade do loader: a Story 26.4 remove o mapa quando todas as tabelas estiverem migradas.
 MIGRATED_RAW_TABLES: dict[str, frozenset[str]] = {
