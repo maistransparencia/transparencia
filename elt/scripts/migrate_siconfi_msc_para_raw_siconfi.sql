@@ -1,6 +1,6 @@
 -- Copia siconfi_msc_patrimonial de raw_<portal> para o schema único raw_siconfi (Story 26.1).
 -- Idempotente. `portal_slug` é derivado do nome do schema de origem (raw_<portal_slug>).
--- Confere paridade (linhas e soma de valor por portal) antes de concluir; se divergir, aborta.
+-- Confere que toda linha de origem existe em raw_siconfi com o mesmo valor (linhas novas já carregadas lá são aceitas); se faltar alguma, aborta.
 -- As tabelas antigas NÃO são apagadas (remoção na 26.4), o que mantém a reversão simples.
 -- Uso: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f <este arquivo>
 -- Depois da migração, rode `make dbt/run` (stg_siconfi__msc_patrimonial e marts consumidores).
@@ -35,9 +35,7 @@ DECLARE
     antiga RECORD;
     slug TEXT;
     linhas_antigas BIGINT;
-    soma_antiga NUMERIC;
-    linhas_novas BIGINT;
-    soma_nova NUMERIC;
+    linhas_identicas BIGINT;
 BEGIN
     FOR antiga IN
         SELECT table_schema FROM information_schema.tables
@@ -50,13 +48,18 @@ BEGIN
                  financeiro_permanente::int, ano_fonte_recursos::int, fonte_recursos, valor::numeric, natureza_conta, tipo_valor,
                  entrada_msc::int, complemento_fonte, data_referencia, data_extracao
              FROM %I.siconfi_msc_patrimonial ON CONFLICT DO NOTHING', slug, antiga.table_schema);
-        EXECUTE format('SELECT count(*), coalesce(sum(valor::numeric), 0) FROM %I.siconfi_msc_patrimonial', antiga.table_schema)
-            INTO linhas_antigas, soma_antiga;
-        SELECT count(*), coalesce(sum(valor), 0) INTO linhas_novas, soma_nova
-            FROM raw_siconfi.siconfi_msc_patrimonial WHERE portal_slug = slug;
-        IF linhas_antigas <> linhas_novas OR soma_antiga <> soma_nova THEN
-            RAISE EXCEPTION 'paridade falhou em %: % linhas / soma % antes, % linhas / soma % em raw_siconfi',
-                antiga.table_schema, linhas_antigas, soma_antiga, linhas_novas, soma_nova;
+        EXECUTE format('SELECT count(*) FROM %I.siconfi_msc_patrimonial', antiga.table_schema) INTO linhas_antigas;
+        EXECUTE format(
+            'SELECT count(*) FROM %I.siconfi_msc_patrimonial o WHERE EXISTS
+                 (SELECT 1 FROM raw_siconfi.siconfi_msc_patrimonial n WHERE n.portal_slug = %L AND n.ano = o.ano
+                  AND n.mes_referencia = o.mes_referencia::int AND n.cod_ibge = o.cod_ibge::int
+                  AND n.conta_contabil = o.conta_contabil AND n.poder_orgao = o.poder_orgao
+                  AND n.fonte_recursos = o.fonte_recursos AND n.ano_fonte_recursos = o.ano_fonte_recursos::int
+                  AND n.financeiro_permanente = o.financeiro_permanente::int AND n.tipo_valor = o.tipo_valor
+                  AND n.natureza_conta = o.natureza_conta AND n.entrada_msc = o.entrada_msc::int
+                  AND n.valor = o.valor::numeric)', antiga.table_schema, slug) INTO linhas_identicas;
+        IF linhas_antigas <> linhas_identicas THEN
+            RAISE EXCEPTION 'paridade falhou em %: % linhas antigas, % idênticas em raw_siconfi', antiga.table_schema, linhas_antigas, linhas_identicas;
         END IF;
     END LOOP;
 END $$;
