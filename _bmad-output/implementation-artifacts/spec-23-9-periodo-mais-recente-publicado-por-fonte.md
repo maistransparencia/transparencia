@@ -2,7 +2,7 @@
 title: 'Período mais recente publicado por fonte ("Dados até")'
 type: 'feature'
 created: '2026-11-14'
-status: 'in-review'
+status: 'done'
 baseline_commit: '1e347949e97c3180a28fe7a97a4666f83f665eb4'
 route: 'dispatch'
 review_loop_iteration: 0
