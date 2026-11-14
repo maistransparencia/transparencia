@@ -33,6 +33,7 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 - Já por fonte: `raw_siope`, `raw_siops`, `raw_farmacia_sus`, `raw_pncp`, `raw_obrasgov`, `raw_saude_rede`, `raw_inep_censo`, `raw_emendas_*`.
 - Legado por município: `raw_porciuncula_prefeitura` e `raw_natividade_prefeitura` (mesmo conjunto: contratos, `despesas_*`, diarias, `emendas_*`, empresas, licitacoes, metadata, pessoal, `receita_*`, transferencias).
 - A 26.3 cria um mapa temporário de tabelas migradas no loader (que a 26.4 remove); scripts de migração ficam em `elt/scripts/migrate_*_para_raw_fiorilli.sql`.
+- Escala do `raw_<fonte>`: limiares (20 municípios por provedor, 5 milhões de linhas, 10 min de carga, 150 colunas) em `elt/core/config.py`, avisados no log da carga mensal; nota de desenho em `docs/raw-por-fonte-escala.md`. A 26.4 entregou isso e o script `elt/scripts/drop_raw_por_municipio.sql` (não executado); a remoção do legado espera as 26.5 a 26.9.
 - Receitas por CSV são carga manual em produção; o código novo precisa estar em produção antes do próximo CSV.
 
 ## Cross-Story Dependencies
