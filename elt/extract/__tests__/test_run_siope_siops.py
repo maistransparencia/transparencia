@@ -97,6 +97,7 @@ def test_extractor_error_leaves_no_json_and_is_logged_as_failed_request(harness,
     with open(run_dir / "failed_requests.csv", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     assert [(r["listagem"], r["empresa"], r["error"]) for r in rows] == [(source, "portal_a", "divergiu")]
+    assert [(r["fonte"], r["erro_codigo"]) for r in rows] == [(source, "formato_mudou")]
 
 
 def test_unknown_only_key_raises_value_error_listing_valid_keys(harness):

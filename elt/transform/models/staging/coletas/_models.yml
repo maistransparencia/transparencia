@@ -13,3 +13,14 @@ models:
       - name: coletado_em
         tests:
           - not_null
+      - name: resultado
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [sucesso, falha]
+      - name: erro_codigo
+        tests:
+          - accepted_values:
+              arguments:
+                values: [fonte_fora_do_ar, formato_mudou, resposta_vazia_suspeita, erro_inesperado]

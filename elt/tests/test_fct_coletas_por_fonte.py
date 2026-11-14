@@ -24,13 +24,22 @@ def coleta(conn):
 
     wipe()
 
-    def insert(portal, fonte, coletado_em, frequencia="diaria", total_linhas=None):
+    def insert(portal, fonte, coletado_em, frequencia="diaria", total_linhas=None, resultado=None, erro_codigo=None):
         conn.execute(
             text(
-                f"INSERT INTO {_SCHEMA}.registro_coletas (portal_slug, fonte, coletado_em, frequencia_esperada, total_linhas) "
-                "VALUES (:p, :f, :c, :q, :t)"
+                f"INSERT INTO {_SCHEMA}.registro_coletas "
+                "(portal_slug, fonte, coletado_em, frequencia_esperada, total_linhas, resultado, erro_codigo) "
+                "VALUES (:p, :f, :c, :q, :t, :r, :e)"
             ),
-            {"p": portal, "f": fonte, "c": coletado_em, "q": frequencia, "t": total_linhas},
+            {
+                "p": portal,
+                "f": fonte,
+                "c": coletado_em,
+                "q": frequencia,
+                "t": total_linhas,
+                "r": resultado,
+                "e": erro_codigo,
+            },
         )
 
     yield insert
@@ -102,3 +111,49 @@ def test_catalog_source_name_and_sphere_are_passed_through(conn, portais):
     assert by_source["portal_municipal"] == (None, None, "municipal")
     assert by_source["emendas_estaduais"] == (None, None, "estadual")
     assert all(nome and url for nome, url, esfera in by_source.values() if esfera == "nacional")
+
+
+def _failure_columns(conn, portal, fonte):
+    return conn.execute(
+        text(
+            "SELECT situacao_monitoramento, (ultima_coleta_em at time zone 'UTC')::text, "
+            "(ultima_falha_em at time zone 'UTC')::text, ultimo_erro_codigo, total_coletas "
+            "FROM analytics.fct_coletas_por_fonte WHERE portal_slug = :p AND fonte = :f"
+        ),
+        {"p": portal, "f": fonte},
+    ).one()
+
+
+def test_failure_never_overwrites_last_successful_collection(conn, coleta, portais):
+    portal_a, portal_b = portais
+    coleta(portal_a, "portal_municipal", "2026-11-09T08:00:00+00:00", total_linhas="50", resultado="sucesso")
+    coleta(portal_a, "portal_municipal", "2026-11-10T08:00:00+00:00", resultado="falha", erro_codigo="fonte_fora_do_ar")
+    coleta(portal_b, "portal_municipal", "2026-11-10T08:00:00+00:00", total_linhas="7")
+
+    assert _failure_columns(conn, portal_a, "portal_municipal") == (
+        "monitorado",
+        "2026-11-09 08:00:00",
+        "2026-11-10 08:00:00",
+        "fonte_fora_do_ar",
+        1,
+    )
+    # Portal B sem falha; registro antigo sem `resultado` conta como sucesso.
+    assert _failure_columns(conn, portal_b, "portal_municipal") == (
+        "monitorado",
+        "2026-11-10 08:00:00",
+        None,
+        None,
+        1,
+    )
+
+
+def test_source_with_only_failures_has_no_record_and_keeps_failure(conn, coleta, portais):
+    coleta(portais[0], "pncp", "2026-11-10T08:00:00+00:00", "semanal", resultado="falha", erro_codigo="formato_mudou")
+
+    assert _failure_columns(conn, portais[0], "pncp") == (
+        "sem_registro",
+        None,
+        "2026-11-10 08:00:00",
+        "formato_mudou",
+        0,
+    )

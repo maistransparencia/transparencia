@@ -69,3 +69,9 @@ models:
         data_type: integer
         constraints:
           - type: not_null
+      - name: ultima_falha_em
+        data_type: timestamp with time zone
+        description: "Quando a última tentativa de coleta falhou; nulo se nunca falhou. Não altera `ultima_coleta_em`, que é só a última coleta com sucesso."
+      - name: ultimo_erro_codigo
+        data_type: text
+        description: "Motivo da última falha: fonte_fora_do_ar, formato_mudou, resposta_vazia_suspeita ou erro_inesperado."

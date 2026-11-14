@@ -1,10 +1,12 @@
 """CLI: load raw JSON files from a run directory into the raw_<slug> PostgreSQL schema."""
 
 import argparse
+import csv
 import importlib
 import json
 import logging
 import re
+import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -17,7 +19,14 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from elt.core.config import PortalConfig
 from elt.core.db import get_engine
 from elt.extract.base import EndpointConfig
-from elt.load.coletas import MUNICIPAL_PORTAL_SOURCE, record_collections
+from elt.extract.errors import SUSPICIOUS_EMPTY, UNEXPECTED_ERROR
+from elt.load.coletas import (
+    MUNICIPAL_PORTAL_SOURCE,
+    empty_response_is_suspicious,
+    last_successful_total_rows,
+    record_collections,
+    record_failures,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -146,6 +155,66 @@ def _farmacia_collection_succeeded(directory: Path) -> bool:
     return any(row.get("status_coleta") == "sucesso" for row in rows)
 
 
+# Pasta de cada fonte fora do portal municipal -> código do catálogo (seed_fontes_coleta).
+_SOURCE_BY_TABLE = {
+    "siconfi_msc_patrimonial": "siconfi_msc",
+    "siconfi_rgf": "siconfi_rgf",
+    "siope_indicadores": "siope",
+    "siops_indicadores": "siops",
+    "pncp": "pncp",
+    "obrasgov": "obrasgov",
+    "farmacia_sus": "farmacia_sus",
+}
+_FARMACIA_HISTORY_FILE = "coletas.json"
+
+
+def _source_of(table: str) -> str:
+    return _SOURCE_BY_TABLE.get(table, MUNICIPAL_PORTAL_SOURCE)
+
+
+def _read_failures(run_dir: Path) -> dict[str, str]:
+    """Falhas registradas pelo extrator: fonte -> primeiro `erro_codigo`. Sem o arquivo, não houve falha."""
+    failed_file = run_dir / "failed_requests.csv"
+    if not failed_file.exists():
+        return {}
+    with failed_file.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    return {
+        fonte: erro_codigo
+        for fonte, erro_codigo in reversed(
+            [
+                (
+                    row.get("fonte") or _source_of(row.get("listagem") or ""),
+                    row.get("erro_codigo") or UNEXPECTED_ERROR,
+                )
+                for row in rows
+            ]
+        )
+    }
+
+
+def _count_rows(json_files: list[Path]) -> int:
+    return sum(
+        len(data)
+        for data in (json.loads(file.read_text(encoding="utf-8")) for file in json_files)
+        if isinstance(data, list)
+    )
+
+
+def _suspicious_empty_sources(engine, portal_slug: str, files_by_source: dict[str, list[Path]]) -> dict[str, str]:
+    """Fontes marcadas no catálogo que vieram sem nenhuma linha depois de uma coleta boa com linhas."""
+    candidates = {
+        fonte: [file for file in files if not (fonte == "farmacia_sus" and file.name == _FARMACIA_HISTORY_FILE)]
+        for fonte, files in files_by_source.items()
+        if empty_response_is_suspicious(fonte)
+    }
+    return {
+        fonte: SUSPICIOUS_EMPTY
+        for fonte, files in candidates.items()
+        if _count_rows(files) == 0 and (last_successful_total_rows(engine, portal_slug, fonte) or 0) > 0
+    }
+
+
 def main() -> None:
     load_dotenv()
 
@@ -179,10 +248,37 @@ def main() -> None:
 
     engine = get_engine()
 
+    json_files = sorted(run_dir.rglob("*.json"))
+    files_by_source: dict[str, list[Path]] = {}
+    for file in json_files:
+        files_by_source.setdefault(_source_of(file.parent.name), []).append(file)
+    extractor_failures = _read_failures(run_dir)
+    # Decidido antes de carregar: depois seria tarde para fontes que substituem a tabela (replace=True).
+    failures = {
+        **_suspicious_empty_sources(
+            engine, portal.slug, {k: v for k, v in files_by_source.items() if k not in extractor_failures}
+        ),
+        **extractor_failures,
+    }
+    for fonte, erro_codigo in sorted(failures.items()):
+        logger.error("Fonte %s ignorada nesta carga (%s): dado anterior preservado", fonte, erro_codigo)
+
     farmacia_dirs_carregados: set[Path] = set()
     rows_loaded: Counter[str] = Counter()
-    for json_file in sorted(run_dir.rglob("*.json")):
+    for json_file in json_files:
         table = json_file.parent.name
+        file_source = _source_of(table)
+        if file_source in failures:
+            # Só o histórico de coletas da farmácia segue (falha do extrator): estoque e CNES não são tocados.
+            if (
+                file_source == "farmacia_sus"
+                and json_file.name == _FARMACIA_HISTORY_FILE
+                and file_source in extractor_failures
+            ):
+                from elt.load.farmacia_sus import load_farmacia_sus_coletas
+
+                load_farmacia_sus_coletas(engine, json.loads(json_file.read_text(encoding="utf-8")), portal.slug)
+            continue
         config = next((c for c in endpoint_configs if c.table == table), None)
         if not config:
             if table == "siconfi_msc_patrimonial":
@@ -332,12 +428,18 @@ def main() -> None:
         logger.info("Set extraction date: %s", extraction_date)
 
     if extraction_dt:
-        count = record_collections(engine, portal.slug, rows_loaded, extraction_dt.astimezone())
+        collected_at = extraction_dt.astimezone()
+        count = record_collections(engine, portal.slug, rows_loaded, collected_at)
         logger.info("Recorded %d collection(s) in raw_coletas.registro_coletas: %s", count, sorted(rows_loaded))
+        failed_count = record_failures(engine, portal.slug, failures, collected_at)
+        logger.info("Recorded %d failure(s) in raw_coletas.registro_coletas: %s", failed_count, sorted(failures))
     else:
         logger.warning("Run directory %s has no timestamp; collections not recorded", run_dir.name)
 
     logger.info("Load complete → schema: %s", schema)
+    if failures:
+        logger.error("Load finished with failed source(s): %s", sorted(failures))
+        sys.exit(1)
 
 
 if __name__ == "__main__":

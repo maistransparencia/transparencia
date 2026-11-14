@@ -279,10 +279,16 @@ jobs:
       - name: Load Data into PostgreSQL
         if: ${{ !inputs.dry_run }}
         run: |
+          # O loader registra a falha em raw_coletas.registro_coletas e sai com código 1; seguimos até o dbt
+          # (o mart já mostra a falha) e o passo final reprova o job.
+          : > load_failures.txt
           for portal in $(echo '${{ needs.setup.outputs.portals }}' | jq -r '.[]'); do
             if [ -d "data/raw_runs/$portal" ]; then
               echo "=== Carregando dados no Postgres para: $portal ==="
-              uv run --project elt python -m elt.load.run --portal "$portal"
+              if ! uv run --project elt python -m elt.load.run --portal "$portal"; then
+                echo "::error::Carga com falha de fonte para $portal (dado anterior preservado)"
+                echo "$portal" >> load_failures.txt
+              fi
             else
               echo "Aviso: Sem dados brutos baixados para $portal. Pulando load."
             fi
@@ -330,3 +336,11 @@ jobs:
         env:
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
           INTERNAL_API_SECRET: ${{ secrets.INTERNAL_API_SECRET }}
+
+      - name: Fail Job on Load Failures
+        if: ${{ always() && !inputs.dry_run }}
+        run: |
+          if [ -s load_failures.txt ]; then
+            echo "::error::Carga com falha de fonte nos portais: $(paste -sd, load_failures.txt)"
+            exit 1
+          fi

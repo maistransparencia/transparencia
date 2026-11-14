@@ -14,6 +14,8 @@ function linha(dados: {
   ultimaColetaEm: string | null;
   toleranciaDias: number | null;
   totalLinhas?: number | null;
+  ultimaFalhaEm?: string | null;
+  ultimoErroCodigo?: string | null;
 }) {
   return {
     id_registro: `${dados.portalSlug}-${dados.fonte}`,
@@ -29,6 +31,8 @@ function linha(dados: {
     situacao_monitoramento: dados.situacao,
     ultima_coleta_em: dados.ultimaColetaEm,
     ultima_coleta_total_linhas: dados.totalLinhas ?? null,
+    ultima_falha_em: dados.ultimaFalhaEm ?? null,
+    ultimo_erro_codigo: dados.ultimoErroCodigo ?? null,
     total_coletas: dados.ultimaColetaEm ? 1 : 0,
   };
 }
@@ -71,6 +75,9 @@ describe("getFrescorFontes", () => {
           situacao: "sem_registro",
           ultimaColetaEm: null,
           toleranciaDias: 4,
+          // só falhas: sem coleta com sucesso, a fonte segue sem registro
+          ultimaFalhaEm: "2031-06-09T08:00:00Z",
+          ultimoErroCodigo: "fonte_fora_do_ar",
         }),
         linha({
           portalSlug: PORTAL_TESTE,
@@ -99,6 +106,28 @@ describe("getFrescorFontes", () => {
           totalLinhas: 3,
         }),
         linha({
+          portalSlug: PORTAL_TESTE,
+          fonte: "h_falha_antes_do_prazo",
+          frequencia: "diaria",
+          situacao: "monitorado",
+          ultimaColetaEm: "2031-06-09T08:00:00+00:00",
+          toleranciaDias: 4,
+          totalLinhas: 10,
+          ultimaFalhaEm: "2031-06-10T08:00:00+00:00",
+          ultimoErroCodigo: "fonte_fora_do_ar",
+        }),
+        linha({
+          portalSlug: PORTAL_TESTE,
+          fonte: "i_falha_apos_prazo",
+          frequencia: "diaria",
+          situacao: "monitorado",
+          ultimaColetaEm: "2031-06-01T08:00:00+00:00",
+          toleranciaDias: 4,
+          totalLinhas: 10,
+          ultimaFalhaEm: "2031-06-10T08:00:00+00:00",
+          ultimoErroCodigo: "formato_mudou",
+        }),
+        linha({
           portalSlug: OUTRO_PORTAL,
           fonte: "g_outro_portal",
           frequencia: "diaria",
@@ -122,6 +151,8 @@ describe("getFrescorFontes", () => {
       ["d_nao_monitorado", "nao_monitorado"],
       ["e_coleta_vazia", "coleta_em_dia"],
       ["f_sob_demanda", "coleta_em_dia"],
+      ["h_falha_antes_do_prazo", "coleta_em_dia"],
+      ["i_falha_apos_prazo", "coleta_atrasada"],
     ]);
   });
 
@@ -142,6 +173,18 @@ describe("getFrescorFontes", () => {
       urlFonte: "https://a_diaria_no_limite.exemplo",
       esferaFonte: "nacional",
     });
+  });
+
+  it("falha recente não troca a última coleta boa: antes do prazo segue em dia, depois do prazo fica atrasada", async () => {
+    const resultado = await getFrescorFontes(PORTAL_TESTE, DATA_REFERENCIA);
+    const porFonte = Object.fromEntries(resultado.map((f) => [f.fonte, f]));
+
+    expect(porFonte.h_falha_antes_do_prazo.ultimaColetaEm).toBe(
+      "2031-06-09T08:00:00.000Z",
+    );
+    expect(porFonte.i_falha_apos_prazo.ultimaColetaEm).toBe(
+      "2031-06-01T08:00:00.000Z",
+    );
   });
 
   it("devolve só as fontes do portal pedido", async () => {
