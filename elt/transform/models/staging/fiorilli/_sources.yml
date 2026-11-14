@@ -1,0 +1,83 @@
+version: 2
+sources:
+- name: raw_fiorilli
+  schema: raw_fiorilli
+  description: Dados brutos do portal Fiorilli de todos os municípios; portal_slug faz parte da chave primária
+  tables:
+  - name: despesas_extra_orcamentaria
+    description: Despesas extra-orçamentárias
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - numero
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: numero
+    - name: descricao
+    - name: valor
+    - name: codigo
+    - name: datae
+    - name: nomeempresa
+    - name: numeroguia
+    - name: insmf
+    - name: pago
+    - name: mes
+  - name: despesas_por_exigibilidade
+    description: Despesas por exigibilidade (sem leitor dbt; colunas conforme a API)
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - tipo
+      - empenho
+  - name: emendas_impositivas
+    description: Emendas parlamentares impositivas
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: empenhado
+    - name: liquidado
+    - name: pago
+    - name: recaplicacaofinan
+    - name: rectransf
+    - name: tipotransf
+  - name: empresas
+    description: Entidades/órgãos do portal
+    meta:
+      primary_key:
+      - portal_slug
+      - id
+    columns:
+    - name: portal_slug
+    - name: id
+      data_type: integer
+    - name: nome
+  - name: receita_detalhes
+    description: Detalhe das receitas por lançamento (sem leitor dbt; colunas conforme a API)
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - codigo
+  - name: metadata
+    description: 'Metadados do pipeline ELT (ex: data da última extração)'
+    meta:
+      primary_key:
+      - portal_slug
+      - key
+    columns:
+    - name: portal_slug
+    - name: key
+    - name: value

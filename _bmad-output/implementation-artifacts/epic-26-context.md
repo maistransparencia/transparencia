@@ -9,28 +9,34 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 ## Stories
 
 - Story 26.1: Siconfi (MSC Patrimonial) em schema por fonte (concluída)
-- Story 26.2: Inventário e plano de migração do legado raw por município
-- Story 26.3: Migração das tabelas do portal municipal (Fiorilli), uma tabela ou grupo por story
+- Story 26.2: Inventário e plano de migração do legado raw por município (concluída)
+- Story 26.3: Fiorilli em `raw_fiorilli`: base do loader e tabelas sem leitor dbt
 - Story 26.4: Remoção dos schemas por município e dos modelos de consolidação
 - Story 26.5: Migração do RGF (`siconfi_rgf`) para `raw_siconfi`
+- Story 26.6: Fiorilli: diárias, transferências, emendas cadastradas e pessoal
+- Story 26.7: Fiorilli: licitações, contratos e despesas por fornecedor
+- Story 26.8: Fiorilli: despesas gerais, restos a pagar, por órgão e por unidade
+- Story 26.9: Fiorilli: receitas (orçamentária, União, Estado e extra-orçamentária)
 
 ## Requirements & Constraints
 
-- O schema é da fonte (fornecedor do portal ou fonte oficial), não do município, porque fornecedores diferentes têm estruturas diferentes.
+- O schema é da fonte (fornecedor do portal ou fonte oficial), não do município; o nome vem de `PortalConfig.provider`.
 - Toda fonte nova nasce por fonte, com `portal_slug` na chave.
-- Paridade de dados antes e depois (mesmas contagens e totais por portal e saídas dos marts consumidores); recarga isolada por portal (`where portal_slug = ...`); plano de reversão; mudança de chave primária pode exigir `full-refresh`.
-- Nada em produção sem autorização explícita do Julio (Regra 15); backup local com `make db/backup` antes de migrar.
+- Paridade de dados antes e depois (contagens e totais por portal e saídas dos marts consumidores); recarga isolada por portal (`where portal_slug = ...`); plano de reversão; mudança de chave primária pode exigir `full-refresh`.
+- Nada em produção sem autorização explícita do Julio (Regra 15); backup local com `make db/backup` antes de migrar. Carga/migração em produção só no fechamento da epic.
 - `int_*_consolidadas.sql` deixam de ser necessários (Regra 23: sem literal de tenant, joins e `GROUP BY` com `portal_slug`).
-- Ajustar modelos dbt, `source` e a fixture/banco de teste (Regra 21).
+- Ajustar modelos dbt, `source` e a fixture `schema.sql.gz` (Regra 21).
 
 ## Technical Decisions
 
-- Modelo a seguir: Story 24.9 (SIOPE em `raw_siope`) e 26.1 (`raw_siconfi`): corte direto, `portal_slug` aplicado na carga, script SQL idempotente de migração que deriva o slug do nome do schema e confere linhas e valores sem apagar as tabelas antigas.
+- Modelo a seguir: Story 24.9 (SIOPE em `raw_siope`) e 26.1 (`raw_siconfi`): corte direto, `portal_slug` aplicado na carga, script SQL idempotente de migração que deriva o slug do nome do schema, confere linhas e valores e não apaga as tabelas antigas.
 - Já por fonte: `raw_siope`, `raw_siops`, `raw_farmacia_sus`, `raw_pncp`, `raw_obrasgov`, `raw_saude_rede`, `raw_inep_censo`, `raw_emendas_*`.
 - Legado por município: `raw_porciuncula_prefeitura` e `raw_natividade_prefeitura` (mesmo conjunto: contratos, `despesas_*`, diarias, `emendas_*`, empresas, licitacoes, metadata, pessoal, `receita_*`, transferencias).
+- A 26.3 cria um mapa temporário de tabelas migradas no loader (que a 26.4 remove); scripts de migração ficam em `elt/scripts/migrate_*_para_raw_fiorilli.sql`.
+- Receitas por CSV são carga manual em produção; o código novo precisa estar em produção antes do próximo CSV.
 
 ## Cross-Story Dependencies
 
-- 26.2 bloqueia 26.3 e 26.4; a 26.1 (concluída) serve de modelo e seus aprendizados entram no plano.
-- 26.5 (RGF) segue o método da 26.1.
+- Ordem de execução: 26.3, 26.6, 26.7, 26.8, 26.9, 26.5, 26.4 (a 26.4 vai por último).
+- 26.3 cria a base do loader usada por 26.6 a 26.9; 26.5 (RGF) segue o método da 26.1.
 - Relação com a pendência de migração de PK/`full-refresh` da Epic 19.

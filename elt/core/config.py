@@ -6,6 +6,44 @@ from typing import Any
 
 import yaml
 
+# Tabelas já migradas para o schema único da fonte (raw_<provider>), com portal_slug na chave primária.
+# Única fonte da verdade do loader: a Story 26.4 remove o mapa quando todas as tabelas estiverem migradas.
+MIGRATED_RAW_TABLES: dict[str, frozenset[str]] = {
+    "fiorilli": frozenset(
+        {
+            "despesas_extra_orcamentaria",
+            "despesas_por_exigibilidade",
+            "emendas_impositivas",
+            "empresas",
+            "receita_detalhes",
+            "metadata",
+        }
+    ),
+}
+
+
+def is_migrated_table(provider: str, table: str) -> bool:
+    return table in MIGRATED_RAW_TABLES.get(provider, frozenset())
+
+
+def resolve_raw_schema(portal: Any, table: str) -> str:
+    """Schema da tabela raw: raw_<provider> se já migrada, senão o schema legado do portal."""
+    return f"raw_{portal.provider}" if is_migrated_table(portal.provider, table) else portal.raw_schema
+
+
+def resolve_key_cols(portal: Any, table: str, key_cols: list[str]) -> list[str]:
+    """Chave da tabela raw: tabelas migradas levam portal_slug à frente da chave."""
+    if not is_migrated_table(portal.provider, table) or "portal_slug" in key_cols:
+        return list(key_cols)
+    return ["portal_slug", *key_cols]
+
+
+def tag_rows_with_portal(portal: Any, table: str, rows: list[dict]) -> list[dict]:
+    """Aplica portal_slug nas linhas de tabelas migradas; as demais passam intactas."""
+    if not is_migrated_table(portal.provider, table):
+        return rows
+    return [{**row, "portal_slug": portal.slug} for row in rows]
+
 
 @dataclass
 class PortalConfig:
