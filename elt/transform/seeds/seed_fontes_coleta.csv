@@ -1,6 +1,6 @@
 fonte,frequencia_esperada,monitoramento,descricao_dados,tolerancia_dias,nome_fonte,url_fonte,esfera_fonte,resposta_vazia_e_suspeita,defasagem_publicacao_dias
 portal_municipal,diaria,monitorado,os dados do portal de transparência da Prefeitura,4,,,municipal,true,
-farmacia_sus,diaria,monitorado,os remédios disponíveis na farmácia do SUS,4,BNAFAR/Hórus,https://opendatasus.saude.gov.br/dataset/bnafar-posicao-de-estoque,nacional,true,7
+farmacia_sus,diaria,monitorado,os remédios disponíveis na farmácia do SUS,4,BNAFAR/Hórus,https://opendatasus.saude.gov.br/dataset/bnafar-posicao-de-estoque,nacional,true,15
 pncp,semanal,monitorado,as compras e contratos publicados no portal nacional de contratações,10,PNCP,https://pncp.gov.br,nacional,false,
 obrasgov,semanal,monitorado,as obras feitas com dinheiro federal,10,ObrasGov.br,https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html,nacional,false,
 siconfi_msc,mensal,monitorado,as contas da Prefeitura enviadas todo mês ao Tesouro Nacional,40,Siconfi,https://siconfi.tesouro.gov.br/,nacional,false,60

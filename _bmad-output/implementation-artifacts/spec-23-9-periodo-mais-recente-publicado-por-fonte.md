@@ -60,7 +60,7 @@ Fonte dos critérios: `_bmad-output/planning-artifacts/epics.md`, seção "Story
 ## Tasks & Acceptance
 
 **Execution:**
-- [x] `seed_fontes_coleta.csv` + `seeds.yml` -- coluna `defasagem_publicacao_dias`: `siconfi_msc` 60, `siconfi_rgf` 45, `farmacia_sus` 7 (estimativas NÃO VERIFICADO)
+- [x] `seed_fontes_coleta.csv` + `seeds.yml` -- coluna `defasagem_publicacao_dias`: `siconfi_msc` 60, `siconfi_rgf` 45, `farmacia_sus` 15 (estimativas NÃO VERIFICADO)
 - [x] `fct_coletas_por_fonte.sql` + `_fct_coletas_por_fonte.yml` -- período mais recente, granularidade e defasagem, com contrato
 - [x] `test_fct_coletas_por_fonte.py` -- período das três fontes, fonte sem período nula, dois portais sem vazamento
 - [x] `frescor-fontes.ts` -- DTO ganha `periodoMaisRecente` (AAAA-MM-DD ou null), `granularidadePeriodo`, `situacaoDado` (`dado_recente | dado_defasado | periodo_nao_disponivel`)
@@ -98,7 +98,7 @@ Revisão: só a lente Edge Case Hunter (custo declarado ao Julio, 2026-11-14).
 
 ## Design Notes
 
-Dias de defasagem = diferença de calendário entre `dataReferencia` e `periodoMaisRecente`; `dado_defasado` quando `> defasagem_publicacao_dias`. O período é o **fim** do intervalo (último dia do mês, do quadrimestre ou do semestre; a própria data na farmácia), então a defasagem conta desde o fechamento. Valores de defasagem: MSC e RGF seguem os prazos de envio ao Siconfi com folga; farmácia, a rotina diária com tolerância de fim de semana. Todos estimativas, a UI deve dizer isso (Regra 27). Fonte de MSC = saldo de caixa (`fct_saldo_caixa_siconfi`), o mart MSC que alimenta receitas; se a MSC de outro mart avançar mais, a 23.9 não o vê (limite aceito).
+Dias de defasagem = diferença de calendário entre `dataReferencia` e `periodoMaisRecente`; `dado_defasado` quando `> defasagem_publicacao_dias`. O período é o **fim** do intervalo (último dia do mês, do quadrimestre ou do semestre; a própria data na farmácia), então a defasagem conta desde o fechamento. Valores de defasagem: MSC e RGF seguem os prazos de envio ao Siconfi com folga; farmácia, 15 dias, o mesmo limite do estado `apagao` da página (Lei 14.654/2023), para o aviso nunca vir antes do limite legal. Todos estimativas, a UI deve dizer isso (Regra 27). Fonte de MSC = saldo de caixa (`fct_saldo_caixa_siconfi`), o mart MSC que alimenta receitas; se a MSC de outro mart avançar mais, a 23.9 não o vê (limite aceito).
 
 ## Verification
 

@@ -232,4 +232,4 @@ def test_published_period_matches_each_source_mart_and_stays_null_elsewhere(conn
 def test_publication_lag_comes_from_catalog_for_period_sources(conn, portais):
     lags = {fonte: _published_period(conn, portais[0], fonte)[2] for fonte in _PERIOD_SOURCES}
 
-    assert lags == {"siconfi_msc": 60, "siconfi_rgf": 45, "farmacia_sus": 7}
+    assert lags == {"siconfi_msc": 60, "siconfi_rgf": 45, "farmacia_sus": 15}
