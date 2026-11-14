@@ -1,3 +1,7 @@
+---
+status: done
+---
+
 # Story 26.1: Siconfi MSC Patrimonial em `raw_siconfi`
 
 Spec: `_bmad-output/specs/spec-siconfi-msc-raw-por-fonte/SPEC.md`.
