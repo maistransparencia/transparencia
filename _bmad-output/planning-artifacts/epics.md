@@ -4229,9 +4229,24 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 - **(feito na Epic 24, Story 24.9)** O SIOPE já migra para `raw_siope` lá, para a branch da Epic 24 não depender desta epic. Serve de modelo para as demais.
 - **26.1 Siconfi (MSC Patrimonial) em schema por fonte.** Mover `siconfi_msc_patrimonial` para `raw_siconfi` com `portal_slug` na chave e trocar o staging por um modelo único da fonte, repetindo o método da 24.9 com teste de paridade.
 - **26.2 Inventário e plano de migração do legado.** Listar as 22 tabelas por portal, agrupar por fonte, definir ordem, paridade e reversão.
-- **26.3 Migração das tabelas do portal municipal (Fiorilli) para schema por fonte**, uma tabela ou grupo por story.
-- **26.4 Remoção dos schemas por município e dos modelos de consolidação.**
+- **26.3 Fiorilli em `raw_fiorilli`: base do loader e tabelas sem leitor dbt.** Cria o mapa de tabelas migradas e o `portal_slug` na carga; move `despesas_extra_orcamentaria`, `despesas_por_exigibilidade`, `emendas_impositivas`, `empresas`, `receita_detalhes` e `metadata` (e tira os tenants fixos de `dim_metadata`).
+- **26.4 Remoção dos schemas por município e dos modelos de consolidação.** Executa por último (depois de 26.3, 26.5 e 26.6 a 26.9).
+- **26.6 Fiorilli em `raw_fiorilli`: diárias, transferências, emendas cadastradas e pessoal.**
+- **26.7 Fiorilli em `raw_fiorilli`: licitações, contratos e despesas por fornecedor.**
+- **26.8 Fiorilli em `raw_fiorilli`: despesas gerais, restos a pagar, por órgão e por unidade.**
+- **26.9 Fiorilli em `raw_fiorilli`: receitas (orçamentária, União, Estado e extra-orçamentária).** Carga manual por CSV em produção; conferir a deduplicação por fonte STN.
 - **26.5 Migração do RGF (`siconfi_rgf`, criado na Story TD.2) para `raw_siconfi`.** A TD.2 grava a tabela no schema por município, seguindo o padrão atual, para não depender desta epic. Mover junto com `siconfi_msc_patrimonial` (26.1), com `portal_slug` na chave e teste de paridade.
+
+**Ordem de execução (Story 26.2):** 26.3, 26.6, 26.7, 26.8, 26.9, 26.5, 26.4. O 26.4 e o 26.5 mantêm o número por já serem citados em outros documentos. Todas as tabelas Fiorilli vão para `raw_fiorilli` (nome vindo de `PortalConfig.provider`); a 26.3 cria um mapa temporário de tabelas migradas no loader, que a 26.4 remove.
+
+**Checklist de produção (só no fechamento da epic, com autorização explícita do Julio, Regra 15):**
+1. Backup: `pg_dump -Fc -n 'raw*'`.
+2. Publicar o código de todas as stories (o job mensal passa a gravar em `raw_siconfi` e `raw_fiorilli`; linhas novas gravadas antes da migração são preservadas pelos scripts).
+3. Rodar, nesta ordem, `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f` em `elt/scripts/migrate_siconfi_msc_para_raw_siconfi.sql` e nos scripts `migrate_*_para_raw_fiorilli.sql` das stories 26.3, 26.6 a 26.9 (idempotentes; abortam se faltar linha; não apagam as tabelas antigas).
+4. `dbt run --full-refresh` nos staging novos e descendentes.
+5. Conferir contagem por `portal_slug` e as saídas dos marts contra o estado anterior.
+6. Só depois, executar a remoção da 26.4 (schemas `raw_<portal>` e modelos antigos). Reversão antes da 26.4: voltar o código e rodar o dbt; as tabelas antigas continuam intactas.
+7. CSVs de receitas (carga manual): o código novo precisa estar em produção antes do próximo CSV.
 
 **Dependências:** a 26.1 pode rodar a qualquer momento, de preferência depois da 24.9; o restante depois da 26.2.
 
