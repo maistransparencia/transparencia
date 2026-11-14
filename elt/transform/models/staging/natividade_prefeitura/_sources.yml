@@ -136,26 +136,6 @@ sources:
     - name: empenhado
     - name: liquidado
     - name: pago
-  - name: despesas_extra_orcamentaria
-    description: Despesas extra-orçamentárias
-    meta:
-      primary_key:
-      - ano
-      - empresa
-      - numero
-    columns:
-    - name: ano
-    - name: empresa
-    - name: numero
-    - name: descricao
-    - name: valor
-    - name: codigo
-    - name: datae
-    - name: nomeempresa
-    - name: numeroguia
-    - name: insmf
-    - name: pago
-    - name: mes
   - name: receita_orcamentaria
     description: Receitas orçamentárias detalhadas
     meta:
@@ -305,21 +285,6 @@ sources:
     - name: data
     - name: unidade
     - name: descricao
-  - name: emendas_impositivas
-    description: Emendas parlamentares impositivas
-    meta:
-      primary_key:
-      - ano
-      - empresa
-    columns:
-    - name: ano
-    - name: empresa
-    - name: empenhado
-    - name: liquidado
-    - name: pago
-    - name: recaplicacaofinan
-    - name: rectransf
-    - name: tipotransf
   - name: emendas_cad
     description: Cadastro detalhado de emendas
     meta:
@@ -382,25 +347,6 @@ sources:
     - name: entidade_recebedora
     - name: repasse
     - name: devolucao
-  - name: metadata
-    description: 'Metadados do pipeline ELT (ex: data da última extração)'
-    meta:
-      primary_key:
-      - portal_slug
-      - key
-    columns:
-    - name: portal_slug
-    - name: key
-    - name: value
-  - name: empresas
-    description: Entidades/órgãos do portal
-    meta:
-      primary_key:
-      - id
-    columns:
-    - name: id
-      data_type: integer
-    - name: nome
   - name: siconfi_rgf
     description: "RGF Anexo 01 (Demonstrativo da Despesa com Pessoal) do SICONFI/STN, Poder Executivo municipal, por período (quadrimestral ou semestral)"
     meta:

@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import Connection, Engine
 from sqlmodel import create_engine
 
-from elt.core.config import PortalConfig
+from elt.core.config import PortalConfig, resolve_raw_schema
 
 _engine: Engine | None = None
 _table_cache: dict[tuple[str, str], Table] = {}
@@ -87,7 +87,7 @@ def upsert(
 
 
 def set_metadata(db: Connectable, key: str, value: str, portal_slug: str) -> None:
-    table = _get_table(db, "metadata")
+    table = _get_table(db, "metadata", schema=resolve_raw_schema(PortalConfig.load(portal_slug), "metadata"))
     stmt = pg_insert(table).values(portal_slug=portal_slug, key=key, value=value)
     stmt = stmt.on_conflict_do_update(index_elements=["portal_slug", "key"], set_={"value": value})
     _execute(db, stmt)

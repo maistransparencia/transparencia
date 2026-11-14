@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 from sqlalchemy import MetaData, Table, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from elt.core.config import PortalConfig
+from elt.core.config import PortalConfig, resolve_key_cols, resolve_raw_schema, tag_rows_with_portal
 from elt.core.db import get_engine
 from elt.extract.base import EndpointConfig
 from elt.extract.errors import SUSPICIOUS_EMPTY, UNEXPECTED_ERROR
@@ -414,14 +414,23 @@ def main() -> None:
 
         rows = json.loads(json_file.read_text(encoding="utf-8"))
         normalised = _normalize(rows, year, empresa_id, config.post_process)
-        count = _upsert_raw(engine, schema, target_table, normalised, key_cols)
-        logger.info("Loaded %s / %s / %d → %d rows into %s.%s", table, empresa_id, year, count, schema, target_table)
+        target_schema = resolve_raw_schema(portal, target_table)
+        count = _upsert_raw(
+            engine,
+            target_schema,
+            target_table,
+            tag_rows_with_portal(portal, target_table, normalised),
+            resolve_key_cols(portal, target_table, key_cols),
+        )
+        logger.info(
+            "Loaded %s / %s / %d → %d rows into %s.%s", table, empresa_id, year, count, target_schema, target_table
+        )
         rows_loaded[MUNICIPAL_PORTAL_SOURCE] += count
 
     if extraction_date:
         _upsert_raw(
             engine,
-            schema,
+            resolve_raw_schema(portal, "metadata"),
             "metadata",
             [{"portal_slug": portal.slug, "key": "last_extracted_at", "value": extraction_date}],
             ["portal_slug", "key"],

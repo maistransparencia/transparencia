@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from sqlalchemy import MetaData, Table, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from elt.core.config import PortalConfig
+from elt.core.config import PortalConfig, resolve_key_cols, resolve_raw_schema, tag_rows_with_portal
 from elt.core.db import get_engine
 from elt.extract.base import EndpointConfig
 from elt.extract.fiorilli.api_endpoints import get_endpoint_configs
@@ -109,7 +109,6 @@ def run_load_receitas_csv(portal_slug: str) -> None:
     load_dotenv()
 
     portal = PortalConfig.load(portal_slug)
-    schema = portal.raw_schema
     engine = get_engine()
 
     endpoint_configs = get_endpoint_configs(
@@ -222,7 +221,14 @@ def run_load_receitas_csv(portal_slug: str) -> None:
                 item = ep_config.post_process(item)
             rows.append(item)
 
-        count = _upsert_raw(engine, schema, table_name, rows, ep_config.key_cols)
+        schema = resolve_raw_schema(portal, table_name)
+        count = _upsert_raw(
+            engine,
+            schema,
+            table_name,
+            tag_rows_with_portal(portal, table_name, rows),
+            resolve_key_cols(portal, table_name, ep_config.key_cols),
+        )
         print(f"✓ {file_path.name} → {count} rows into {schema}.{table_name}")
 
 
