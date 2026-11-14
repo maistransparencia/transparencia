@@ -30,7 +30,7 @@ baseline_revision: 1a8c7149276a0ba4c8f0822607ff01d925f6294d
 
 **Always:** mínimo vindo de `seed_constantes_fiscais` (nunca literal); veredito com texto e ícone; "indício", nunca "irregularidade"; lei com link oficial; ano em andamento "parcial" sem veredito; mínimo é de aplicação, não de repasse; dado declarado pela Prefeitura.
 
-**Never:** exibir o Fundeb (1.2) sem o mínimo legal vigente (a conferência do CRC do indicador 1.2 foi confirmada em 2026-11-01, então o Fundeb é exibido); usar os 60% do rótulo do SIOPE como piso atual; cálculo na tela; reposicionar na faixa da Story 24.11.
+**Never:** exibir o Fundeb (1.2) sem o mínimo legal vigente (sem conferência de CRC do indicador 1.2, por decisão do Julio em 2026-11-01: o Fundeb é exibido como dado declarado pela Prefeitura via SIOPE); usar os 60% do rótulo do SIOPE como piso atual; cálculo na tela; reposicionar na faixa da Story 24.11.
 
 </intent-contract>
 
@@ -49,7 +49,7 @@ baseline_revision: 1a8c7149276a0ba4c8f0822607ff01d925f6294d
 **Acceptance Criteria:**
 - Given ano encerrado com 1.1, when abre a página, then percentual ao lado de 25%, "Cumpriu"/"Ficou abaixo" com ícone e lei com link.
 - Given ano em andamento, then "parcial" sem veredito. Given sem dado, then "—" com a causa.
-- Given Fundeb (conferência do CRC já confirmada), then aparece com o mínimo legal vigente.
+- Given Fundeb (exibido sem conferência de CRC; dado declarado pela Prefeitura via SIOPE), then aparece com o mínimo legal vigente.
 
 ## Spec Change Log
 
@@ -63,7 +63,7 @@ baseline_revision: 1a8c7149276a0ba4c8f0822607ff01d925f6294d
   - `[medium]` `patch` faltavam testes do limite exato (25 → cumpriu) e da causa "não informou ao FNDE" — adicionados
   - `[maybe-false]` `defer` EC 119/2022 em 2020–2021 — registrado em `deferred`
   - `[low]` `reject` mínimo sem linha no seed, parcial sem período, seed sobreposto sem orderBy, lei sem URL — hipotéticos (seed cobre 2000–2099; período sempre numérico)
-  - `[low]` `reject` Fundeb calculado mas oculto, DTO vazio duplicado, nome `fmtPercentual`, linguagem técnica, comparação com ano anterior, mínimo municipal próprio, CHANGELOG/llms — resto fora do escopo (a premissa "Fundeb oculto" foi superada: conferência do CRC confirmada em 2026-11-01, Fundeb exibido, commit `800c5464`)
+  - `[low]` `reject` Fundeb calculado mas oculto, DTO vazio duplicado, nome `fmtPercentual`, linguagem técnica, comparação com ano anterior, mínimo municipal próprio, CHANGELOG/llms — resto fora do escopo (a premissa "Fundeb oculto" foi superada: Fundeb exibido sem conferência de CRC, por decisão do Julio em 2026-11-01, commit `800c5464`)
 
 ## Verification
 

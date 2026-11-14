@@ -549,3 +549,45 @@ location: apps/web/app/[portalSlug]/loader.ts:339
 source_spec: `spec-27-5-ajustes-da-home-e-do-layout-resumo-nos-atalhos-compartilhar-a-pagina-sidebar-recolhivel.md`
 reason: `fct_pessoal_regime_metricas` agrega por ano sem filtrar o mês; se a fonte tiver vários meses, o número é pessoa-mês, não servidores. A página `/pessoal` usa a mesma soma, então hoje os dois batem. Banco local não respondeu para confirmar a granularidade (`count(distinct mes)` por ano em `fct_pessoal`).
 status: open
+
+### DW-34: Teste da query de origem não exercita dados reais no banco de testes (vazio).
+origin: spec-deferred db26efc5a861
+location: packages/db/src/queries/__tests__/receitas-extra-metrics.spec.ts
+source_spec: `spec-23-7-origem-das-entradas-fora-do-orcamento-em-receitas.md`
+severity: low
+reason: postgres_test é construído só com tabelas raw vazias (regra 21); a query foi validada contra o banco local 5544.
+status: open
+
+### DW-35: Não há spec de página para /receitas cobrindo o bloco.
+origin: spec-deferred f0a573b07673
+location: apps/web/app/[portalSlug]/receitas/page.spec.tsx
+source_spec: `spec-23-7-origem-das-entradas-fora-do-orcamento-em-receitas.md`
+severity: low
+reason: Cobertura em view-model.spec.ts e no spec do componente; página não renderizada de ponta a ponta.
+status: open
+
+## Deferred from: code review of story 23-1 (2026-11-12)
+
+- Cruzamento total portal x fonte em `fct_coletas_por_fonte`: portal que não usa uma fonte (ex.: sem farmácia/ObrasGov) fica permanentemente `sem_registro`, o que a 23.2 pode ler como atraso. Decisão: adiar; resolver ao calcular o frescor na 23.2 (talvez status `nao_aplicavel`). [elt/transform/models/marts/fct_coletas_por_fonte.sql]
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-23-4-selo-fonte-verificado-em-e-pagina-como-atualizamos.md`
+  summary: Unificar a data do rodapé global ("Dados extraídos em", de `dataExtracao`) com a query de frescor da 23.2 e trocar o texto para "verificado em".
+  evidence: Decisão do Julio (2026-11-13, opção a): o rodapé é client e global, e trocar a origem da data mexe no layout raiz; a 23.4 só acrescenta o link e remove o ponto verde.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-23-4-selo-fonte-verificado-em-e-pagina-como-atualizamos.md`
+  summary: Atualizar `stg_coletas__registro_coletas` e `fct_coletas_por_fonte` no `dbt run` dos alvos de carga avulsa (`make elt/*` que gravam registro de coleta), para a página "Como atualizamos" mostrar a data logo após a carga.
+  evidence: Descoberto em 2026-11-13: após `make elt/farmacia-sus` e `make elt/siconfi-rgf` a página continuou "Sem registro" até um `dbt run` do mart, porque o dbt desses alvos não inclui os dois modelos. Decisão do Julio: fora da 23.8b (que mantém dbt completo nos workflows agendados); mexe em vários alvos do Makefile.
+
+## Deferred from: code review of spec-23-5-reportar-erro-grava-relato-no-banco-com-a-rota-da-pagina (2026-11-13)
+
+- `grant_readonly.sql:54`: `read_only` recebe SELECT/INSERT/UPDATE/DELETE e política `FOR ALL USING (true)` em `feedback_reports` (e-mails de cidadãos); grant é pulado em silêncio se rodar antes da migração 005; nenhum teste executa o script. Antes de produção: conferir INSERT como `read_only` após o grant e avaliar papel só de INSERT.
+- Relatos sem triagem: só existe `registerFeedbackReport`; nada lê, notifica ou muda `status`, embora o modal diga que a equipe lê os relatos. Precisa de story própria.
+
+- source_spec: none
+  summary: Campo ausente na fonte aparece como "—" com explicação (nunca `0` nem `R$ 0,00`) nos blocos existentes, com teste em um bloco real e lista dos blocos auditados (parte "ausente é —" da Story 23.3).
+  evidence: Separado da carga segura da 23.3 por decisão do Julio (2026-11-13): é auditoria de UI/view-model independente do loader, com revisão do `contador-publico` e do `editor-cidadao`, e pode ser entregue em PR própria.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado.md`
+  summary: No workflow de ingestão, portal sem `data/raw_runs/$portal` só loga "Pulando load" e não reprova o job.
+  evidence: comportamento anterior à story 23.3, apontado na revisão; uma extração que não gerou diretório passaria como verde.
+

@@ -1,0 +1,4 @@
+codigo,fonte,tipo,texto_cidadao,vigencia_inicio,vigencia_fim
+historico_anterior_ao_inicio,todas_as_fontes,lacuna,"O portal mostra os dados a partir de {ano_inicial_historico}. Anos anteriores não foram importados e não aparecem aqui.",2026-11-13,
+fundeb_sem_conferencia_crc,siope,lacuna,"O Fundeb mostrado aqui vem do SIOPE, informado pela Prefeitura. O percentual exato pode diferir conforme as despesas que entram na conta, e essa regra não é única. Por isso, o resultado é informativo, não uma conferência oficial.",2026-11-13,
+verificado_em_mede_nossa_coleta,todas_as_fontes,lacuna,"A data de ""verificado em"" é o dia em que o portal foi buscar o dado na fonte, não o dia em que a fonte o publicou. Ela não diz se o dado é recente.",2026-11-13,

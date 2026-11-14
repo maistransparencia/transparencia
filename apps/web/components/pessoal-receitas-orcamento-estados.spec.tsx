@@ -22,10 +22,65 @@ describe("estados de borda no padrão Divisórias", () => {
     );
     expect(
       screen.getByText(
-        "Dinheiro que a prefeitura retém do salário dos servidores e de pagamentos a fornecedores (como contribuição à previdência, imposto de renda e parcelas de empréstimo) e repassa a quem de direito. Passa pelo caixa, mas não é dinheiro da prefeitura.",
+        "Dinheiro que a prefeitura retém do salário dos servidores e de pagamentos a fornecedores (como contribuição à previdência, imposto de renda e parcelas de empréstimo) e repassa a quem de direito. Passa pelo caixa, mas em regra não é dinheiro da prefeitura.",
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/do previsto já arrecadado/)).toBeNull();
+  });
+
+  it("origem das entradas fora do orçamento fica recolhida e traduz categorias", () => {
+    const { container } = render(
+      <PrevistoVsArrecadadoOrigem
+        items={[
+          {
+            fonte: "Entradas fora do orçamento",
+            previsto: 10,
+            arrecadado: 10,
+            pctRealizado: 100,
+            semPrevisao: true,
+            origem: [
+              {
+                categoria: "imposto_renda_retido",
+                valorArrecadado: 7,
+                percentualDoTotal: 70,
+              },
+              {
+                categoria: "categoria_desconhecida",
+                valorArrecadado: 3,
+                percentualDoTotal: 30,
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+    const detalhes = container.querySelector("details");
+    expect(detalhes).not.toBeNull();
+    expect(detalhes?.hasAttribute("open")).toBe(false);
+    expect(screen.getByText("De onde vem este valor")).toBeInTheDocument();
+    expect(screen.getByText("Imposto de renda retido")).toBeInTheDocument();
+    expect(
+      screen.getByText("Outros descontos e retenções"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/70,0%/)).toBeInTheDocument();
+  });
+
+  it("sem origem das entradas fora do orçamento o bloco não aparece", () => {
+    const { container } = render(
+      <PrevistoVsArrecadadoOrigem
+        items={[
+          {
+            fonte: "Entradas fora do orçamento",
+            previsto: 0,
+            arrecadado: 0,
+            pctRealizado: 100,
+            semPrevisao: true,
+            origem: [],
+          },
+        ]}
+      />,
+    );
+    expect(container.querySelector("details")).toBeNull();
   });
 
   it("histograma vazio mostra mensagem com filete, sem cartão", () => {

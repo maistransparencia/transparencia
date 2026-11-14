@@ -19,6 +19,8 @@ from typing import Any
 
 import requests
 
+from elt.extract.errors import FORMAT_CHANGED, SourceUnavailableError, classify_error
+
 logger = logging.getLogger(__name__)
 
 FARMACIA_SUS_BASE_URL = "https://apidadosabertos.saude.gov.br"
@@ -181,6 +183,8 @@ class FarmaciaSusExtractor:
         self.max_retries = max_retries
         self.timeout = timeout
         self._last_request_time: float = 0.0
+        self.last_error_code: str | None = None
+        self.last_error_message: str | None = None
 
     def _wait_rate_limit(self) -> None:
         if self.min_interval_seconds <= 0:
@@ -204,9 +208,9 @@ class FarmaciaSusExtractor:
                 if resp.status_code == 204:
                     return None
                 if resp.status_code == 404:
-                    raise RuntimeError(f"HTTP 404 em {url}")
+                    raise SourceUnavailableError(f"HTTP 404 em {url}")
                 if resp.status_code == 429 or resp.status_code >= 500:
-                    last_err = RuntimeError(f"HTTP {resp.status_code} em {url}")
+                    last_err = SourceUnavailableError(f"HTTP {resp.status_code} em {url}")
                     logger.warning(
                         "Tentativa %d/%d falhou com HTTP %d para %s.", attempt, self.max_retries, resp.status_code, url
                     )
@@ -218,7 +222,7 @@ class FarmaciaSusExtractor:
                 logger.warning("Tentativa %d/%d falhou (%s) para %s.", attempt, self.max_retries, exc, url)
                 time.sleep(2**attempt)
 
-        raise last_err or RuntimeError(f"Falha ao consultar {url} após {self.max_retries} tentativas")
+        raise last_err or SourceUnavailableError(f"Falha ao consultar {url} após {self.max_retries} tentativas")
 
     def _extract_paginado(self, endpoint: str, ibge6: str, session: requests.Session) -> list[dict[str, Any]]:
         acumulado: list[dict[str, Any]] = []
@@ -250,7 +254,12 @@ class FarmaciaSusExtractor:
         data_coleta = datetime.now(timezone.utc).isoformat()
         session = requests.Session()
 
+        self.last_error_code = None
+        self.last_error_message = None
+
         def coleta_com_falha(ibge6: str | None, erro: Exception | str) -> dict[str, list[dict[str, Any]]]:
+            self.last_error_code = classify_error(erro) if isinstance(erro, BaseException) else FORMAT_CHANGED
+            self.last_error_message = str(erro)
             return {
                 "coletas": [
                     {

@@ -42,7 +42,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-11-11
+last_updated: 2026-11-14
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -243,15 +243,18 @@ development_status:
   20-19-remocao-dos-aliases-e-zeramento-das-excecoes-do-tema: done
   epic-20-retrospective: optional
 
-  epic-23: backlog
-  23-1-registro-de-coletas-por-fonte-e-frequencia-esperada: backlog
-  23-2-query-de-frescor-com-estado-fora-do-prazo-previsto: backlog
-  23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado: backlog
-  23-4-selo-fonte-atualizado-em-nos-blocos-e-pagina-como-atualizamos: backlog
-  23-5-reportar-erro-por-indicador: backlog
-  23-6-direito-de-resposta-metodologia-e-fontes-sobre-e-quem-publica-e-quem-nao-publica: backlog
-  23-7-origem-das-entradas-fora-do-orcamento-em-receitas: backlog
-  23-8-cadencia-de-ingestao-por-fonte: backlog
+  epic-23: in-progress
+  23-1-registro-de-coletas-por-fonte-e-frequencia-esperada: done
+  23-2-query-de-frescor-com-estado-fora-do-prazo-previsto: done
+  23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado: done
+  23-4-selo-fonte-atualizado-em-nos-blocos-e-pagina-como-atualizamos: done
+  23-5-reportar-erro-por-indicador: done
+  23-6-metodologia-e-fontes-e-sobre: done
+  23-7-origem-das-entradas-fora-do-orcamento-em-receitas: done
+  23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: done
+  23-8b-grupos-de-cadencia-e-workflows-agendados-por-fonte: done
+  23-8c-cadencia-dos-seeds-do-ideb-e-das-fontes-de-saude: done
+  23-9-periodo-mais-recente-publicado-por-fonte: done
 
   epic-24: done
   24-1-ingestao-do-relatorio-gerencial-do-siope: done

@@ -37,3 +37,13 @@ def test_toda_fonte_configurada_tem_as_quatro_fontes_com_os_campos_do_modelo_com
     for fonte in carregar_fontes():
         for nome, campos in obrigatorios.items():
             assert campos <= set(getattr(fonte, nome).campos), (fonte.uf, nome)
+
+
+def test_totais_por_fonte_separa_rede_e_producao_e_mantem_fonte_vazia():
+    from elt.extract.saude_datasus import totais_por_fonte
+
+    assert totais_por_fonte({"leitos_competencia": 2, "populacao_residente": 1, "sia_competencia": 5}) == {
+        "saude_producao": 5,
+        "saude_rede": 3,
+    }
+    assert totais_por_fonte({"leitos_competencia": 2}) == {"saude_producao": 0, "saude_rede": 2}

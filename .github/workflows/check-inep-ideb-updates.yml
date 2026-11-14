@@ -84,15 +84,20 @@ jobs:
         run: |
           TARGET_YEAR="${{ steps.ping_check.outputs.target_year }}"
           uv run --project elt python elt/scripts/sync_inep_ideb_seed.py --year "$TARGET_YEAR"
+          # Média nacional (seed_inep_ideb_brasil), pela API do IBGE.
+          uv run --project elt python elt/scripts/sync_ibge_ideb_brasil.py
+          # seed_inep_ideb_estados NÃO tem gerador: o sync_inep_ideb_seed.py só escreve linhas por município
+          # (cod_ibge), e o seed de estados tem outro formato (cod_uf, sigla_uf). Fica manual; o PR avisa.
+          echo "::warning::seed_inep_ideb_estados não é atualizado por script; conferir à mão no PR."
 
       - name: Seed database and validate
         if: steps.ping_check.outputs.has_update == 'true'
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5544/postgres
         run: |
-          make dbt/seed SELECT=seed_inep_ideb
-          make dbt/run SELECT=stg_inep__ideb
-          make dbt/test SELECT=stg_inep__ideb
+          make dbt/seed SELECT="seed_inep_ideb seed_inep_ideb_estados seed_inep_ideb_brasil"
+          make dbt/run SELECT="stg_inep__ideb stg_inep__ideb_estados"
+          make dbt/test SELECT="seed_inep_ideb seed_inep_ideb_estados seed_inep_ideb_brasil stg_inep__ideb stg_inep__ideb_estados"
           make test
 
       - name: Create Pull Request
@@ -113,3 +118,6 @@ jobs:
             - **Fonte:** INEP/MEC (Resultados oficiais de Anos Iniciais e Anos Finais)
             - **Artefatos atualizados:**
               - `elt/transform/seeds/seed_inep_ideb.csv`
+              - `elt/transform/seeds/seed_inep_ideb_brasil.csv` (média nacional, API do IBGE)
+              - `elt/transform/seeds/seed_inep_ideb_estados.csv`: **sem atualização automática**; conferir e atualizar à mão neste PR
+            - **Antes do deploy:** rodar `dbt seed` em produção (ver `docs/checklist-de-release.md`)

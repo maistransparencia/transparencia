@@ -4,6 +4,7 @@ const dbMocks = vi.hoisted(() => ({
   getAnaliseDespesasMetrics: vi.fn(),
   getDespesasPorFuncaoMetrics: vi.fn(),
   getEntidades: vi.fn(),
+  getFrescorFontes: vi.fn(),
   getOpacidadeContabilMetrics: vi.fn(),
   getPortalConfig: vi.fn(),
   getPosicaoFiscalDetalhesMetrics: vi.fn(),
@@ -21,6 +22,7 @@ describe("loadDespesasData", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     dbMocks.getEntidades.mockResolvedValue([{ id: "e1" }, { id: "e2" }]);
+    dbMocks.getFrescorFontes.mockResolvedValue([]);
     dbMocks.getAnaliseDespesasMetrics.mockResolvedValue([]);
     dbMocks.getRadarGastosSensiveisMetrics.mockResolvedValue({ itens: [] });
     dbMocks.getRestosAPagarResumoMetrics.mockResolvedValue({});

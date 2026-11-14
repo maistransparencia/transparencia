@@ -1,27 +1,28 @@
-name: Scheduled Ingestion Pipeline
+name: Ingestion Group
 
 on:
-  schedule:
-    # Todos os dias uteis as 23:00 UTC (20:00 BRT)
-    - cron: "0 23 * * 1-5"
-  workflow_dispatch:
+  workflow_call:
     inputs:
+      only:
+        description: "Chaves de --only do grupo de cadência (separadas por espaço)"
+        type: string
+        required: true
       portal:
         description: "Slug do portal específico (ou 'all' para todos os cadastrados)"
-        required: false
+        type: string
         default: "all"
       years:
-        description: "Anos para extrair (ex: 2026, ou vazio para o ano atual)"
-        required: false
+        description: "Anos para extrair (vazio para o ano atual)"
+        type: string
         default: ""
       dry_run:
         description: "Executar em modo dry-run (sem gravar no banco nem webhook de produção)"
         type: boolean
         default: false
-
-concurrency:
-  group: scheduled-ingestion-${{ github.ref }}
-  cancel-in-progress: false
+      saude:
+        description: "Inclui o job de saúde (DATASUS), uma execução por UF, antes do dbt"
+        type: boolean
+        default: false
 
 jobs:
   # ==========================================================
@@ -32,6 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       portals: ${{ steps.discover.outputs.portals }}
+      ufs: ${{ steps.discover.outputs.ufs }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,7 +44,7 @@ jobs:
       - name: Resolve Target Portals
         id: discover
         run: |
-          PORTAL_INPUT="${{ github.event.inputs.portal }}"
+          PORTAL_INPUT="$INPUT_PORTAL"
           PORTALS_JSON=$(python3 -c "
           import json, sys
           from pathlib import Path
@@ -60,8 +62,26 @@ jobs:
           print(json.dumps(selected))
           " "$PORTAL_INPUT")
 
+          # UFs dos portais selecionados (lidas do campo `uf:` de cada YAML), para o job de saúde.
+          UFS_JSON=$(python3 -c "
+          import json, re, sys
+          from pathlib import Path
+
+          slugs = json.loads(sys.argv[1])
+          ufs = {
+              match.group(1)
+              for slug in slugs
+              if (match := re.search(r'^uf:\\s*(\\w+)', Path(f'elt/portals/{slug}.yml').read_text(encoding='utf-8'), re.M))
+          }
+          print(json.dumps(sorted(ufs)))
+          " "$PORTALS_JSON")
+
           echo "Portais selecionados para execução: $PORTALS_JSON"
+          echo "UFs dos portais: $UFS_JSON"
           echo "portals=$PORTALS_JSON" >> "$GITHUB_OUTPUT"
+          echo "ufs=$UFS_JSON" >> "$GITHUB_OUTPUT"
+        env:
+          INPUT_PORTAL: ${{ inputs.portal }}
 
   # ==========================================================
   # FASE 1: Extração Paralela (Fan-out)
@@ -103,13 +123,16 @@ jobs:
 
       - name: Extract Raw Municipal Data
         run: |
-          TARGET_YEAR="${{ github.event.inputs.years }}"
+          TARGET_YEAR="$INPUT_YEARS"
           if [ -z "$TARGET_YEAR" ]; then
             TARGET_YEAR=$(date +%Y)
           fi
-          echo "Iniciando extração do portal ${{ matrix.portal }} para o ano: $TARGET_YEAR"
-          uv run --project elt python -m elt.extract.run --portal "${{ matrix.portal }}" --years $TARGET_YEAR
+          echo "Iniciando extração do portal ${{ matrix.portal }} (fontes: $INPUT_ONLY) para o ano: $TARGET_YEAR"
+          # shellcheck disable=SC2086
+          uv run --project elt python -m elt.extract.run --portal "${{ matrix.portal }}" --years $TARGET_YEAR --only $INPUT_ONLY
         env:
+          INPUT_YEARS: ${{ inputs.years }}
+          INPUT_ONLY: ${{ inputs.only }}
           FLARESOLVERR_URL: http://localhost:8191/v1
 
       - name: Sync Raw Data to Cloudflare R2 (Bronze Layer)
@@ -140,14 +163,76 @@ jobs:
           retention-days: 7
 
   # ==========================================================
+  # FASE 1b: Saúde (DATASUS), uma execução por UF
+  # ==========================================================
+  # Extrator próprio (elt.extract.saude_datasus): lê os arquivos mensais da UF por FTP, grava direto no banco as
+  # 4 últimas competências fechadas e registra a coleta de cada portal (saude_rede e saude_producao).
+  # O backfill de 2021 em diante é manual e só no banco local; aqui nunca se passa --years/--competencias.
+  saude:
+    name: "Saude: ${{ matrix.uf }}"
+    needs: [setup]
+    if: ${{ inputs.saude && needs.setup.outputs.ufs != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        uf: ${{ fromJson(needs.setup.outputs.ufs) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # O cron sempre dispara na branch padrão (dev); a ingestão de produção usa o código de main.
+          ref: ${{ github.event_name == 'schedule' && 'main' || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv and sync dependencies
+        run: |
+          pip install uv
+          uv sync --project elt --no-dev
+
+      - name: Extract and load health data
+        run: |
+          START=$(date +%s)
+          ARGS=(--uf "${{ matrix.uf }}")
+          if [ "$INPUT_PORTAL" != "all" ] && [ -n "$INPUT_PORTAL" ]; then
+            ARGS+=(--portal "$INPUT_PORTAL")
+          fi
+          if [ "$INPUT_DRY_RUN" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+          PYTHONPATH=. uv run --project elt python -m elt.extract.saude_datasus "${ARGS[@]}"
+          echo "Saude ${{ matrix.uf }}: $(( $(date +%s) - START )) s" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          INPUT_PORTAL: ${{ inputs.portal }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Remove temporary files
+        if: ${{ always() }}
+        run: rm -rf "${TMPDIR:-/tmp}"/saude_datasus_*
+
+  # ==========================================================
   # FASE 2: Carga no Banco e Transformação dbt (Fan-in)
   # ==========================================================
   load_and_transform:
     name: Load to PostgreSQL & dbt Transform
-    needs: [setup, extract]
+    needs: [setup, extract, saude]
     if: ${{ !cancelled() && needs.setup.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # Os três grupos compartilham a fase de carga e dbt: dois dbt simultâneos conflitam.
+    # Limite do GitHub: um run em execução e UM pendente por grupo; um terceiro run cancela o pendente. Pelos crons
+    # só dois grupos coincidem (o mensal no dia 3 com o diário ou com o semanal), então nada é descartado; ao
+    # disparar manualmente, espere o run anterior terminar se já houver dois na fila.
+    concurrency:
+      group: ingestion-load-and-dbt
+      cancel-in-progress: false
 
     steps:
       - name: Checkout repository
@@ -192,12 +277,18 @@ jobs:
           ls -la data/raw_runs/
 
       - name: Load Data into PostgreSQL
-        if: github.event.inputs.dry_run != 'true'
+        if: ${{ !inputs.dry_run }}
         run: |
+          # O loader registra a falha em raw_coletas.registro_coletas e sai com código 1; seguimos até o dbt
+          # (o mart já mostra a falha) e o passo final reprova o job.
+          : > load_failures.txt
           for portal in $(echo '${{ needs.setup.outputs.portals }}' | jq -r '.[]'); do
             if [ -d "data/raw_runs/$portal" ]; then
               echo "=== Carregando dados no Postgres para: $portal ==="
-              uv run --project elt python -m elt.load.run --portal "$portal"
+              if ! uv run --project elt python -m elt.load.run --portal "$portal"; then
+                echo "::error::Carga com falha de fonte para $portal (dado anterior preservado)"
+                echo "$portal" >> load_failures.txt
+              fi
             else
               echo "Aviso: Sem dados brutos baixados para $portal. Pulando load."
             fi
@@ -206,7 +297,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Install dbt packages & seeds
-        if: github.event.inputs.dry_run != 'true'
+        if: ${{ !inputs.dry_run }}
         run: |
           uv run --project elt python elt/scripts/run_dbt.py deps
           uv run --project elt python elt/scripts/run_dbt.py seed
@@ -214,21 +305,21 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Run dbt Transformations
-        if: github.event.inputs.dry_run != 'true'
+        if: ${{ !inputs.dry_run }}
         run: |
           uv run --project elt python elt/scripts/run_dbt.py run
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Run dbt Tests
-        if: github.event.inputs.dry_run != 'true'
+        if: ${{ !inputs.dry_run }}
         run: |
           uv run --project elt python elt/scripts/run_dbt.py test
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Notify Webhook / Revalidate Cache
-        if: success() && github.event.inputs.dry_run != 'true'
+        if: ${{ success() && !inputs.dry_run }}
         run: |
           if [ -z "$WEBHOOK_URL" ]; then
             echo "WEBHOOK_URL não configurada nos Secrets. Pulando notificação."
@@ -245,3 +336,11 @@ jobs:
         env:
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
           INTERNAL_API_SECRET: ${{ secrets.INTERNAL_API_SECRET }}
+
+      - name: Fail Job on Load Failures
+        if: ${{ always() && !inputs.dry_run }}
+        run: |
+          if [ -s load_failures.txt ]; then
+            echo "::error::Carga com falha de fonte nos portais: $(paste -sd, load_failures.txt)"
+            exit 1
+          fi

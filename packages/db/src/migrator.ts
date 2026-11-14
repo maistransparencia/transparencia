@@ -9,11 +9,13 @@ import { dbWrite } from "./client";
 import * as migration001 from "./migrations/001_create_newsletter_subscribers";
 import * as migration002 from "./migrations/002_create_push_subscriptions";
 import * as migration004 from "./migrations/004_create_city_interest_requests";
+import * as migration005 from "./migrations/005_create_feedback_reports";
 
 const migrations: Record<string, Migration> = {
   "001_create_newsletter_subscribers": migration001,
   "002_create_push_subscriptions": migration002,
   "004_create_city_interest_requests": migration004,
+  "005_create_feedback_reports": migration005,
 };
 
 class InlineMigrationProvider implements MigrationProvider {

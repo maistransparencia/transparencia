@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       ? forwardedHeader.split(",")[0].trim()
       : req.headers.get("x-real-ip") || "unknown-ip";
 
-    const ipLimit = checkIpRateLimit(ip);
+    const ipLimit = checkIpRateLimit("newsletter", ip);
     if (!ipLimit.success) {
       return NextResponse.json(
         {

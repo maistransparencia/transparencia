@@ -245,3 +245,57 @@ seeds:
           - accepted_values:
               arguments:
                 values: [receita, despesa]
+
+  - name: seed_fontes_coleta
+    description: "Catálogo único das fontes coletadas, com a frequência esperada de atualização. O carregador (`elt/load/coletas.py`) lê este arquivo ao gravar `raw_coletas.registro_coletas`. `monitoramento` = `monitorado` quando a carga da fonte grava registro de coleta; `nao_monitorado` quando ainda não grava (frescor nunca presumido). `tolerancia_dias` = dias sem coleta aceitos antes de a fonte ser considerada atrasada (vazio em `sob_demanda`, que nunca atrasa)."
+    config:
+      column_types:
+        fonte: text
+        frequencia_esperada: text
+        monitoramento: text
+        descricao_dados: text
+        tolerancia_dias: integer
+        nome_fonte: text
+        url_fonte: text
+        esfera_fonte: text
+        resposta_vazia_e_suspeita: boolean
+        defasagem_publicacao_dias: integer
+    columns:
+      - name: fonte
+        tests:
+          - not_null
+          - unique
+      - name: defasagem_publicacao_dias
+        description: "Dias entre o fim do período e a publicação da fonte considerados normais. ESTIMATIVA, NÃO VERIFICADO com as fontes; vazio nas fontes que não trazem período."
+      - name: resposta_vazia_e_suspeita
+        description: "`true` quando uma resposta sem linhas, vinda de uma fonte que antes trouxe dados, deve ser tratada como falha e não gravada (o carregador lê este campo). `false` quando a fonte pode legitimamente vir vazia."
+        tests:
+          - not_null
+      - name: descricao_dados
+        tests:
+          - not_null
+      - name: frequencia_esperada
+        tests:
+          - accepted_values:
+              arguments:
+                values: [diaria, semanal, mensal, anual, sob_demanda]
+      - name: monitoramento
+        tests:
+          - accepted_values:
+              arguments:
+                values: [monitorado, nao_monitorado]
+      - name: nome_fonte
+        description: "Quem publica o dado, em linguagem cidadã. Só nas fontes nacionais; nas municipais e estaduais o nome varia por portal e vem dos dados do próprio portal."
+        tests:
+          - not_null:
+              config:
+                where: "esfera_fonte = 'nacional'"
+      - name: url_fonte
+        description: "Página pública da fonte. Só nas fontes nacionais; vazio quando a fonte não tem página única."
+      - name: esfera_fonte
+        description: "Quem resolve o link na tela: `nacional` usa `url_fonte`; `municipal` usa o nome e o portal da Prefeitura de cada portal; `estadual` usa o órgão e a página oficial do Estado do portal."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [nacional, estadual, municipal]

@@ -11,6 +11,7 @@ import { EmendasCard } from "@/components/emendas-card";
 import { PageEyebrow } from "@/components/page-eyebrow";
 import { PrevistoVsArrecadadoOrigem } from "@/components/previsto-vs-arrecadado";
 import { RadarAnomaliaCard } from "@/components/radar-anomalia-card";
+import { SeloFonte } from "@/components/selo-fonte";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadReceitasData } from "./loader";
 import { buildReceitasViewModel } from "./view-model";
@@ -61,6 +62,7 @@ export default async function ReceitasPage({
     origensData,
     comparacaoArrecadacao,
     cardDependencia,
+    seloFonte,
   } = viewModel;
 
   const percentualArrecadadoLimitado = Math.min(
@@ -142,6 +144,7 @@ export default async function ReceitasPage({
         ) : (
           <p className="caption">Previsão do ano não informada.</p>
         )}
+        <SeloFonte selo={seloFonte} />
       </section>
 
       <EmendasCard
@@ -172,6 +175,7 @@ export default async function ReceitasPage({
         />
 
         <PrevistoVsArrecadadoOrigem items={origensData} />
+        <SeloFonte selo={seloFonte} showWarning={false} />
       </section>
 
       <CarrosChefeArrecadacao

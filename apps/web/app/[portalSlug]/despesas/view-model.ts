@@ -1,5 +1,9 @@
 import { getPartialYearPeriod } from "@transparencia/ui";
+import { buildSourceSeal } from "@/lib/frescor-fontes";
 import type { loadDespesasData } from "./loader";
+
+/** Fonte de origem dos números de /despesas (conferida pelo lineage do dbt). */
+const FONTE_DESPESAS = "portal_municipal";
 
 type DespesasRawData = Awaited<ReturnType<typeof loadDespesasData>>;
 
@@ -120,5 +124,10 @@ export function buildDespesasViewModel(raw: DespesasRawData) {
       raw.restosHistorico?.find((linha) => linha.ano === selectedYear)
         ?.restosPagos ?? 0,
     opacidadeContabil: raw.opacidadeContabil ?? null,
+    seloFonte: buildSourceSeal(
+      raw.frescorFontes,
+      FONTE_DESPESAS,
+      raw.portalSlug,
+    ),
   };
 }

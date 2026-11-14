@@ -75,6 +75,15 @@ def test_extract_sucesso_mapeia_campos_e_registra_coleta():
     assert resultado["estabelecimentos_cnes"][0]["endereco_estabelecimento"] == "Rua A, 10"
 
 
+def test_coleta_com_sucesso_nao_deixa_codigo_de_erro():
+    extrator = FarmaciaSusExtractor(min_interval_seconds=0)
+    extrator.last_error_code = "formato_mudou"
+    with patch("elt.extract.farmacia_sus.requests.Session", return_value=_sessao([], [])):
+        extrator.extract("portal_x", 3304102)
+
+    assert extrator.last_error_code is None
+
+
 def test_extract_zero_itens_e_coleta_com_sucesso():
     extrator = FarmaciaSusExtractor(min_interval_seconds=0)
     with patch("elt.extract.farmacia_sus.requests.Session", return_value=_sessao([], [])):
@@ -97,6 +106,7 @@ def test_extract_falha_registra_coleta_falha_sem_estoque():
     assert list(resultado) == ["coletas"]
     assert resultado["coletas"][0]["status_coleta"] == "falha"
     assert "timeout" in resultado["coletas"][0]["mensagem_erro"]
+    assert extrator.last_error_code == "fonte_fora_do_ar"
 
 
 def _linhas_estoque(total):
@@ -149,6 +159,7 @@ def test_estoque_404_e_falha_nunca_apagao():
 
     assert list(resultado) == ["coletas"]
     assert resultado["coletas"][0]["status_coleta"] == "falha"
+    assert extrator.last_error_code == "fonte_fora_do_ar"
 
 
 def test_registros_sem_nenhum_mapeado_e_falha():
@@ -159,6 +170,7 @@ def test_registros_sem_nenhum_mapeado_e_falha():
 
     assert resultado["coletas"][0]["status_coleta"] == "falha"
     assert "estoque_medicamentos" not in resultado
+    assert extrator.last_error_code == "formato_mudou"
 
 
 def test_truncamento_por_limite_de_paginas_e_falha():

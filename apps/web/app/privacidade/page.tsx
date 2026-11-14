@@ -1,6 +1,7 @@
 import { AlertBox } from "@transparencia/ui";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { PortalPagesLinks } from "@/components/portal-pages-links";
 import { env } from "@/env";
 import { urlLegislacao } from "@/lib/constants/legislacao";
 
@@ -110,6 +111,9 @@ export default function PrivacidadePage() {
           </a>
           .
         </p>
+        <div className="mt-4">
+          <PortalPagesLinks />
+        </div>
       </header>
 
       {/* Resumo */}
@@ -231,6 +235,16 @@ export default function PrivacidadePage() {
               </li>
               <li>
                 <strong>Sem comercialização</strong> ou repasse a anunciantes.
+              </li>
+              <li>
+                <strong>Relatos de erro ou sugestão:</strong> o texto que você
+                escreve, o e-mail (só se você informar) e o endereço da página
+                ficam guardados no banco de dados do portal, não no PostHog. Não
+                guardamos seu IP nem dados do navegador nesse relato. O PostHog
+                só registra, de forma anônima, que o formulário foi aberto, sem
+                o conteúdo do relato. Guardamos o relato enquanto for necessário
+                para analisá-lo; para pedir a exclusão, veja Direitos do titular
+                e Contato. Não escreva CPF ou outros dados pessoais no texto.
               </li>
             </ul>
           </Section>

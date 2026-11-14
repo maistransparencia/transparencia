@@ -19,6 +19,7 @@ import {
   getTopFornecedoresExecucaoMetrics,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
+import { loadSourceFreshnessOrEmpty } from "@/lib/frescor-fontes";
 
 export interface DespesasSearchParams {
   ano?: string;
@@ -129,6 +130,7 @@ async function fetchRawDespesasData(
     portalConfig,
     areasPorFuncao,
     topFornecedores,
+    frescorFontes,
   ] = await Promise.all([
     getAnaliseDespesasMetrics(tenantSlug, selectedYear, empresaIds),
     getRadarGastosSensiveisMetrics(tenantSlug, selectedYear, empresaIds),
@@ -144,6 +146,7 @@ async function fetchRawDespesasData(
       empresaIds,
       limit: LIMITE_FORNECEDORES,
     }),
+    loadSourceFreshnessOrEmpty(tenantSlug),
   ]);
 
   const metricasGerais = summarizeAnaliseDespesasMetrics(
@@ -167,6 +170,7 @@ async function fetchRawDespesasData(
   };
 
   return {
+    portalSlug: tenantSlug,
     context,
     portalConfig,
     metricasGerais,
@@ -176,6 +180,7 @@ async function fetchRawDespesasData(
     opacidadeContabil,
     areasPorFuncao,
     topFornecedores,
+    frescorFontes,
   };
 }
 
