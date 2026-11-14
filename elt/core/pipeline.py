@@ -244,7 +244,7 @@ class DatabaseLoader:
         engine = get_engine()
         create_tables(engine)
 
-        portal_slug = p.name.split("_")[0] if "_" in p.name else _portal.slug
+        portal_slug = _portal.slug
         total_inserted = 0
         for cfg in ENDPOINT_CONFIGS:
             file_path = p / f"{cfg.table}.json"
