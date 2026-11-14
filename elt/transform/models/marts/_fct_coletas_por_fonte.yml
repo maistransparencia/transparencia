@@ -75,3 +75,16 @@ models:
       - name: ultimo_erro_codigo
         data_type: text
         description: "Motivo da última falha: fonte_fora_do_ar, formato_mudou, resposta_vazia_suspeita ou erro_inesperado."
+      - name: periodo_mais_recente_fim
+        data_type: date
+        description: "Fim do período mais recente que a fonte publicou (último dia do mês, quadrimestre ou semestre; a própria data na farmácia). Nulo nas fontes sem período e quando o portal não tem dados."
+      - name: granularidade_periodo
+        data_type: text
+        description: "Tamanho do período mais recente: dia, mes, quadrimestre ou semestre. Nulo junto com `periodo_mais_recente_fim`."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [dia, mes, quadrimestre, semestre]
+      - name: defasagem_publicacao_dias
+        data_type: integer
+        description: "Dias entre o fim do período e a publicação que o portal considera normais. Estimativa do catálogo (NÃO VERIFICADO); nulo nas fontes sem período."

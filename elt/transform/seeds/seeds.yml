@@ -259,11 +259,14 @@ seeds:
         url_fonte: text
         esfera_fonte: text
         resposta_vazia_e_suspeita: boolean
+        defasagem_publicacao_dias: integer
     columns:
       - name: fonte
         tests:
           - not_null
           - unique
+      - name: defasagem_publicacao_dias
+        description: "Dias entre o fim do período e a publicação da fonte considerados normais. ESTIMATIVA, NÃO VERIFICADO com as fontes; vazio nas fontes que não trazem período."
       - name: resposta_vazia_e_suspeita
         description: "`true` quando uma resposta sem linhas, vinda de uma fonte que antes trouxe dados, deve ser tratada como falha e não gravada (o carregador lê este campo). `false` quando a fonte pode legitimamente vir vazia."
         tests:

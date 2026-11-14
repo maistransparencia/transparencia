@@ -42,7 +42,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-08-04T22:50:52-03:00
-last_updated: 2026-11-13
+last_updated: 2026-11-14
 project: transparencia
 project_key: NOKEY
 tracking_system: file-system
@@ -254,7 +254,7 @@ development_status:
   23-8a-extratores-do-siope-e-do-siops-no-padrao-de-coleta-em-json: done
   23-8b-grupos-de-cadencia-e-workflows-agendados-por-fonte: done
   23-8c-cadencia-dos-seeds-do-ideb-e-das-fontes-de-saude: done
-  23-9-periodo-mais-recente-publicado-por-fonte: backlog
+  23-9-periodo-mais-recente-publicado-por-fonte: review
 
   epic-24: done
   24-1-ingestao-do-relatorio-gerencial-do-siope: done
