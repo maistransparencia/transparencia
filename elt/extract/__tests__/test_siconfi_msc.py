@@ -207,16 +207,17 @@ def test_load_siconfi_msc():
     ]
 
     with patch("elt.load.siconfi.upsert", return_value=1) as mock_upsert:
-        res = load_siconfi_msc(mock_db, rows)
-        assert res == 1
-        mock_upsert.assert_called_once_with(mock_db, "siconfi_msc_patrimonial", rows, KEY_COLS)
-
-    with patch("elt.load.siconfi.upsert", return_value=1) as mock_upsert:
-        res = load_siconfi_msc(mock_db, rows, schema="raw_natividade_prefeitura")
+        res = load_siconfi_msc(mock_db, rows, "porciuncula_prefeitura")
         assert res == 1
         mock_upsert.assert_called_once_with(
-            mock_db, "siconfi_msc_patrimonial", rows, KEY_COLS, schema="raw_natividade_prefeitura"
+            mock_db,
+            "siconfi_msc_patrimonial",
+            [{**rows[0], "portal_slug": "porciuncula_prefeitura"}],
+            KEY_COLS,
+            schema="raw_siconfi",
         )
+
+    assert KEY_COLS[0] == "portal_slug"
 
 
 def test_ensure_siconfi_table():
@@ -227,10 +228,11 @@ def test_ensure_siconfi_table():
     mock_conn = MagicMock()
     mock_engine.begin.return_value.__enter__.return_value = mock_conn
 
-    ensure_siconfi_table(mock_engine, schema="raw_porciuncula_prefeitura")
+    ensure_siconfi_table(mock_engine)
     assert mock_conn.execute.call_count == 1
     call_sql = str(mock_conn.execute.call_args[0][0])
-    assert "siconfi_msc_patrimonial" in call_sql
+    assert "raw_siconfi" in call_sql
+    assert "PRIMARY KEY (portal_slug," in call_sql
 
 
 def test_extract_and_load_siconfi(tmp_path):
@@ -260,9 +262,9 @@ def test_extract_and_load_siconfi(tmp_path):
         )
 
         assert total == 1
-        mock_ensure.assert_called_once_with(mock_db, "raw_porciuncula_prefeitura")
+        mock_ensure.assert_called_once_with(mock_db)
         mock_extract.assert_called_once_with(3304102, 2024, session=None)
-        mock_load.assert_called_once_with(mock_db, sample_rows, schema="raw_porciuncula_prefeitura")
+        mock_load.assert_called_once_with(mock_db, sample_rows, "porciuncula_prefeitura")
 
         saved_file = tmp_path / "siconfi_msc_patrimonial" / "3304102_2024.json"
         assert saved_file.exists()
@@ -380,5 +382,5 @@ def test_load_run_siconfi(tmp_path):
     ):
         load_run.main()
         mock_ensure.assert_called_once()
-        mock_load.assert_called_once_with(mock_engine.return_value, sample_rows, schema="raw_porciuncula_prefeitura")
+        mock_load.assert_called_once_with(mock_engine.return_value, sample_rows, "porciuncula_prefeitura")
         mock_upsert_raw.assert_called_once()

@@ -1,5 +1,5 @@
 with stg as (
-    select * from {{ ref('stg_siconfi_msc_patrimonial') }}
+    select * from {{ ref('stg_siconfi__msc_patrimonial') }}
 ),
 
 fontes as (
@@ -54,7 +54,7 @@ stg_com_fonte as (
 
 agregado_siconfi as (
     select
-        p.portal_slug,
+        s.portal_slug,
         s.cod_ibge,
         s.ano,
         s.mes_referencia,
@@ -66,9 +66,10 @@ agregado_siconfi as (
         coalesce(sum(case when s.recurso_vinculado_flag then s.saldo_valor else 0 end), 0)::numeric(18, 2) as saldo_recursos_vinculados
     from stg_com_fonte s
     inner join portais p
-        on p.cod_ibge = s.cod_ibge
+        on p.portal_slug = s.portal_slug
+        and p.cod_ibge = s.cod_ibge
     group by
-        p.portal_slug,
+        s.portal_slug,
         s.cod_ibge,
         s.ano,
         s.mes_referencia,

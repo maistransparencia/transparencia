@@ -10,7 +10,11 @@ from elt.core.db import Connectable, upsert
 
 logger = logging.getLogger(__name__)
 
+SCHEMA = "raw_siconfi"
+TABLE_NAME = "siconfi_msc_patrimonial"
+
 KEY_COLS = [
+    "portal_slug",
     "ano",
     "mes_referencia",
     "cod_ibge",
@@ -25,11 +29,15 @@ KEY_COLS = [
 ]
 
 
-def ensure_siconfi_table(engine: Connectable, schema: str) -> None:
-    """Garante a existência da tabela raw de MSC Patrimonial no schema especificado."""
+def ensure_siconfi_table(engine: Connectable, schema: str = SCHEMA) -> None:
+    """Garante a existência da tabela raw de MSC Patrimonial, compartilhada por todos os portais.
+
+    `portal_slug` faz parte da chave primária: cada portal grava e recarrega só as suas linhas.
+    """
     ddl = f"""
     CREATE SCHEMA IF NOT EXISTS "{schema}";
-    CREATE TABLE IF NOT EXISTS "{schema}"."siconfi_msc_patrimonial" (
+    CREATE TABLE IF NOT EXISTS "{schema}"."{TABLE_NAME}" (
+        portal_slug TEXT NOT NULL,
         ano INTEGER NOT NULL,
         mes_referencia INTEGER NOT NULL,
         cod_ibge INTEGER NOT NULL,
@@ -47,7 +55,7 @@ def ensure_siconfi_table(engine: Connectable, schema: str) -> None:
         complemento_fonte TEXT,
         data_referencia TEXT,
         data_extracao TEXT,
-        PRIMARY KEY (ano, mes_referencia, cod_ibge, conta_contabil, poder_orgao, fonte_recursos, ano_fonte_recursos, financeiro_permanente, tipo_valor, natureza_conta, entrada_msc)
+        PRIMARY KEY (portal_slug, ano, mes_referencia, cod_ibge, conta_contabil, poder_orgao, fonte_recursos, ano_fonte_recursos, financeiro_permanente, tipo_valor, natureza_conta, entrada_msc)
     );
     """
     if isinstance(engine, Engine):
@@ -103,14 +111,14 @@ def load_siconfi_rgf(
 def load_siconfi_msc(
     db: Connectable,
     rows: list[dict[str, Any]],
-    schema: str | None = None,
+    portal_slug: str,
+    schema: str = SCHEMA,
 ) -> int:
-    """Insere ou atualiza os registros de MSC Patrimonial na tabela raw_<portal>.siconfi_msc_patrimonial."""
+    """Insere ou atualiza os registros da MSC Patrimonial em raw_siconfi, sem tocar nas linhas de outros portais."""
     if not rows:
         return 0
-    if schema:
-        return upsert(db, "siconfi_msc_patrimonial", rows, KEY_COLS, schema=schema)
-    return upsert(db, "siconfi_msc_patrimonial", rows, KEY_COLS)
+    rows_do_portal = [{**row, "portal_slug": portal_slug} for row in rows]
+    return upsert(db, TABLE_NAME, rows_do_portal, KEY_COLS, schema=schema)
 
 
 def main() -> None:
@@ -142,13 +150,13 @@ def main() -> None:
         raise FileNotFoundError(f"Diretório {run_dir} não encontrado")
 
     engine = get_engine()
-    ensure_siconfi_table(engine, schema=portal.raw_schema)
+    ensure_siconfi_table(engine)
 
     total = 0
     for json_file in sorted(run_dir.rglob("*.json")):
         if json_file.parent.name == "siconfi_msc_patrimonial":
             rows = json.loads(json_file.read_text(encoding="utf-8"))
-            loaded = load_siconfi_msc(engine, rows, schema=portal.raw_schema)
+            loaded = load_siconfi_msc(engine, rows, portal.slug)
             logger.info("Carregados %d registros de %s", loaded, json_file)
             total += loaded
 
