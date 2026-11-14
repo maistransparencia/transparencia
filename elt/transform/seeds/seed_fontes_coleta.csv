@@ -5,8 +5,8 @@ pncp,semanal,monitorado,as compras e contratos publicados no portal nacional de 
 obrasgov,semanal,monitorado,as obras feitas com dinheiro federal,10,ObrasGov.br,https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html,nacional,false
 siconfi_msc,mensal,monitorado,as contas da Prefeitura enviadas todo mês ao Tesouro Nacional,40,Siconfi,https://siconfi.tesouro.gov.br/,nacional,false
 siconfi_rgf,mensal,monitorado,"os limites da Lei de Responsabilidade Fiscal, como gasto com pessoal e dívida",40,Siconfi,https://siconfi.tesouro.gov.br/,nacional,false
-siope,mensal,nao_monitorado,quanto a Prefeitura aplica em educação,40,SIOPE,https://www.fnde.gov.br/siope/,nacional,true
-siops,mensal,nao_monitorado,quanto a Prefeitura aplica em saúde,40,SIOPS,https://siops.saude.gov.br/,nacional,true
+siope,mensal,monitorado,quanto a Prefeitura aplica em educação,40,SIOPE,https://www.fnde.gov.br/siope/,nacional,true
+siops,mensal,monitorado,quanto a Prefeitura aplica em saúde,40,SIOPS,https://siops.saude.gov.br/,nacional,true
 saude_rede,mensal,nao_monitorado,"os leitos, os profissionais e a população usados nos indicadores de saúde",40,Ministério da Saúde (dados abertos e DATASUS),https://datasus.saude.gov.br/,nacional,false
 saude_producao,mensal,nao_monitorado,os atendimentos e as internações do SUS no município,40,Ministério da Saúde (DATASUS),https://datasus.saude.gov.br/,nacional,false
 inep_censo,anual,nao_monitorado,"escolas, turmas e alunos da rede municipal",400,Censo Escolar (INEP),https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/censo-escolar,nacional,false
