@@ -57,6 +57,7 @@ periodos_candidatos as (
         (make_date(ano::int, mes_referencia::int, 1) + interval '1 month - 1 day')::date as periodo_fim,
         'mes' as granularidade_periodo
     from {{ ref('fct_saldo_caixa_siconfi') }}
+    where mes_referencia::int between 1 and 12
 
     union all
 
@@ -66,6 +67,8 @@ periodos_candidatos as (
         (make_date(ano, periodo * case periodicidade when 'quadrimestral' then 4 else 6 end, 1) + interval '1 month - 1 day')::date as periodo_fim,
         case periodicidade when 'quadrimestral' then 'quadrimestre' else 'semestre' end as granularidade_periodo
     from {{ ref('fct_pessoal_rgf_metricas') }}
+    where (periodicidade = 'quadrimestral' and periodo between 1 and 3)
+        or (periodicidade = 'semestral' and periodo between 1 and 2)
 
     union all
 
@@ -90,7 +93,7 @@ periodos_publicados as (
             fonte,
             periodo_fim,
             granularidade_periodo,
-            row_number() over (partition by portal_slug, fonte order by periodo_fim desc) as posicao_periodo
+            row_number() over (partition by portal_slug, fonte order by periodo_fim desc, granularidade_periodo) as posicao_periodo
         from periodos_candidatos
         where periodo_fim is not null
     ) periodos_numerados

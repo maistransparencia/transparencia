@@ -65,7 +65,8 @@ def test_every_catalog_source_is_listed_and_unrecorded_is_never_presumed_fresh(c
 
     assert len(sources) == catalog_size
     assert sources["portal_municipal"] == ("diaria", "sem_registro", None, 0, None)
-    assert sources["siope"] == ("mensal", "nao_monitorado", None, 0, None)
+    assert sources["siope"] == ("mensal", "sem_registro", None, 0, None)
+    assert sources["emendas_estaduais"][1] == "nao_monitorado"
 
 
 def test_latest_collection_wins_and_portals_are_isolated(conn, coleta, portais):
@@ -204,8 +205,17 @@ def test_published_period_matches_each_source_mart_and_stays_null_elsewhere(conn
             expected_farmacia[portal],
             "dia" if expected_farmacia[portal] else None,
         )
-        granularidade_rgf = _published_period(conn, portal, "siconfi_rgf")[1]
-        assert granularidade_rgf in {None, "quadrimestre", "semestre"}
+        expected_rgf = conn.execute(
+            text(
+                "SELECT (make_date(ano, periodo * CASE periodicidade WHEN 'quadrimestral' THEN 4 ELSE 6 END, 1) "
+                "+ interval '1 month - 1 day')::date::text, "
+                "CASE periodicidade WHEN 'quadrimestral' THEN 'quadrimestre' ELSE 'semestre' END "
+                "FROM analytics.fct_pessoal_rgf_metricas WHERE portal_slug = :p "
+                "ORDER BY 1 DESC LIMIT 1"
+            ),
+            {"p": portal},
+        ).first()
+        assert _published_period(conn, portal, "siconfi_rgf")[:2] == (expected_rgf or (None, None))
 
         others = conn.execute(
             text(

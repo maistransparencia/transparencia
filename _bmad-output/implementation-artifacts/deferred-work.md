@@ -590,3 +590,10 @@ status: open
 - source_spec: `_bmad-output/implementation-artifacts/spec-23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado.md`
   summary: No workflow de ingestão, portal sem `data/raw_runs/$portal` só loga "Pulando load" e não reprova o job.
   evidence: comportamento anterior à story 23.3, apontado na revisão; uma extração que não gerou diretório passaria como verde.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-23-9-periodo-mais-recente-publicado-por-fonte.md`
+  summary: Alinhar a defasagem da farmácia no catálogo (7 dias) com o limite do estado `apagao` da página (15 dias).
+  evidence: com 8 a 15 dias o selo mostra aviso de estimativa enquanto a página da farmácia ainda diz que o estoque está conforme.
+- source_spec: `_bmad-output/implementation-artifacts/spec-23-9-periodo-mais-recente-publicado-por-fonte.md`
+  summary: Conferir se o cache dos loaders de frescor atravessa o dia e atrasa a virada de `dado_recente` para `dado_defasado`.
+  evidence: `situacaoDado` depende da data de referência (UTC do dia); se o resultado é cacheado por mais de um dia, a fronteira vira tarde. Verificar a chave e o TTL do cache em `apps/web`.

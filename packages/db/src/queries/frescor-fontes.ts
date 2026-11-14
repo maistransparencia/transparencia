@@ -71,6 +71,7 @@ function situacaoDoDado(
 ): SituacaoDado {
   if (
     !linha.periodo_mais_recente_fim ||
+    Number.isNaN(Date.parse(linha.periodo_mais_recente_fim)) ||
     linha.defasagem_publicacao_dias === null
   ) {
     return "periodo_nao_disponivel";

@@ -81,6 +81,21 @@ Fonte dos critérios: `_bmad-output/planning-artifacts/epics.md`, seção "Story
 
 ## Review Triage Log
 
+Revisão: só a lente Edge Case Hunter (custo declarado ao Julio, 2026-11-14).
+
+| Achado | Veredito | Rota | Evidência |
+|---|---|---|---|
+| RGF/MSC: periodicidade ou mês fora da faixa quebra `make_date` | medium | patch | guardas no `where` de `periodos_candidatos` |
+| Empate de granularidade no RGF | low | patch | desempate por `granularidade_periodo` |
+| Data inválida lida como `dado_recente` | low | patch | `Number.isNaN` em `situacaoDoDado` |
+| Teste não confere o fim do período do RGF | medium | patch | asserção contra `fct_pessoal_rgf_metricas` |
+| `llms-full.txt` sem "dados até" | low | patch | linha do selo atualizada (Regra 12) |
+| Aviso de dado contradiz status em fonte não monitorada | false | rejeitado | `warningForStatus` cobre todo status fora de `coleta_em_dia`; o `??` só chega ao aviso de dado com coleta em dia |
+| Granularidade fora do tipo; defasado sem `dadosAte` | false | rejeitado | período e granularidade saem juntos do mart; tipo fechado |
+| `diasDeCalendario` não reutilizada | false | rejeitado | comportamento inalterado, só refatorada |
+| Cache do loader atravessa o dia | maybe-false | defer | pré-existente (23.2); falta ver a chave de cache |
+| Farmácia: defasagem 7 dias vs apagão de 15 dias | medium | defer | decisão de produto: selo pode avisar antes da página |
+
 ## Design Notes
 
 Dias de defasagem = diferença de calendário entre `dataReferencia` e `periodoMaisRecente`; `dado_defasado` quando `> defasagem_publicacao_dias`. O período é o **fim** do intervalo (último dia do mês, do quadrimestre ou do semestre; a própria data na farmácia), então a defasagem conta desde o fechamento. Valores de defasagem: MSC e RGF seguem os prazos de envio ao Siconfi com folga; farmácia, a rotina diária com tolerância de fim de semana. Todos estimativas, a UI deve dizer isso (Regra 27). Fonte de MSC = saldo de caixa (`fct_saldo_caixa_siconfi`), o mart MSC que alimenta receitas; se a MSC de outro mart avançar mais, a 23.9 não o vê (limite aceito).
