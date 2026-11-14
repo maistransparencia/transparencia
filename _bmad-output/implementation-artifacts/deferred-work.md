@@ -590,3 +590,4 @@ status: open
 - source_spec: `_bmad-output/implementation-artifacts/spec-23-3-carga-segura-parar-e-avisar-em-vez-de-gravar-dado-errado.md`
   summary: No workflow de ingestão, portal sem `data/raw_runs/$portal` só loga "Pulando load" e não reprova o job.
   evidence: comportamento anterior à story 23.3, apontado na revisão; uma extração que não gerou diretório passaria como verde.
+

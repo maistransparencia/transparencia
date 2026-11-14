@@ -4,6 +4,8 @@ export interface SeloFonteViewModel {
   descricao: string;
   /** Data da última coleta já formatada em pt-BR; nula quando a fonte não é monitorada. */
   dataVerificacao: string | null;
+  /** Até quando vão os números da fonte, em linguagem comum; nulo quando a fonte não traz período. */
+  dadosAte: string | null;
   aviso: string | null;
   href: string;
 }
@@ -17,6 +19,8 @@ export interface FonteComoAtualizamosViewModel {
   frequencia: string;
   dataVerificacao: string | null;
   situacao: FrescorFonteDTO["situacao"];
+  dadosAte: string | null;
+  avisoDado: string | null;
 }
 
 const FREQUENCIA_EM_LINGUAGEM_COMUM: Record<string, string> = {
@@ -86,6 +90,39 @@ export function warningForStatus(
   return null;
 }
 
+/** Período no tamanho que a fonte publica: "abril de 2026", "1º quadrimestre de 2026", "1º semestre de 2026" ou a data. */
+export function formatPublishedPeriod(
+  periodoMaisRecente: string | null,
+  granularidade: FrescorFonteDTO["granularidadePeriodo"],
+): string | null {
+  if (!periodoMaisRecente || !granularidade) return null;
+  const data = new Date(`${periodoMaisRecente}T00:00:00Z`);
+  if (Number.isNaN(data.getTime())) return null;
+  const mes = data.getUTCMonth() + 1;
+  const ano = data.getUTCFullYear();
+  if (granularidade === "dia") {
+    return data.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+  }
+  if (granularidade === "mes") {
+    return data.toLocaleDateString("pt-BR", {
+      timeZone: "UTC",
+      month: "long",
+      year: "numeric",
+    });
+  }
+  const mesesPorPeriodo = granularidade === "quadrimestre" ? 4 : 6;
+  return `${Math.ceil(mes / mesesPorPeriodo)}º ${granularidade} de ${ano}`;
+}
+
+/** A defasagem esperada é estimativa do catálogo: o aviso nunca a apresenta como fato medido. */
+export function warningForDataStatus(
+  situacaoDado: FrescorFonteDTO["situacaoDado"],
+  dadosAte: string | null,
+): string | null {
+  if (situacaoDado !== "dado_defasado" || !dadosAte) return null;
+  return `Os números desta fonte vão até ${dadosAte}, mais antigo do que ela costuma levar para publicar (estimativa nossa, não confirmada com a fonte).`;
+}
+
 export function hasFreshnessWarning(fonte: FrescorFonteDTO): boolean {
   return SITUACOES_COM_AVISO.has(fonte.situacao);
 }
@@ -98,10 +135,17 @@ export function buildSourceSeal(
   const linha = frescor.find((item) => item.fonte === fonte);
   if (!linha) return null;
   const dataVerificacao = formatVerificationDate(linha.ultimaColetaEm);
+  const dadosAte = formatPublishedPeriod(
+    linha.periodoMaisRecente,
+    linha.granularidadePeriodo,
+  );
   return {
     descricao: linha.descricaoDados,
     dataVerificacao,
-    aviso: warningForStatus(linha.situacao, dataVerificacao),
+    dadosAte,
+    aviso:
+      warningForStatus(linha.situacao, dataVerificacao) ??
+      warningForDataStatus(linha.situacaoDado, dadosAte),
     href: `/${portalSlug}/como-atualizamos`,
   };
 }
@@ -109,14 +153,22 @@ export function buildSourceSeal(
 export function buildSourceRows(
   frescor: FrescorFonteDTO[],
 ): FonteComoAtualizamosViewModel[] {
-  return frescor.map((linha) => ({
-    fonte: linha.fonte,
-    descricao: linha.descricaoDados,
-    nomeFonte: linha.nomeFonte,
-    urlFonte: linha.urlFonte,
-    esferaFonte: linha.esferaFonte,
-    frequencia: frequencyInPlainLanguage(linha.frequenciaEsperada),
-    dataVerificacao: formatVerificationDate(linha.ultimaColetaEm),
-    situacao: linha.situacao,
-  }));
+  return frescor.map((linha) => {
+    const dadosAte = formatPublishedPeriod(
+      linha.periodoMaisRecente,
+      linha.granularidadePeriodo,
+    );
+    return {
+      fonte: linha.fonte,
+      descricao: linha.descricaoDados,
+      nomeFonte: linha.nomeFonte,
+      urlFonte: linha.urlFonte,
+      esferaFonte: linha.esferaFonte,
+      frequencia: frequencyInPlainLanguage(linha.frequenciaEsperada),
+      dataVerificacao: formatVerificationDate(linha.ultimaColetaEm),
+      situacao: linha.situacao,
+      dadosAte,
+      avisoDado: warningForDataStatus(linha.situacaoDado, dadosAte),
+    };
+  });
 }

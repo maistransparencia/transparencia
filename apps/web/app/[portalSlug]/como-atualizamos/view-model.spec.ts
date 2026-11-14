@@ -11,6 +11,9 @@ const fonte = (parcial: Partial<FrescorFonteDTO>): FrescorFonteDTO => ({
   frequenciaEsperada: "diaria",
   ultimaColetaEm: "2026-11-12T08:00:00.000Z",
   situacao: "coleta_em_dia",
+  periodoMaisRecente: null,
+  granularidadePeriodo: null,
+  situacaoDado: "periodo_nao_disponivel",
   ...parcial,
 });
 
@@ -34,6 +37,18 @@ describe("buildComoAtualizamosViewModel", () => {
     expect(vm.fontes[0]?.situacaoTexto).toBe(
       "Dados buscados dentro do prazo previsto",
     );
+  });
+
+  it("fonte com período defasado: 'dados até' e aviso de estimativa por fonte", () => {
+    const [linha] = montar([
+      fonte({
+        periodoMaisRecente: "2026-04-30",
+        granularidadePeriodo: "mes",
+        situacaoDado: "dado_defasado",
+      }),
+    ]).fontes;
+    expect(linha?.dadosAte).toBe("abril de 2026");
+    expect(linha?.avisoDado).toContain("estimativa");
   });
 
   it("alguma atrasada: aviso no topo", () => {

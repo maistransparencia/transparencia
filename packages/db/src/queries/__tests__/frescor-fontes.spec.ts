@@ -16,6 +16,9 @@ function linha(dados: {
   totalLinhas?: number | null;
   ultimaFalhaEm?: string | null;
   ultimoErroCodigo?: string | null;
+  periodoFim?: string | null;
+  granularidade?: string | null;
+  defasagemDias?: number | null;
 }) {
   return {
     id_registro: `${dados.portalSlug}-${dados.fonte}`,
@@ -34,6 +37,9 @@ function linha(dados: {
     ultima_falha_em: dados.ultimaFalhaEm ?? null,
     ultimo_erro_codigo: dados.ultimoErroCodigo ?? null,
     total_coletas: dados.ultimaColetaEm ? 1 : 0,
+    periodo_mais_recente_fim: dados.periodoFim ?? null,
+    granularidade_periodo: dados.granularidade ?? null,
+    defasagem_publicacao_dias: dados.defasagemDias ?? null,
   };
 }
 
@@ -128,6 +134,49 @@ describe("getFrescorFontes", () => {
           ultimoErroCodigo: "formato_mudou",
         }),
         linha({
+          portalSlug: PORTAL_TESTE,
+          fonte: "p1_periodo_recente",
+          frequencia: "mensal",
+          situacao: "monitorado",
+          ultimaColetaEm: "2031-06-09T08:00:00+00:00",
+          toleranciaDias: 40,
+          periodoFim: "2031-04-11",
+          granularidade: "mes",
+          defasagemDias: 60,
+        }),
+        linha({
+          portalSlug: PORTAL_TESTE,
+          fonte: "p2_periodo_fronteira",
+          frequencia: "mensal",
+          situacao: "monitorado",
+          ultimaColetaEm: "2031-06-09T08:00:00+00:00",
+          toleranciaDias: 40,
+          periodoFim: "2031-04-11",
+          granularidade: "quadrimestre",
+          defasagemDias: 60,
+        }),
+        linha({
+          portalSlug: PORTAL_TESTE,
+          fonte: "p3_periodo_defasado",
+          frequencia: "mensal",
+          situacao: "monitorado",
+          ultimaColetaEm: "2031-06-09T08:00:00+00:00",
+          toleranciaDias: 40,
+          periodoFim: "2031-04-10",
+          granularidade: "semestre",
+          defasagemDias: 60,
+        }),
+        linha({
+          portalSlug: PORTAL_TESTE,
+          fonte: "p4_sem_defasagem_no_catalogo",
+          frequencia: "mensal",
+          situacao: "monitorado",
+          ultimaColetaEm: "2031-06-09T08:00:00+00:00",
+          toleranciaDias: 40,
+          periodoFim: "2031-06-09",
+          granularidade: "dia",
+        }),
+        linha({
           portalSlug: OUTRO_PORTAL,
           fonte: "g_outro_portal",
           frequencia: "diaria",
@@ -153,6 +202,10 @@ describe("getFrescorFontes", () => {
       ["f_sob_demanda", "coleta_em_dia"],
       ["h_falha_antes_do_prazo", "coleta_em_dia"],
       ["i_falha_apos_prazo", "coleta_atrasada"],
+      ["p1_periodo_recente", "coleta_em_dia"],
+      ["p2_periodo_fronteira", "coleta_em_dia"],
+      ["p3_periodo_defasado", "coleta_em_dia"],
+      ["p4_sem_defasagem_no_catalogo", "coleta_em_dia"],
     ]);
   });
 
@@ -185,6 +238,52 @@ describe("getFrescorFontes", () => {
     expect(porFonte.i_falha_apos_prazo.ultimaColetaEm).toBe(
       "2031-06-01T08:00:00.000Z",
     );
+  });
+
+  it("classifica o período publicado contra a defasagem do catálogo, sem presumir o que falta", async () => {
+    const resultado = await getFrescorFontes(PORTAL_TESTE, DATA_REFERENCIA);
+    const porFonte = Object.fromEntries(resultado.map((f) => [f.fonte, f]));
+    const dado = ({
+      periodoMaisRecente,
+      granularidadePeriodo,
+      situacaoDado,
+    }: (typeof resultado)[number]) => [
+      periodoMaisRecente,
+      granularidadePeriodo,
+      situacaoDado,
+    ];
+
+    expect(dado(porFonte.p1_periodo_recente)).toEqual([
+      "2031-04-11",
+      "mes",
+      "dado_recente",
+    ]);
+    expect(dado(porFonte.p2_periodo_fronteira)).toEqual([
+      "2031-04-11",
+      "quadrimestre",
+      "dado_recente",
+    ]);
+    expect(dado(porFonte.p3_periodo_defasado)).toEqual([
+      "2031-04-10",
+      "semestre",
+      "dado_defasado",
+    ]);
+    expect(dado(porFonte.p4_sem_defasagem_no_catalogo)).toEqual([
+      "2031-06-09",
+      "dia",
+      "periodo_nao_disponivel",
+    ]);
+    expect(dado(porFonte.a_diaria_no_limite)).toEqual([
+      null,
+      null,
+      "periodo_nao_disponivel",
+    ]);
+  });
+
+  it("não mistura o período de um portal com o de outro", async () => {
+    const resultado = await getFrescorFontes(OUTRO_PORTAL, DATA_REFERENCIA);
+
+    expect(resultado.map((f) => f.periodoMaisRecente)).toEqual([null]);
   });
 
   it("devolve só as fontes do portal pedido", async () => {

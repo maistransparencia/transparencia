@@ -5,6 +5,7 @@ import { SeloFonte } from "./selo-fonte";
 const selo = {
   descricao: "sistema contábil da Prefeitura",
   dataVerificacao: "12/11/2026",
+  dadosAte: null,
   aviso: null,
   href: "/portal_x/como-atualizamos",
 };
@@ -19,12 +20,23 @@ describe("SeloFonte", () => {
     expect(screen.queryByText(/atualizado em/i)).not.toBeInTheDocument();
   });
 
+  it("mostra até quando vão os dados quando a fonte traz período", () => {
+    render(<SeloFonte selo={{ ...selo, dadosAte: "abril de 2026" }} />);
+    expect(screen.getByText(/dados até abril de 2026/)).toBeInTheDocument();
+  });
+
+  it("sem período não mostra 'dados até'", () => {
+    render(<SeloFonte selo={selo} />);
+    expect(screen.queryByText(/dados até/)).not.toBeInTheDocument();
+  });
+
   it("sem data omite o 'verificado em' e mostra o aviso", () => {
     render(
       <SeloFonte
         selo={{
           ...selo,
           dataVerificacao: null,
+          dadosAte: null,
           aviso: "Não acompanhamos a data de atualização desta fonte.",
         }}
       />,

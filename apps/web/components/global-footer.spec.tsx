@@ -154,7 +154,7 @@ describe("GlobalFooter", () => {
     expect(portalLink).toHaveAttribute("target", "_blank");
     expect(portalLink).toHaveAttribute("rel", "noopener noreferrer");
 
-    expect(screen.getByText(/Dados extraídos em/i)).toBeInTheDocument();
+    expect(screen.getByText(/Última busca em/i)).toBeInTheDocument();
   });
 
   it("mostra o link 'Como atualizamos' do portal e não usa o ponto verde", () => {
@@ -194,7 +194,7 @@ describe("GlobalFooter", () => {
     expect(
       screen.queryByText(/Prefeitura de Porciúncula/i),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText(/Dados extraídos em/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Última busca em/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Lei de Acesso à Informação/i)).toBeInTheDocument();
   });
 

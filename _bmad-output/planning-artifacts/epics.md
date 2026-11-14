@@ -3361,7 +3361,9 @@ So that a source that stopped publishing does not look current just because the 
 - **And** quando o período é mais antigo que a defasagem esperada, medida contra a data de referência passada como parâmetro, a situação do dado é `dado_defasado`; senão, `dado_recente`; sem período, `periodo_nao_disponivel`.
 - **And** há teste de paridade cobrindo os três estados e a fronteira da defasagem; `make test/ts` e `pnpm typecheck` passam.
 
-**Fora do escopo:** tela (o selo da 23.4 ganha "dados até {período}" numa mudança pequena depois desta); fontes fora das três iniciais; confirmar prazos com cada fonte.
+**Tela (decisão do Julio, 2026-11-14):** o selo da 23.4 e a página "Como atualizamos" passam a mostrar "dados até {período}", com aviso de estimativa quando `dado_defasado`.
+
+**Fora do escopo:** componente novo de tela; fontes fora das três iniciais; confirmar prazos com cada fonte.
 
 **Riscos:** prazos de publicação não verificados geram falso alarme; por isso ficam no seed, marcados como estimativa, e a UI diz que é estimativa (Regra 27).
 

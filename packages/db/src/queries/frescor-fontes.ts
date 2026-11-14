@@ -1,3 +1,4 @@
+import { sql } from "kysely";
 import { db } from "../client";
 
 export type SituacaoFrescor =
@@ -5,6 +6,13 @@ export type SituacaoFrescor =
   | "coleta_atrasada"
   | "coleta_sem_registro"
   | "nao_monitorado";
+
+export type SituacaoDado =
+  | "dado_recente"
+  | "dado_defasado"
+  | "periodo_nao_disponivel";
+
+export type GranularidadePeriodo = "dia" | "mes" | "quadrimestre" | "semestre";
 
 export interface FrescorFonteDTO {
   fonte: string;
@@ -20,6 +28,11 @@ export interface FrescorFonteDTO {
   ultimaColetaEm: string | null;
   /** Mede quando o portal buscou a fonte, não quando a fonte publicou dado novo. */
   situacao: SituacaoFrescor;
+  /** Fim do período mais recente publicado pela fonte (AAAA-MM-DD); nulo nas fontes sem período. */
+  periodoMaisRecente: string | null;
+  granularidadePeriodo: GranularidadePeriodo | null;
+  /** Estimativa: compara o fim do período com a defasagem de publicação do catálogo (NÃO VERIFICADO). */
+  situacaoDado: SituacaoDado;
 }
 
 export interface FrescorFonteLinha {
@@ -32,16 +45,41 @@ export interface FrescorFonteLinha {
   situacao_monitoramento: string;
   ultima_coleta_em: Date | string | null;
   tolerancia_dias: number | null;
+  periodo_mais_recente_fim: string | null;
+  granularidade_periodo: GranularidadePeriodo | null;
+  defasagem_publicacao_dias: number | null;
 }
 
 const MILISSEGUNDOS_POR_DIA = 86_400_000;
 
-function diasDeCalendario(dataReferencia: string, ultimaColetaEm: Date) {
-  const diaDaColeta = ultimaColetaEm.toISOString().slice(0, 10);
+function diasEntreDatas(dataReferencia: string, dia: string) {
   return Math.round(
-    (Date.parse(dataReferencia) - Date.parse(diaDaColeta)) /
-      MILISSEGUNDOS_POR_DIA,
+    (Date.parse(dataReferencia) - Date.parse(dia)) / MILISSEGUNDOS_POR_DIA,
   );
+}
+
+function diasDeCalendario(dataReferencia: string, ultimaColetaEm: Date) {
+  return diasEntreDatas(
+    dataReferencia,
+    ultimaColetaEm.toISOString().slice(0, 10),
+  );
+}
+
+function situacaoDoDado(
+  linha: FrescorFonteLinha,
+  dataReferencia: string,
+): SituacaoDado {
+  if (
+    !linha.periodo_mais_recente_fim ||
+    Number.isNaN(Date.parse(linha.periodo_mais_recente_fim)) ||
+    linha.defasagem_publicacao_dias === null
+  ) {
+    return "periodo_nao_disponivel";
+  }
+  return diasEntreDatas(dataReferencia, linha.periodo_mais_recente_fim) >
+    linha.defasagem_publicacao_dias
+    ? "dado_defasado"
+    : "dado_recente";
 }
 
 function situacaoDaFonte(
@@ -88,6 +126,9 @@ export function montarFrescorFontes(
       frequenciaEsperada: linha.frequencia_esperada,
       ultimaColetaEm: ultimaColetaEm?.toISOString() ?? null,
       situacao: situacaoDaFonte(linha, ultimaColetaEm, dataReferencia),
+      periodoMaisRecente: linha.periodo_mais_recente_fim || null,
+      granularidadePeriodo: linha.granularidade_periodo || null,
+      situacaoDado: situacaoDoDado(linha, dataReferencia),
     };
   });
 }
@@ -110,6 +151,11 @@ export async function getFrescorFontes(
       "situacao_monitoramento",
       "ultima_coleta_em",
       "tolerancia_dias",
+      sql<string | null>`periodo_mais_recente_fim::text`.as(
+        "periodo_mais_recente_fim",
+      ),
+      "granularidade_periodo",
+      "defasagem_publicacao_dias",
     ])
     .where("portal_slug", "=", portalSlug)
     .orderBy("fonte")

@@ -65,7 +65,8 @@ def test_every_catalog_source_is_listed_and_unrecorded_is_never_presumed_fresh(c
 
     assert len(sources) == catalog_size
     assert sources["portal_municipal"] == ("diaria", "sem_registro", None, 0, None)
-    assert sources["siope"] == ("mensal", "nao_monitorado", None, 0, None)
+    assert sources["siope"] == ("mensal", "sem_registro", None, 0, None)
+    assert sources["emendas_estaduais"][1] == "nao_monitorado"
 
 
 def test_latest_collection_wins_and_portals_are_isolated(conn, coleta, portais):
@@ -157,3 +158,78 @@ def test_source_with_only_failures_has_no_record_and_keeps_failure(conn, coleta,
         "formato_mudou",
         0,
     )
+
+
+_PERIOD_SOURCES = {"siconfi_msc", "siconfi_rgf", "farmacia_sus"}
+
+
+def _published_period(conn, portal, fonte):
+    return conn.execute(
+        text(
+            "SELECT periodo_mais_recente_fim::text, granularidade_periodo, defasagem_publicacao_dias "
+            "FROM analytics.fct_coletas_por_fonte WHERE portal_slug = :p AND fonte = :f"
+        ),
+        {"p": portal, "f": fonte},
+    ).one()
+
+
+@pytest.mark.usefixtures("coleta")
+def test_published_period_matches_each_source_mart_and_stays_null_elsewhere(conn, portais):
+    expected_msc = {
+        portal: conn.execute(
+            text(
+                "SELECT (make_date(ano::int, mes_referencia::int, 1) + interval '1 month - 1 day')::date::text "
+                "FROM analytics.fct_saldo_caixa_siconfi WHERE portal_slug = :p "
+                "ORDER BY ano DESC, mes_referencia DESC LIMIT 1"
+            ),
+            {"p": portal},
+        ).scalar()
+        for portal in portais
+    }
+    expected_farmacia = {
+        portal: conn.execute(
+            text(
+                "SELECT max(data_posicao_mais_recente)::text FROM analytics.fct_farmacia_estoque WHERE portal_slug = :p"
+            ),
+            {"p": portal},
+        ).scalar()
+        for portal in portais
+    }
+
+    for portal in portais:
+        assert _published_period(conn, portal, "siconfi_msc")[:2] == (
+            expected_msc[portal],
+            "mes" if expected_msc[portal] else None,
+        )
+        assert _published_period(conn, portal, "farmacia_sus")[:2] == (
+            expected_farmacia[portal],
+            "dia" if expected_farmacia[portal] else None,
+        )
+        expected_rgf = conn.execute(
+            text(
+                "SELECT (make_date(ano, periodo * CASE periodicidade WHEN 'quadrimestral' THEN 4 ELSE 6 END, 1) "
+                "+ interval '1 month - 1 day')::date::text, "
+                "CASE periodicidade WHEN 'quadrimestral' THEN 'quadrimestre' ELSE 'semestre' END "
+                "FROM analytics.fct_pessoal_rgf_metricas WHERE portal_slug = :p "
+                "ORDER BY 1 DESC LIMIT 1"
+            ),
+            {"p": portal},
+        ).first()
+        assert _published_period(conn, portal, "siconfi_rgf")[:2] == (expected_rgf or (None, None))
+
+        others = conn.execute(
+            text(
+                "SELECT count(*) FROM analytics.fct_coletas_por_fonte WHERE portal_slug = :p "
+                "AND fonte <> ALL(:fontes) AND (periodo_mais_recente_fim IS NOT NULL "
+                "OR granularidade_periodo IS NOT NULL OR defasagem_publicacao_dias IS NOT NULL)"
+            ),
+            {"p": portal, "fontes": sorted(_PERIOD_SOURCES)},
+        ).scalar()
+        assert others == 0
+
+
+@pytest.mark.usefixtures("coleta")
+def test_publication_lag_comes_from_catalog_for_period_sources(conn, portais):
+    lags = {fonte: _published_period(conn, portais[0], fonte)[2] for fonte in _PERIOD_SOURCES}
+
+    assert lags == {"siconfi_msc": 60, "siconfi_rgf": 45, "farmacia_sus": 15}

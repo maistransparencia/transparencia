@@ -8,6 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from elt.extract.saude_datasus import FONTE_DA_TABELA
 from elt.load import run as load_run
 from elt.load.coletas import (
     MUNICIPAL_PORTAL_SOURCE,
@@ -79,7 +80,9 @@ def test_every_source_recorded_by_load_runner_is_monitored_in_catalog():
     catalog = load_source_catalog()
     added = set(re.findall(r'rows_loaded\["([a-z_]+)"\]', _RUN_PY.read_text(encoding="utf-8")))
 
-    recorded = added | {MUNICIPAL_PORTAL_SOURCE}
+    # siope e siops entram por chave dinamica em rows_loaded[source]; a saude grava a coleta no proprio extrator.
+    dynamic = {"siope", "siops"}
+    recorded = added | dynamic | set(FONTE_DA_TABELA.values()) | {MUNICIPAL_PORTAL_SOURCE}
     assert recorded <= catalog.keys()
     assert {fonte for fonte in recorded if catalog[fonte]["monitoramento"] != "monitorado"} == set()
     assert {fonte for fonte, row in catalog.items() if row["monitoramento"] == "monitorado"} == recorded
