@@ -111,7 +111,14 @@ export default async function ComoAtualizamosPage({
                         {fonte.dataVerificacao ?? "Sem registro"}
                       </dd>
                     </div>
+                    <div>
+                      <dt>Dados até</dt>
+                      <dd>{fonte.dadosAte ?? "Ainda não disponível"}</dd>
+                    </div>
                   </dl>
+                  {fonte.avisoDado && (
+                    <p className="caption">{fonte.avisoDado}</p>
+                  )}
                 </div>
               </li>
             ))}

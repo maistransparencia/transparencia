@@ -19,13 +19,13 @@ Fonte dos critérios: `_bmad-output/planning-artifacts/epics.md`, seção "Story
 
 **Problem:** a situação da 23.2 mede quando o portal buscou a fonte, não quando a fonte publicou: se o Tesouro parar de publicar, a coleta continua "em dia". O cidadão não sabe até quando vão os números ("Até quando vão estes números?").
 
-**Approach:** o mart `fct_coletas_por_fonte` passa a trazer, para `siconfi_msc`, `siconfi_rgf` e `farmacia_sus`, o período mais recente do próprio mart (isolado por `portal_slug`) e a granularidade; o catálogo ganha a defasagem esperada de publicação. `getFrescorFontes` devolve `periodoMaisRecente`, `granularidadePeriodo` e `situacaoDado` contra a data de referência passada como parâmetro.
+**Approach:** o mart `fct_coletas_por_fonte` passa a trazer, para `siconfi_msc`, `siconfi_rgf` e `farmacia_sus`, o período mais recente do próprio mart (isolado por `portal_slug`) e a granularidade; o catálogo ganha a defasagem esperada de publicação. `getFrescorFontes` devolve `periodoMaisRecente`, `granularidadePeriodo` e `situacaoDado` contra a data de referência passada como parâmetro. O selo "Fonte · verificado em" (23.4) passa a mostrar "dados até {período}" e, quando `dado_defasado`, um aviso que diz ser estimativa. (Renegociado pelo Julio em 2026-11-14: a tela entra nesta story.)
 
 ## Boundaries & Constraints
 
 **Always:** cálculo do período no dbt (Regra 14); defasagem no seed `seed_fontes_coleta`, marcada "NÃO VERIFICADO" no CSV/seeds.yml e tratada como estimativa; sem literal de tenant, UF ou ano; join com `portal_slug` no predicado; códigos em snake_case; fontes sem período ficam `periodo_nao_disponivel`, nunca presumidas; data de referência como parâmetro.
 
-**Never:** tela (o selo da 23.4 muda depois); período para outras fontes; confirmar prazos com as fontes; mudar `situacao` da 23.2 nem os campos existentes do DTO; rodar dbt em produção.
+**Never:** tela além do selo `SeloFonte` e das linhas de `como-atualizamos` (sem componente novo); período para outras fontes; confirmar prazos com as fontes; mudar `situacao` da 23.2 nem os campos existentes do DTO; rodar dbt em produção.
 
 ## I/O & Edge-Case Matrix
 
@@ -36,6 +36,9 @@ Fonte dos critérios: `_bmad-output/planning-artifacts/epics.md`, seção "Story
 | Defasado | passou da defasagem | `dado_defasado` | N/A |
 | Sem período | fonte fora das três, ou portal sem dados | `periodoMaisRecente: null`, `periodo_nao_disponivel` | N/A |
 | Sem defasagem no catálogo | período existe, defasagem nula | `periodo_nao_disponivel` (não presume) | N/A |
+| Selo com período | `periodoMaisRecente` e `granularidadePeriodo` presentes | selo mostra "dados até {período}" no texto da granularidade (mês, quadrimestre, semestre ou dia) | N/A |
+| Selo defasado | `situacaoDado: dado_defasado` e sem outro aviso | aviso "estimativa"; não duplica aviso de coleta | N/A |
+| Selo sem período | `periodo_nao_disponivel` | nada de "dados até" | N/A |
 | Referência inválida | `dataReferencia` não é data | lança erro, como na 23.2 | já existente |
 
 </frozen-after-approval>
@@ -50,7 +53,9 @@ Fonte dos critérios: `_bmad-output/planning-artifacts/epics.md`, seção "Story
 - `elt/tests/test_fct_coletas_por_fonte.py` -- fixtures `portais`/`coleta`; asserir período por fonte e isolamento entre portais.
 - `packages/db/src/queries/frescor-fontes.ts` -- `FrescorFonteLinha`, `montarFrescorFontes` (reusar `diasDeCalendario`), `getFrescorFontes` (select das novas colunas).
 - `packages/db/src/queries/__tests__/frescor-fontes.spec.ts` -- padrão de inserção em `fct_coletas_por_fonte`.
-- `apps/web/lib/frescor-fontes.ts` e specs de web com DTO tipado -- só ajustar fixtures se o typecheck exigir.
+- `apps/web/lib/frescor-fontes.ts` -- `buildSourceSeal`/`buildSourceRows` ganham `periodoMaisRecente` formatado (`formatPublishedPeriod`) e aviso de dado defasado.
+- `apps/web/components/selo-fonte.tsx` e `app/[portalSlug]/como-atualizamos/page.tsx` -- exibir "dados até".
+- `apps/web/public/llms.txt` e `llms-full.txt` -- Regra 12, se descreverem o selo.
 
 ## Tasks & Acceptance
 
@@ -61,9 +66,13 @@ Fonte dos critérios: `_bmad-output/planning-artifacts/epics.md`, seção "Story
 - [x] `frescor-fontes.ts` -- DTO ganha `periodoMaisRecente` (AAAA-MM-DD ou null), `granularidadePeriodo`, `situacaoDado` (`dado_recente | dado_defasado | periodo_nao_disponivel`)
 - [x] `frescor-fontes.spec.ts` -- matriz I/O inteira, incluindo a fronteira exata e dois portais
 - [x] fixtures de `apps/web` -- só se o typecheck quebrar
+- [x] `lib/frescor-fontes.ts` + spec -- formatar o período por granularidade e montar o aviso de defasado (estimativa)
+- [x] `selo-fonte.tsx` + spec; `como-atualizamos/page.tsx` + spec -- exibir "dados até"
+- [x] `llms.txt`/`llms-full.txt` -- se citarem o selo
 
 **Acceptance Criteria:**
 - Given `make dbt/seed` e `make dbt/run` no banco local, when o mart é consultado, then MSC, RGF e farmácia de um portal com dados trazem período e granularidade, e as demais fontes trazem nulo.
+- Given uma fonte com período, when o selo é renderizado, then mostra "dados até {período}"; quando `dado_defasado`, o aviso diz que é estimativa e não aparece como fato medido; sem período, nada é presumido.
 - Given as mudanças, when `make test`, `make check`, `make db/test/build`, `make test/ts` e `pnpm typecheck` rodam, then todos passam.
 
 ## Implementation Notes

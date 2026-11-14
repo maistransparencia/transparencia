@@ -11,6 +11,7 @@ const {
   frequencyInPlainLanguage,
   buildSourceRows,
   buildSourceSeal,
+  formatPublishedPeriod,
 } = await import("./frescor-fontes");
 
 const linha = (parcial: Partial<FrescorFonteDTO> = {}): FrescorFonteDTO => ({
@@ -22,6 +23,9 @@ const linha = (parcial: Partial<FrescorFonteDTO> = {}): FrescorFonteDTO => ({
   frequenciaEsperada: "diaria",
   ultimaColetaEm: "2026-11-12T08:00:00.000Z",
   situacao: "coleta_em_dia",
+  periodoMaisRecente: null,
+  granularidadePeriodo: null,
+  situacaoDado: "periodo_nao_disponivel",
   ...parcial,
 });
 
@@ -30,6 +34,7 @@ describe("buildSourceSeal", () => {
     expect(buildSourceSeal([linha()], "portal_municipal", "portal_x")).toEqual({
       descricao: "sistema contábil da Prefeitura",
       dataVerificacao: "12/11/2026",
+      dadosAte: null,
       aviso: null,
       href: "/portal_x/como-atualizamos",
     });
@@ -60,6 +65,72 @@ describe("buildSourceSeal", () => {
 
   it("fonte ausente no DTO: sem selo", () => {
     expect(buildSourceSeal([], "portal_municipal", "portal_x")).toBeNull();
+  });
+});
+
+describe("período publicado", () => {
+  it("escreve o período no tamanho que a fonte publica", () => {
+    expect(formatPublishedPeriod("2026-04-30", "mes")).toBe("abril de 2026");
+    expect(formatPublishedPeriod("2026-08-31", "quadrimestre")).toBe(
+      "2º quadrimestre de 2026",
+    );
+    expect(formatPublishedPeriod("2026-06-30", "semestre")).toBe(
+      "1º semestre de 2026",
+    );
+    expect(formatPublishedPeriod("2026-11-10", "dia")).toBe("10/11/2026");
+    expect(formatPublishedPeriod(null, null)).toBeNull();
+  });
+
+  it("selo mostra até quando vão os dados, sem aviso quando recente", () => {
+    const selo = buildSourceSeal(
+      [
+        linha({
+          periodoMaisRecente: "2026-09-30",
+          granularidadePeriodo: "mes",
+          situacaoDado: "dado_recente",
+        }),
+      ],
+      "portal_municipal",
+      "portal_x",
+    );
+    expect(selo).toMatchObject({ dadosAte: "setembro de 2026", aviso: null });
+  });
+
+  it("defasado: aviso diz que é estimativa", () => {
+    const selo = buildSourceSeal(
+      [
+        linha({
+          periodoMaisRecente: "2026-04-30",
+          granularidadePeriodo: "mes",
+          situacaoDado: "dado_defasado",
+        }),
+      ],
+      "portal_municipal",
+      "portal_x",
+    );
+    expect(selo?.aviso).toContain("vão até abril de 2026");
+    expect(selo?.aviso).toContain("estimativa");
+  });
+
+  it("aviso de coleta atrasada tem prioridade e não é duplicado", () => {
+    const selo = buildSourceSeal(
+      [
+        linha({
+          situacao: "coleta_atrasada",
+          periodoMaisRecente: "2026-04-30",
+          granularidadePeriodo: "mes",
+          situacaoDado: "dado_defasado",
+        }),
+      ],
+      "portal_municipal",
+      "portal_x",
+    );
+    expect(selo?.aviso).toMatch(/Não conseguimos verificar/);
+  });
+
+  it("sem período: nada de 'dados até' nem aviso presumido", () => {
+    const [linhaPagina] = buildSourceRows([linha()]);
+    expect(linhaPagina).toMatchObject({ dadosAte: null, avisoDado: null });
   });
 });
 

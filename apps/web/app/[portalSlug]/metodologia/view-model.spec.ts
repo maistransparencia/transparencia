@@ -11,6 +11,9 @@ const fonte = (parcial: Partial<FrescorFonteDTO>): FrescorFonteDTO => ({
   frequenciaEsperada: "diaria",
   ultimaColetaEm: "2026-11-12T08:00:00.000Z",
   situacao: "coleta_em_dia",
+  periodoMaisRecente: null,
+  granularidadePeriodo: null,
+  situacaoDado: "periodo_nao_disponivel",
   ...parcial,
 });
 

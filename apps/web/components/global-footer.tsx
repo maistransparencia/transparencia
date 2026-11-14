@@ -177,14 +177,14 @@ export function GlobalFooter({
                 <span>
                   {displayExtractionDate ? (
                     <>
-                      Dados extraídos em{" "}
+                      Última busca em{" "}
                       <time
                         dateTime={effectiveExtractionDate}
                         className="text-mute font-medium tabular-nums"
                       >
                         {displayExtractionDate}
                       </time>
-                      {officialLink && <> do {officialLink}</>}
+                      {officialLink && <> no {officialLink}</>}
                     </>
                   ) : (
                     <>Fonte: {officialLink}</>
