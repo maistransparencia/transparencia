@@ -1,0 +1,37 @@
+version: 2
+
+sources:
+  - name: raw_siconfi
+    schema: raw_siconfi
+    description: "Dados brutos do SICONFI/STN, de todos os portais, com portal_slug na chave"
+    tables:
+      - name: siconfi_msc_patrimonial
+        description: Matriz de Saldos Contábeis (MSC) Patrimonial - Classe 1 (Caixa, Bancos e Aplicações Financeiras) do SICONFI/STN. Um registro por portal e chave contábil da matriz
+        meta:
+          primary_key: [portal_slug, ano, mes_referencia, cod_ibge, conta_contabil, poder_orgao, fonte_recursos, ano_fonte_recursos, financeiro_permanente, tipo_valor, natureza_conta, entrada_msc]
+        columns:
+          - name: portal_slug
+          - name: ano
+          - name: mes_referencia
+            data_type: integer
+          - name: cod_ibge
+            data_type: integer
+          - name: tipo_matriz
+          - name: classe_conta
+            data_type: integer
+          - name: conta_contabil
+          - name: poder_orgao
+          - name: financeiro_permanente
+            data_type: integer
+          - name: ano_fonte_recursos
+            data_type: integer
+          - name: fonte_recursos
+          - name: valor
+            data_type: numeric
+          - name: natureza_conta
+          - name: tipo_valor
+          - name: entrada_msc
+            data_type: integer
+          - name: complemento_fonte
+          - name: data_referencia
+          - name: data_extracao

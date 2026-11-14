@@ -208,17 +208,17 @@ def seed_msc_patrimonial(conn):
         },
     ]
 
-    conn.execute(text("TRUNCATE TABLE raw_porciuncula_prefeitura.siconfi_msc_patrimonial CASCADE"))
+    conn.execute(text("TRUNCATE TABLE raw_siconfi.siconfi_msc_patrimonial CASCADE"))
     for r in rows:
         conn.execute(
             text(
                 """
-                INSERT INTO raw_porciuncula_prefeitura.siconfi_msc_patrimonial (
-                    ano, mes_referencia, cod_ibge, tipo_matriz, classe_conta, conta_contabil,
+                INSERT INTO raw_siconfi.siconfi_msc_patrimonial (
+                    portal_slug, ano, mes_referencia, cod_ibge, tipo_matriz, classe_conta, conta_contabil,
                     poder_orgao, financeiro_permanente, ano_fonte_recursos, fonte_recursos,
                     valor, natureza_conta, tipo_valor, entrada_msc, complemento_fonte, data_referencia, data_extracao
                 ) VALUES (
-                    :ano, :mes_referencia, :cod_ibge, :tipo_matriz, :classe_conta, :conta_contabil,
+                    'porciuncula_prefeitura', :ano, :mes_referencia, :cod_ibge, :tipo_matriz, :classe_conta, :conta_contabil,
                     :poder_orgao, :financeiro_permanente, :ano_fonte_recursos, :fonte_recursos,
                     :valor, :natureza_conta, :tipo_valor, :entrada_msc, :complemento_fonte, :data_referencia, :data_extracao
                 )
@@ -228,18 +228,18 @@ def seed_msc_patrimonial(conn):
         )
     conn.commit()
     yield
-    conn.execute(text("TRUNCATE TABLE raw_porciuncula_prefeitura.siconfi_msc_patrimonial CASCADE"))
+    conn.execute(text("TRUNCATE TABLE raw_siconfi.siconfi_msc_patrimonial CASCADE"))
     conn.commit()
 
 
 @pytest.mark.usefixtures("seed_msc_patrimonial")
-def test_stg_siconfi_msc_patrimonial_filtra_contas_corretamente(conn):
+def test_stg_siconfi__msc_patrimonial_filtra_contas_corretamente(conn):
     """Valida que o staging captura 114% e 1213% apenas para o órgão 10132 e descarta a Câmara (20231)."""
     rows = conn.execute(
         text(
             """
             SELECT conta_contabil, poder_orgao, saldo_valor
-            FROM analytics.stg_siconfi_msc_patrimonial
+            FROM analytics.stg_siconfi__msc_patrimonial
             WHERE ano = 2024
             ORDER BY poder_orgao, conta_contabil
             """
@@ -349,3 +349,37 @@ def test_fct_previdencia_patrimonio_historico_metricas_plurianual(conn):
     assert r2025[6] is False  # inconsistencia_declaracao_flag
     assert float(r2025[7]) == -15000000.0  # 60M - 75M
     assert float(r2025[8]) == -20.0  # (-15M / 75M) * 100
+
+
+def test_load_siconfi_msc_isola_portais_com_chaves_identicas(conn):
+    """Dois portais com as mesmas chaves convivem; recarregar um não altera o outro."""
+    from elt.load.siconfi import ensure_siconfi_table, load_siconfi_msc
+
+    linha = {
+        "ano": 2024,
+        "mes_referencia": 12,
+        "cod_ibge": 1234567,
+        "tipo_matriz": "MSCC",
+        "classe_conta": 1,
+        "conta_contabil": "111110200",
+        "poder_orgao": "10131",
+        "financeiro_permanente": 1,
+        "ano_fonte_recursos": 1,
+        "fonte_recursos": "1500",
+        "valor": 100.0,
+        "natureza_conta": "D",
+        "tipo_valor": "ending_balance",
+        "entrada_msc": 1,
+    }
+    ensure_siconfi_table(conn)
+    conn.execute(text("TRUNCATE TABLE raw_siconfi.siconfi_msc_patrimonial"))
+    load_siconfi_msc(conn, [linha], "portal_a")
+    load_siconfi_msc(conn, [{**linha, "valor": 200.0}], "portal_b")
+    load_siconfi_msc(conn, [{**linha, "valor": 300.0}], "portal_a")
+
+    valores = dict(
+        conn.execute(
+            text("SELECT portal_slug, valor FROM raw_siconfi.siconfi_msc_patrimonial ORDER BY portal_slug")
+        ).fetchall()
+    )
+    assert {slug: float(valor) for slug, valor in valores.items()} == {"portal_a": 300.0, "portal_b": 200.0}

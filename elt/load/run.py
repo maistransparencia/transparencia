@@ -282,16 +282,17 @@ def main() -> None:
         config = next((c for c in endpoint_configs if c.table == table), None)
         if not config:
             if table == "siconfi_msc_patrimonial":
+                from elt.load.siconfi import SCHEMA as SICONFI_SCHEMA
                 from elt.load.siconfi import ensure_siconfi_table, load_siconfi_msc
 
-                ensure_siconfi_table(engine, schema)
+                ensure_siconfi_table(engine)
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                count = load_siconfi_msc(engine, rows, schema=schema)
+                count = load_siconfi_msc(engine, rows, portal.slug)
                 logger.info(
                     "Loaded siconfi_msc_patrimonial (%s) → %d rows into %s.siconfi_msc_patrimonial",
                     json_file.name,
                     count,
-                    schema,
+                    SICONFI_SCHEMA,
                 )
                 rows_loaded["siconfi_msc"] += count
                 continue

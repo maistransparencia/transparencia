@@ -255,7 +255,7 @@ def extract_and_load_siconfi(
     total_loaded = 0
 
     if db is not None:
-        ensure_siconfi_table(db, portal.raw_schema)
+        ensure_siconfi_table(db)
 
     for year in years:
         logger.info("Extraindo SICONFI MSC Patrimonial para IBGE %s, ano %s...", portal.cod_ibge, year)
@@ -269,7 +269,7 @@ def extract_and_load_siconfi(
             logger.info("Arquivo raw salvo em %s", out_file)
 
         if db is not None and rows:
-            loaded = load_siconfi_msc(db, rows, schema=portal.raw_schema)
+            loaded = load_siconfi_msc(db, rows, portal.slug)
             logger.info("Inseridos/atualizados %d registros na tabela siconfi_msc_patrimonial", loaded)
             total_loaded += loaded
 
@@ -302,12 +302,12 @@ def main() -> None:
         if not run_dir.exists():
             raise ValueError(f"Diretório {run_dir} não existe.")
         engine = get_engine()
-        ensure_siconfi_table(engine, portal.raw_schema)
+        ensure_siconfi_table(engine)
         total = 0
         for json_file in sorted(run_dir.rglob("*.json")):
             if json_file.parent.name == "siconfi_msc_patrimonial":
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                loaded = load_siconfi_msc(engine, rows, schema=portal.raw_schema)
+                loaded = load_siconfi_msc(engine, rows, portal.slug)
                 logger.info("Carregados %d registros de %s", loaded, json_file)
                 total += loaded
         logger.info("Carga concluída. Total: %d registros.", total)

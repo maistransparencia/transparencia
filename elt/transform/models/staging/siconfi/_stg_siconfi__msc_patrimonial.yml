@@ -1,9 +1,14 @@
 version: 2
 
 models:
-  - name: stg_siconfi_msc_patrimonial
+  - name: stg_siconfi__msc_patrimonial
     description: "Staging da Matriz de Saldos Contábeis (MSC) Patrimonial do SICONFI (Classe 1 - Disponível 111% geral e Aplicações/Investimentos 114% para Previdência), excluindo o Poder Legislativo (Câmara Municipal)"
     columns:
+      - name: portal_slug
+        description: "Identificador do portal (município) dono do registro"
+        data_type: text
+        tests:
+          - not_null
       - name: ano
         description: "Exercício contábil de referência da matriz"
         data_type: integer
@@ -15,7 +20,7 @@ models:
         tests:
           - not_null
       - name: cod_ibge
-        description: "Código IBGE de 7 dígitos do ente municipal (3304102 para Porciúncula)"
+        description: "Código IBGE de 7 dígitos do ente municipal"
         data_type: integer
         tests:
           - not_null

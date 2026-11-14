@@ -1,9 +1,13 @@
+-- Staging: MSC Patrimonial do SICONFI (classe 1: disponível e investimentos do RPPS).
+-- Fonte única de todos os portais (raw_siconfi, portal_slug na chave); o saldo final mensal é filtrado aqui.
+
 with source as (
-    select * from {{ source('natividade_prefeitura', 'siconfi_msc_patrimonial') }}
+    select * from {{ source('raw_siconfi', 'siconfi_msc_patrimonial') }}
 ),
 
 filtered_and_cast as (
     select
+        portal_slug,
         ano::int as ano,
         mes_referencia::int as mes_referencia,
         cod_ibge::int as cod_ibge,
@@ -31,7 +35,6 @@ filtered_and_cast as (
         and (financeiro_permanente::int = 1 or ((conta_contabil like '114%' or conta_contabil like '1213%') and trim(poder_orgao) = '10132')) -- contas financeiras em geral e totalidade dos investimentos do RPPS
         and tipo_valor = 'ending_balance' -- somente o saldo final do mês
         and trim(poder_orgao) != '20231' -- camara municipal esta fora do escopo
-        and cod_ibge::int = 3303104 -- Natividade
 )
 
 select * from filtered_and_cast

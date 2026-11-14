@@ -4256,7 +4256,7 @@ So that adding municipalities does not add tables or schemas, and the Siconfi ma
 
 **Fora do escopo:** RGF (`siconfi_rgf`, Story 26.5); tabelas do portal municipal (26.3); remoção dos schemas por município (26.4); qualquer mudança no que o cidadão vê.
 
-**Decisão em aberto para o Julio:** mover o RGF junto nesta story (mesmo loader, mesmos arquivos) ou mantê-lo na 26.5, como no esboço. Recomendação: manter separado, para a paridade desta story cobrir uma tabela só.
+**Decisão do Julio (2026-11-14):** o RGF (`siconfi_rgf`) fica na Story 26.5, não entra nesta story. Assim a paridade da 26.1 cobre uma tabela só.
 
 **Dependências:** Story 24.9 (concluída, é o modelo). Pode rodar a qualquer momento; não depende da 26.2.
 
