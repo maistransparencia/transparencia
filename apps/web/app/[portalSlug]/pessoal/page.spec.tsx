@@ -147,7 +147,7 @@ describe("PessoalPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("promove o gasto com pessoal (LRF) ao lado do total pago, com barra do teto e do limite prudencial", async () => {
+  it("promove o gasto com pessoal (LRF) ao lado do total pago, com barra em faixas de alerta e prudencial", async () => {
     loadPessoalDataMock.mockResolvedValue(
       makeRaw({
         folhaData: [
@@ -172,7 +172,8 @@ describe("PessoalPage", () => {
       "47,16%",
     );
     expect(destaque).toHaveTextContent("Teto: 54%");
-    expect(destaque).toHaveTextContent("Limite prudencial: 51,3%");
+    expect(destaque).toHaveTextContent("Alerta: a partir de 48,6%");
+    expect(destaque).toHaveTextContent("Prudencial: a partir de 51,3%");
     expect(destaque).toHaveTextContent("3º quadrimestre de 2024");
     expect(destaque).toHaveTextContent("Dentro dos limites da lei.");
     expect(screen.getByTestId("pessoal-lrf-detalhes")).toHaveTextContent(

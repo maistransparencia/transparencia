@@ -233,8 +233,12 @@ export function buildPessoalViewModel(raw: PessoalRawData) {
       : {
           teto: limites.maximo,
           prudencial: limites.prudencial,
+          alerta: limites.alerta,
+          // Escala em dezenas acima do teto, para as faixas não ficarem espremidas nem cortadas.
+          escalaMaxima: Math.ceil(limites.maximo / 10) * 10,
           tetoTexto: fmtLimite(limites.maximo),
           prudencialTexto: fmtLimite(limites.prudencial),
+          alertaTexto: fmtLimite(limites.alerta),
           // Marcadores só no número oficial do RGF; a estimativa não é comparável com o limite.
           exibirMarcadores: true,
         };

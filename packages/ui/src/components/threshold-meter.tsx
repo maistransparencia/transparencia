@@ -9,6 +9,12 @@ const FILL_CLASS: Record<ThresholdMeterTone, string> = {
   danger: "bg-danger-fill",
 };
 
+export interface ThresholdMeterBand {
+  /** Onde a faixa começa, na mesma escala do valor; ela vai até o início da próxima (ou ao fim da escala). */
+  from: number;
+  tone: ThresholdMeterTone;
+}
+
 export interface ThresholdMeterProps {
   /** Valor medido; `null` não desenha a barra. */
   value: number | null;
@@ -18,6 +24,11 @@ export interface ThresholdMeterProps {
   threshold?: number;
   /** Segundo marcador, de outra cor, para uma referência a mais (ex.: a média do estado). */
   secondaryThreshold?: number;
+  /**
+   * Faixas coloridas no trilho (em ordem crescente de `from`). Com faixas, o valor
+   * vira um marcador sobre elas, em vez de preencher a barra.
+   */
+  bands?: ThresholdMeterBand[];
   /** Nome acessível da barra. */
   label: string;
   /** Leitura do valor por texto (ex.: "27,4% aplicado; mínimo de 25%"). */
@@ -71,6 +82,7 @@ export function ThresholdMeter({
   max = 100,
   threshold,
   secondaryThreshold,
+  bands,
   label,
   valueText,
   tone = "brand",
@@ -90,11 +102,34 @@ export function ThresholdMeter({
     >
       {/* Marcadores ancorados no trilho: o contêiner pode ser esticado pelo layout (grid) */}
       <span className="bg-track relative block h-3.5 w-full">
-        <span
-          data-testid="threshold-meter-fill"
-          className={cn("block h-full", FILL_CLASS[tone])}
-          style={{ width: `${emPercentual(value, max)}%` }}
-        />
+        {bands ? (
+          <>
+            <span className="flex h-full w-full overflow-hidden">
+              {bands.map((band, index) => {
+                const start = emPercentual(band.from, max);
+                const end = emPercentual(bands[index + 1]?.from ?? max, max);
+                return (
+                  <span
+                    key={band.from}
+                    data-testid="threshold-meter-band"
+                    className={cn("block h-full", FILL_CLASS[band.tone])}
+                    style={{ width: `${end - start}%` }}
+                  />
+                );
+              })}
+            </span>
+            <MeterMarker
+              position={emPercentual(value, max)}
+              testId="threshold-meter-value-marker"
+            />
+          </>
+        ) : (
+          <span
+            data-testid="threshold-meter-fill"
+            className={cn("block h-full", FILL_CLASS[tone])}
+            style={{ width: `${emPercentual(value, max)}%` }}
+          />
+        )}
         {secondaryThreshold !== undefined && (
           <MeterMarker
             position={emPercentual(secondaryThreshold, max)}

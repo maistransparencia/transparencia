@@ -188,27 +188,29 @@ export function SaldoCaixaEvolucaoMensalChart({
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <table className="sr-only">
-        <caption>Saldo em caixa mês a mês</caption>
-        <thead>
-          <tr>
-            <th scope="col">Mês</th>
-            <th scope="col">Recursos livres</th>
-            <th scope="col">Recursos vinculados</th>
-            <th scope="col">Total em caixa</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pontos.map((ponto) => (
-            <tr key={ponto.mesReferencia}>
-              <th scope="row">{ponto.mesNome}</th>
-              <td>{fmtCurrency(ponto.saldoRecursosLivres)}</td>
-              <td>{fmtCurrency(ponto.saldoRecursosVinculados)}</td>
-              <td>{fmtCurrency(ponto.saldoCaixaBancos)}</td>
+      <div className="sr-only">
+        <table>
+          <caption>Saldo em caixa mês a mês</caption>
+          <thead>
+            <tr>
+              <th scope="col">Mês</th>
+              <th scope="col">Recursos livres</th>
+              <th scope="col">Recursos vinculados</th>
+              <th scope="col">Total em caixa</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pontos.map((ponto) => (
+              <tr key={ponto.mesReferencia}>
+                <th scope="row">{ponto.mesNome}</th>
+                <td>{fmtCurrency(ponto.saldoRecursosLivres)}</td>
+                <td>{fmtCurrency(ponto.saldoRecursosVinculados)}</td>
+                <td>{fmtCurrency(ponto.saldoCaixaBancos)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
