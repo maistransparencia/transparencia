@@ -2,7 +2,7 @@
 {{ config(materialized='view') }}
 
 with despesas_base as (
-    select * from {{ ref('int_despesas_consolidadas') }}
+    select * from {{ ref('int_despesas') }}
 ),
 
 despesas as (

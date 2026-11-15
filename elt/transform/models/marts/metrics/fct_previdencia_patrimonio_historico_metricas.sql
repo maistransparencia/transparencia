@@ -1,13 +1,14 @@
 with msc_base as (
     select
-        p.portal_slug,
+        s.portal_slug,
         s.ano,
         s.mes_referencia,
         s.conta_contabil,
         s.saldo_valor
-    from {{ ref('stg_siconfi_msc_patrimonial') }} s
+    from {{ ref('stg_siconfi__msc_patrimonial') }} s
     inner join {{ ref('dim_portais') }} p
-        on p.cod_ibge = s.cod_ibge
+        on p.portal_slug = s.portal_slug
+        and p.cod_ibge = s.cod_ibge
     where s.poder_orgao = '10132'
 ),
 

@@ -7,7 +7,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import cast
 
-from elt.core.config import PortalConfig
+from elt.core.config import PortalConfig, resolve_key_cols, resolve_raw_schema, tag_rows_with_portal
 from elt.core.db import create_tables, get_engine, set_metadata, upsert
 from elt.extract.base import EndpointConfig
 
@@ -244,7 +244,7 @@ class DatabaseLoader:
         engine = get_engine()
         create_tables(engine)
 
-        portal_slug = p.name.split("_")[0] if "_" in p.name else _portal.slug
+        portal_slug = _portal.slug
         total_inserted = 0
         for cfg in ENDPOINT_CONFIGS:
             file_path = p / f"{cfg.table}.json"
@@ -261,7 +261,13 @@ class DatabaseLoader:
             if not rows:
                 continue
 
-            n = upsert(engine, cfg.table, rows, cfg.key_cols)
+            n = upsert(
+                engine,
+                cfg.table,
+                tag_rows_with_portal(_portal, rows),
+                resolve_key_cols(cfg.key_cols),
+                schema=resolve_raw_schema(_portal),
+            )
             logger.info("Loaded %d rows into %s", n, cfg.table)
             total_inserted += n
 
@@ -351,7 +357,13 @@ class PipelineRunner:
                             else str(config.table)
                         )
 
-                        count = upsert(engine, target_table_for_upsert, normalised, config.key_cols)
+                        count = upsert(
+                            engine,
+                            target_table_for_upsert,
+                            tag_rows_with_portal(_portal, normalised),
+                            resolve_key_cols(config.key_cols),
+                            schema=resolve_raw_schema(_portal),
+                        )
                         logger.info(
                             "[%d/%d] %s / %s / %d → %d rows",
                             done + 1,

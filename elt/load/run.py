@@ -7,6 +7,7 @@ import json
 import logging
 import re
 import sys
+import time
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -16,7 +17,7 @@ from dotenv import load_dotenv
 from sqlalchemy import MetaData, Table, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from elt.core.config import PortalConfig
+from elt.core.config import PortalConfig, resolve_key_cols, resolve_raw_schema, tag_rows_with_portal
 from elt.core.db import get_engine
 from elt.extract.base import EndpointConfig
 from elt.extract.errors import SUSPICIOUS_EMPTY, UNEXPECTED_ERROR
@@ -27,6 +28,7 @@ from elt.load.coletas import (
     record_collections,
     record_failures,
 )
+from elt.load.scale_monitor import log_scale_report
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -223,10 +225,11 @@ def main() -> None:
     parser.add_argument("--dir", help="Raw run directory path (default: latest under data/raw_runs/)")
     args = parser.parse_args()
 
+    started_at = time.monotonic()
     portal = PortalConfig.load(args.portal)
     mod = importlib.import_module(f"elt.extract.{portal.provider}.{portal.slug}.api_endpoints")
     endpoint_configs = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
-    schema = portal.raw_schema
+    schema = resolve_raw_schema(portal)
 
     run_dir_path = args.dir
     if not run_dir_path:
@@ -282,26 +285,30 @@ def main() -> None:
         config = next((c for c in endpoint_configs if c.table == table), None)
         if not config:
             if table == "siconfi_msc_patrimonial":
+                from elt.load.siconfi import SCHEMA as SICONFI_SCHEMA
                 from elt.load.siconfi import ensure_siconfi_table, load_siconfi_msc
 
-                ensure_siconfi_table(engine, schema)
+                ensure_siconfi_table(engine)
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                count = load_siconfi_msc(engine, rows, schema=schema)
+                count = load_siconfi_msc(engine, rows, portal.slug)
                 logger.info(
                     "Loaded siconfi_msc_patrimonial (%s) → %d rows into %s.siconfi_msc_patrimonial",
                     json_file.name,
                     count,
-                    schema,
+                    SICONFI_SCHEMA,
                 )
                 rows_loaded["siconfi_msc"] += count
                 continue
             if table == "siconfi_rgf":
+                from elt.load.siconfi import SCHEMA as SICONFI_SCHEMA
                 from elt.load.siconfi import ensure_siconfi_rgf_table, load_siconfi_rgf
 
-                ensure_siconfi_rgf_table(engine, schema)
+                ensure_siconfi_rgf_table(engine)
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                count = load_siconfi_rgf(engine, rows, schema=schema)
-                logger.info("Loaded siconfi_rgf (%s) → %d rows into %s.siconfi_rgf", json_file.name, count, schema)
+                count = load_siconfi_rgf(engine, rows, portal.slug)
+                logger.info(
+                    "Loaded siconfi_rgf (%s) → %d rows into %s.siconfi_rgf", json_file.name, count, SICONFI_SCHEMA
+                )
                 rows_loaded["siconfi_rgf"] += count
                 continue
             if table in ("siope_indicadores", "siops_indicadores"):
@@ -413,14 +420,23 @@ def main() -> None:
 
         rows = json.loads(json_file.read_text(encoding="utf-8"))
         normalised = _normalize(rows, year, empresa_id, config.post_process)
-        count = _upsert_raw(engine, schema, target_table, normalised, key_cols)
-        logger.info("Loaded %s / %s / %d → %d rows into %s.%s", table, empresa_id, year, count, schema, target_table)
+        target_schema = resolve_raw_schema(portal)
+        count = _upsert_raw(
+            engine,
+            target_schema,
+            target_table,
+            tag_rows_with_portal(portal, normalised),
+            resolve_key_cols(key_cols),
+        )
+        logger.info(
+            "Loaded %s / %s / %d → %d rows into %s.%s", table, empresa_id, year, count, target_schema, target_table
+        )
         rows_loaded[MUNICIPAL_PORTAL_SOURCE] += count
 
     if extraction_date:
         _upsert_raw(
             engine,
-            schema,
+            resolve_raw_schema(portal),
             "metadata",
             [{"portal_slug": portal.slug, "key": "last_extracted_at", "value": extraction_date}],
             ["portal_slug", "key"],
@@ -436,6 +452,7 @@ def main() -> None:
     else:
         logger.warning("Run directory %s has no timestamp; collections not recorded", run_dir.name)
 
+    log_scale_report(engine, f"raw_{portal.provider}", time.monotonic() - started_at)
     logger.info("Load complete → schema: %s", schema)
     if failures:
         logger.error("Load finished with failed source(s): %s", sorted(failures))

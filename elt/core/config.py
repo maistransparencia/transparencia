@@ -6,6 +6,28 @@ from typing import Any
 
 import yaml
 
+# Limiares de escala do raw_<fonte> (um schema por provedor, portal_slug na chave): ao ultrapassar qualquer um,
+# o log da carga mensal destaca e aponta docs/raw-por-fonte-escala.md. Calibrar com 5 a 10 municípios.
+SCALE_MAX_MUNICIPALITIES_PER_PROVIDER = 20
+SCALE_MAX_ROWS_PER_TABLE = 5_000_000
+SCALE_MAX_LOAD_MINUTES = 10
+SCALE_MAX_COLUMNS_PER_TABLE = 150
+SCALE_DESIGN_NOTE = "docs/raw-por-fonte-escala.md"
+
+
+def resolve_raw_schema(portal: Any) -> str:
+    """Schema raw único da fonte: raw_<provider> (o município vai em portal_slug na chave)."""
+    return f"raw_{portal.provider}"
+
+
+def resolve_key_cols(key_cols: list[str]) -> list[str]:
+    """Chave da tabela raw: portal_slug sempre à frente."""
+    return list(key_cols) if "portal_slug" in key_cols else ["portal_slug", *key_cols]
+
+
+def tag_rows_with_portal(portal: Any, rows: list[dict]) -> list[dict]:
+    return [{**row, "portal_slug": portal.slug} for row in rows]
+
 
 @dataclass
 class PortalConfig:
@@ -23,10 +45,6 @@ class PortalConfig:
     provider: str = "fiorilli"
     rpps: dict[str, Any] | None = None
     entidades_alternativas: dict[str, list[str]] | None = None
-
-    @property
-    def raw_schema(self) -> str:
-        return f"raw_{self.slug}"
 
     @property
     def orgaos_csv_path(self) -> Path:

@@ -5,6 +5,16 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Fiorilli em schema por fonte: tabelas restantes)
+* **15 tabelas do portal Fiorilli em `raw_fiorilli` com `portal_slug` na chave:** despesas (gerais, restos a pagar, por órgão, por unidade e por fornecedor), receitas (orçamentária, União, Estado e extra-orçamentária), compras (licitações e contratos), pessoal e diárias e repasses (transferências e emendas) deixam de existir por município e são recarregadas por portal. Um staging só por tabela (`stg_fiorilli__*`) substitui os staging por município; as consolidações `int_*` e os marts leem esse staging, sem literal de município, e os números dos marts não mudam. Script de migração com conferência de contagem e hash por portal e ano em `elt/scripts/migrate_fiorilli_tabelas_para_raw_fiorilli.sql`.
+* **Código de entidade da folha por seed:** o remapeamento que cada município fazia no staging de pessoal passou para o seed `seed_fiorilli_pessoal_empresa`, por `portal_slug`, sem alterar o `empresa_id` de hoje.
+
+### 🌟 Destaques da Versão (RGF do Siconfi em schema por fonte)
+* **RGF em `raw_siconfi` com `portal_slug` na chave:** a despesa com pessoal (RGF Anexo 01) passa a ter uma tabela única da fonte, recarregada por portal, e um staging só (`stg_siconfi__rgf`) no lugar dos staging por município; `fct_pessoal_rgf_metricas` junta por `portal_slug` e os números não mudam. Script de migração em `elt/scripts/migrate_siconfi_rgf_para_raw_siconfi.sql`.
+
+### 🌟 Destaques da Versão (MSC do Siconfi em schema por fonte)
+* **MSC Patrimonial em `raw_siconfi` com `portal_slug` na chave:** a tabela deixa de existir por município e passa a ser única da fonte, recarregada por portal. Um staging só (`stg_siconfi__msc_patrimonial`) substitui os staging por portal e o consolidado; os números dos marts não mudam. Script de migração em `elt/scripts/migrate_siconfi_msc_para_raw_siconfi.sql`.
+
 ### 🌟 Destaques da Versão (Ingestão agendada por grupos de cadência)
 * **Saúde no grupo mensal e IDEB com os três seeds:** o workflow mensal ganha um job de saúde (DATASUS) por UF, com as 4 últimas competências fechadas e coleta registrada por portal (`saude_rede` e `saude_producao`). A verificação do IDEB passa a atualizar a média do Brasil e a validar os três seeds; o seed de estados segue manual. Novo `docs/checklist-de-release.md` (rodar `dbt seed` antes do deploy).
 * **Coleta em três grupos, cada um com workflow e cron próprios:** diária (`portal_municipal` e `farmacia_sus`, dias úteis às 23:00 UTC), semanal (`pncp` e `obrasgov`, sábados) e mensal (`siconfi_msc`, `siconfi_rgf`, `siope` e `siops`, dia 3). O `ingestion-pipeline.yml` foi substituído pelo reutilizável `ingestion-group.yml` e pelos chamadores `ingestion-daily.yml`, `ingestion-weekly.yml` e `ingestion-monthly.yml`. A definição dos grupos fica em `elt/core/cadence.py` e testes a conferem contra o seed de fontes e os YAMLs. Nova chave `--only portal_municipal` em `extract.run`.

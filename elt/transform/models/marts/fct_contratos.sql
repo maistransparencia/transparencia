@@ -22,7 +22,7 @@ with contratos as (
         data_inicio,
         vencimento_atual,
         saldo_a_empenhar
-    from {{ ref('int_contratos_consolidados') }}
+    from {{ ref('stg_fiorilli__contratos') }}
 )
 
 select

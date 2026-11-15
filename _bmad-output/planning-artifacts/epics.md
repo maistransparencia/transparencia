@@ -4229,11 +4229,79 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 - **(feito na Epic 24, Story 24.9)** O SIOPE já migra para `raw_siope` lá, para a branch da Epic 24 não depender desta epic. Serve de modelo para as demais.
 - **26.1 Siconfi (MSC Patrimonial) em schema por fonte.** Mover `siconfi_msc_patrimonial` para `raw_siconfi` com `portal_slug` na chave e trocar o staging por um modelo único da fonte, repetindo o método da 24.9 com teste de paridade.
 - **26.2 Inventário e plano de migração do legado.** Listar as 22 tabelas por portal, agrupar por fonte, definir ordem, paridade e reversão.
-- **26.3 Migração das tabelas do portal municipal (Fiorilli) para schema por fonte**, uma tabela ou grupo por story.
-- **26.4 Remoção dos schemas por município e dos modelos de consolidação.**
+- **26.3 Fiorilli em `raw_fiorilli`: base do loader e tabelas sem leitor dbt.** Cria o mapa de tabelas migradas e o `portal_slug` na carga; move `despesas_extra_orcamentaria`, `despesas_por_exigibilidade`, `emendas_impositivas`, `empresas`, `receita_detalhes` e `metadata` (e tira os tenants fixos de `dim_metadata`).
+- **26.4 Remoção dos schemas por município e dos modelos de consolidação.** Executa por último (depois de 26.3, 26.5 e 26.6). Inclui o monitoramento de escala do `raw_<fonte>`: o número de schemas passa a crescer com os provedores, mas o volume de cada tabela cresce com os municípios, então a revisão do desenho tem de acontecer por gatilho e não por memória.
+  - Nota curta em `docs/` (ou no `epic-26-context.md`) com o desenho (um schema por provedor, `portal_slug` na PK), os limiares e o porquê.
+  - Limiares num único lugar do `elt/` (valores iniciais, a calibrar com 5 a 10 municípios): mais de 20 municípios no mesmo provedor; maior tabela raw acima de 5 milhões de linhas; recarga de um município acima de 10 minutos; tabela raw com mais de 150 colunas. Cada um aponta para a revisão de índices, particionamento por `portal_slug` ou do `_ensure_table`.
+  - Métricas no log da carga mensal (`ingestion-monthly.yml`): linhas e tamanho por tabela (`pg_stat_user_tables`, `pg_total_relation_size`), municípios distintos por fonte, destaque de limiar ultrapassado. Duração por município: `raw_coletas.registro_coletas` guarda só `coletado_em`, então exige registrar início e fim da carga (pequeno acréscimo de escopo).
+  - Teste em `elt/tests/` no padrão de `test_multitenant_integrity.py`: falha se tabela raw migrada tiver mais de 150 colunas ou PK sem `portal_slug`, apontando para a nota (só estrutura é verificável no banco de teste vazio).
+  - Fora do escopo: issue automática por limiar, particionamento e índices extras; reavaliar quando o primeiro limiar de volume for atingido ou passar de 5 municípios no mesmo provedor.
+- **26.6 Fiorilli em `raw_fiorilli`: tabelas restantes, numa story só.** Junta as antigas 26.6 a 26.9 para pagar spec, revisão, fixture e testes uma vez. Tabelas: diárias, transferências, emendas cadastradas, pessoal, licitações, contratos, despesas por fornecedor, despesas gerais, restos a pagar, por órgão, por unidade e receitas (orçamentária, União, Estado e extra-orçamentária). Um commit por grupo, paridade por tabela. Receitas: carga manual por CSV em produção; conferir a deduplicação por fonte STN, com paridade própria.
 - **26.5 Migração do RGF (`siconfi_rgf`, criado na Story TD.2) para `raw_siconfi`.** A TD.2 grava a tabela no schema por município, seguindo o padrão atual, para não depender desta epic. Mover junto com `siconfi_msc_patrimonial` (26.1), com `portal_slug` na chave e teste de paridade.
 
+**Ordem de execução (Story 26.2):** 26.3, 26.6, 26.5, 26.4. O 26.4 e o 26.5 mantêm o número por já serem citados em outros documentos. Todas as tabelas Fiorilli vão para `raw_fiorilli` (nome vindo de `PortalConfig.provider`); a 26.3 cria um mapa temporário de tabelas migradas no loader, que a 26.4 remove.
+
+**Checklist de produção (só no fechamento da epic, com autorização explícita do Julio, Regra 15):**
+1. Backup: `pg_dump -Fc -n 'raw*'`.
+2. Publicar o código de todas as stories (o job mensal passa a gravar em `raw_siconfi` e `raw_fiorilli`; linhas novas gravadas antes da migração são preservadas pelos scripts).
+3. Rodar, nesta ordem, `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f` em `elt/scripts/migrate_siconfi_msc_para_raw_siconfi.sql` e nos scripts `migrate_*_para_raw_fiorilli.sql` das stories 26.3, 26.6 a 26.9 (idempotentes; abortam se faltar linha; não apagam as tabelas antigas).
+4. `dbt run --full-refresh` nos staging novos e descendentes.
+5. Conferir contagem por `portal_slug` e as saídas dos marts contra o estado anterior.
+6. Só depois, executar a remoção da 26.4 (schemas `raw_<portal>` e modelos antigos). Reversão antes da 26.4: voltar o código e rodar o dbt; as tabelas antigas continuam intactas.
+7. CSVs de receitas (carga manual): o código novo precisa estar em produção antes do próximo CSV.
+
 **Dependências:** a 26.1 pode rodar a qualquer momento, de preferência depois da 24.9; o restante depois da 26.2.
+
+### Story 26.1: Siconfi (MSC Patrimonial) em Schema por Fonte com `portal_slug` na Chave
+
+As a maintainer,  
+I want the Siconfi MSC Patrimonial raw data in one source schema shared by all portals,  
+So that adding municipalities does not add tables or schemas, and the Siconfi marts read one source without consolidation models.
+
+**Origem:** Epic 26, repetindo o método da Story 24.9 (SIOPE). Estado verificado no banco local em 2026-11-14: `siconfi_msc_patrimonial` existe em `raw_porciuncula_prefeitura` (14.128 linhas) e em `raw_natividade_prefeitura` (23.888 linhas). Hoje a chave primária não tem `portal_slug` (usa `cod_ibge`, `conta_contabil` etc.) e a carga (`elt/load/siconfi.py`) grava em `portal.raw_schema`.
+
+**Acceptance Criteria:**
+- **Given** a tabela `siconfi_msc_patrimonial` gravada em `raw_<portal_slug>` por `elt/load/siconfi.py`
+- **When** a story termina
+- **Then** a tabela fica em `raw_siconfi` com `portal_slug` na chave primária, e a carga de um portal grava e recarrega só as linhas daquele `portal_slug`, sem tocar nas dos outros.
+- **And** os staging por portal (`stg_<portal>__siconfi_msc_patrimonial`, `stg_siconfi_msc_patrimonial`) e o intermediário `int_siconfi_msc_patrimonial_consolidada` são substituídos por um único modelo de staging da fonte, sem literal de tenant (Regra 23). Os marts consumidores (`fct_saldo_caixa_siconfi`, `fct_previdencia_patrimonio_historico_metricas`) mantêm o mesmo grão e as mesmas colunas, e todo join e `GROUP BY` carrega `portal_slug`.
+- **And** a migração dos dados existentes no banco local do Docker é feita por script reproduzível que deriva o `portal_slug` do nome do schema de origem (sem literais), com **paridade conferida antes e depois**: mesma contagem de linhas, mesmos totais de valor por portal, ano e mês, e as mesmas saídas dos dois marts consumidores. Backup do banco local antes (`make db/backup`).
+- **And** há teste de isolamento: dois portais com as mesmas chaves de conta e período não se sobrescrevem na carga, e recarregar um portal não apaga o outro.
+- **And** o catálogo de coletas (`elt/core/cadence.py`, `fct_coletas_por_fonte`, registro de coletas), o workflow `.github/workflows/ingestion-monthly.yml` e o alvo `elt/siconfi` do `Makefile` continuam funcionando com o novo schema; o portal continua sendo parâmetro de execução.
+- **And** a fixture `packages/db/tests/fixtures/schema.sql.gz` é regerada (`make db/fixture/dump`) e `make test`, `make check`, `pnpm test` e `pnpm typecheck` passam (Regra 21).
+- **And** nenhuma execução em produção sem autorização explícita (Regra 15). A migração em produção, se necessária, fica descrita passo a passo (ordem, `full-refresh`, reversão) para o Julio decidir.
+
+**Fora do escopo:** RGF (`siconfi_rgf`, Story 26.5); tabelas do portal municipal (26.3); remoção dos schemas por município (26.4); qualquer mudança no que o cidadão vê.
+
+**Decisão do Julio (2026-11-14):** o RGF (`siconfi_rgf`) fica na Story 26.5, não entra nesta story. Assim a paridade da 26.1 cobre uma tabela só.
+
+**Dependências:** Story 24.9 (concluída, é o modelo). Pode rodar a qualquer momento; não depende da 26.2.
+
+---
+
+### Story 26.2: Inventário e Plano de Migração do Legado Raw por Município
+
+As a maintainer,  
+I want a verified inventory and an ordered migration plan for the legacy per-municipality raw tables,  
+So that the migration of the remaining tables (Story 26.3 onward) is executed in small, reversible steps with proven parity.
+
+**Origem:** Epic 26. Entrega **documento, sem mudar dado nem código de produção**. Estado verificado no banco local em 2026-11-14: `raw_porciuncula_prefeitura` e `raw_natividade_prefeitura` têm 22 e 23 tabelas, com o mesmo conjunto (contratos, `despesas_*`, diarias, `emendas_*`, empresas, licitacoes, metadata, pessoal, `receita_*`, transferencias), mais `siconfi_msc_patrimonial` e `siconfi_rgf` (que saem pelas Stories 26.1 e 26.5). Já seguem o padrão por fonte: `raw_siope`, `raw_siops`, `raw_farmacia_sus`, `raw_pncp`, `raw_obrasgov`, `raw_saude_rede`, `raw_inep_censo` e `raw_emendas_*`.
+
+**Acceptance Criteria:**
+- **Given** os schemas `raw_<portal_slug>` no banco local e no código (`elt/load/`, `elt/transform/models/staging/<portal>/`, `_sources.yml`, `int_*_consolidadas.sql`)
+- **When** a story termina
+- **Then** existe um documento em `docs/` com o **inventário por tabela**: schema de origem, fonte real (fornecedor do portal municipal ou fonte oficial), chave primária atual, se `portal_slug` já está na chave, quem escreve (loader), quem lê (staging, marts, consumidores TypeScript) e volume por portal.
+- **And** as tabelas estão **agrupadas por fonte**, e cada grupo tem o schema de destino proposto (`raw_<fonte>`). O nome do schema é o da fonte, não o do município, porque municípios com fornecedores diferentes têm estruturas diferentes. Os casos em que as duas prefeituras divergem de estrutura ficam registrados.
+- **And** o plano define a **ordem de migração** em stories pequenas (uma tabela ou grupo coeso por story), com o critério de ordem explícito (menor risco e menos consumidores primeiro).
+- **And** cada grupo tem **critério de paridade** (contagens e totais por portal, mais as saídas dos marts consumidores), **plano de reversão** e a indicação de se exige `full-refresh` em produção.
+- **And** o plano diz como fica a **recarga isolada por portal** (apagar só `where portal_slug = ...`) e como os `int_*_consolidadas.sql` deixam de ser necessários (Regra 23).
+- **And** os riscos conhecidos estão tratados: mudança de chave primária, ajuste dos `source` do dbt, fixture `schema.sql.gz` (Regra 21), janela de produção e relação com a pendência de migração da Epic 19.
+- **And** o `epics.md` e o `sprint-status.yaml` passam a listar as stories 26.3 em diante, derivadas do plano, no formato das demais (cada uma ainda precisa ser detalhada antes de executar).
+- **And** nenhuma consulta ou comando contra produção (Regra 15); o inventário vem do banco local e do código.
+
+**Fora do escopo:** executar qualquer migração; alterar código, modelos dbt ou fixture.
+
+**Dependências:** nenhuma para começar. Bloqueia as Stories 26.3 e 26.4. A 26.1 serve de modelo e seus aprendizados entram no plano (se rodar antes, melhor).
 
 ---
 

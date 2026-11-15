@@ -18,10 +18,7 @@ TENANT_SLUGS = [
 ]
 
 # Exceções estritas permitidas apenas para união de fontes brutas
-ALLOWED_EXCEPTIONS = {
-    "fct_despesas_por_fornecedor.sql",  # Unifica fontes raw_porciuncula e raw_natividade
-    "dim_metadata.sql",
-}
+ALLOWED_EXCEPTIONS: set[str] = set()
 
 
 def test_no_hardcoded_tenant_slugs_in_metrics_and_marts():

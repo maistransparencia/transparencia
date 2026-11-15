@@ -30,21 +30,27 @@ _LINHAS = [
 @pytest.fixture
 def seed_origem(conn):
     def limpar():
-        for schema in ("raw_porciuncula_prefeitura", "raw_natividade_prefeitura"):
-            conn.execute(text(f"DELETE FROM {schema}.receita_orcamentaria WHERE ano = :ano"), {"ano": str(_ANO)})
+        conn.execute(text("DELETE FROM raw_fiorilli.receita_orcamentaria WHERE ano = :ano"), {"ano": str(_ANO)})
         conn.commit()
 
     limpar()
     for schema, empresa, codigo, fontestn, valor in _LINHAS:
         conn.execute(
             text(
-                f"""
-                INSERT INTO {schema}.receita_orcamentaria
-                    (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
-                VALUES (:ano, :empresa, :codigo, :fontestn, 'Receita sintetica', :valor, '0,00')
+                """
+                INSERT INTO raw_fiorilli.receita_orcamentaria
+                    (portal_slug, ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                VALUES (:portal_slug, :ano, :empresa, :codigo, :fontestn, 'Receita sintetica', :valor, '0,00')
                 """
             ),
-            {"ano": str(_ANO), "empresa": empresa, "codigo": codigo, "fontestn": fontestn, "valor": valor},
+            {
+                "portal_slug": schema.removeprefix("raw_"),
+                "ano": str(_ANO),
+                "empresa": empresa,
+                "codigo": codigo,
+                "fontestn": fontestn,
+                "valor": valor,
+            },
         )
     conn.commit()
     yield
@@ -126,9 +132,7 @@ def test_classifica_plano_de_contas_anterior_a_2022(conn):
     ]
 
     def limpar():
-        conn.execute(
-            text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)}
-        )
+        conn.execute(text("DELETE FROM raw_fiorilli.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)})
         conn.commit()
 
     limpar()
@@ -137,9 +141,9 @@ def test_classifica_plano_de_contas_anterior_a_2022(conn):
             conn.execute(
                 text(
                     """
-                    INSERT INTO raw_porciuncula_prefeitura.receita_orcamentaria
-                        (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
-                    VALUES (:ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
+                    INSERT INTO raw_fiorilli.receita_orcamentaria
+                        (portal_slug, ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                    VALUES ('porciuncula_prefeitura', :ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
                     """
                 ),
                 {"ano": str(ano), "codigo": codigo, "valor": valor},
@@ -170,9 +174,7 @@ def test_diferenca_da_categoria_fica_na_esfera_em_linha_propria(conn):
     ]
 
     def limpar():
-        conn.execute(
-            text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)}
-        )
+        conn.execute(text("DELETE FROM raw_fiorilli.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)})
         conn.commit()
 
     limpar()
@@ -181,9 +183,9 @@ def test_diferenca_da_categoria_fica_na_esfera_em_linha_propria(conn):
             conn.execute(
                 text(
                     """
-                    INSERT INTO raw_porciuncula_prefeitura.receita_orcamentaria
-                        (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
-                    VALUES (:ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
+                    INSERT INTO raw_fiorilli.receita_orcamentaria
+                        (portal_slug, ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                    VALUES ('porciuncula_prefeitura', :ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
                     """
                 ),
                 {"ano": str(ano), "codigo": codigo, "valor": valor},
@@ -225,9 +227,7 @@ def test_segmento_com_zero_significativo_nao_vira_pai_do_vizinho(conn):
     ]
 
     def limpar():
-        conn.execute(
-            text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)}
-        )
+        conn.execute(text("DELETE FROM raw_fiorilli.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)})
         conn.commit()
 
     limpar()
@@ -236,9 +236,9 @@ def test_segmento_com_zero_significativo_nao_vira_pai_do_vizinho(conn):
             conn.execute(
                 text(
                     """
-                    INSERT INTO raw_porciuncula_prefeitura.receita_orcamentaria
-                        (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
-                    VALUES (:ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
+                    INSERT INTO raw_fiorilli.receita_orcamentaria
+                        (portal_slug, ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                    VALUES ('porciuncula_prefeitura', :ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
                     """
                 ),
                 {"ano": str(ano), "codigo": codigo, "valor": valor},
@@ -265,9 +265,7 @@ def test_anos_anteriores_a_2021_ficam_fora_do_mart(conn):
     ano = 2020
 
     def limpar():
-        conn.execute(
-            text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)}
-        )
+        conn.execute(text("DELETE FROM raw_fiorilli.receita_orcamentaria WHERE ano = :ano"), {"ano": str(ano)})
         conn.commit()
 
     limpar()
@@ -276,9 +274,9 @@ def test_anos_anteriores_a_2021_ficam_fora_do_mart(conn):
             conn.execute(
                 text(
                     """
-                    INSERT INTO raw_porciuncula_prefeitura.receita_orcamentaria
-                        (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
-                    VALUES (:ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
+                    INSERT INTO raw_fiorilli.receita_orcamentaria
+                        (portal_slug, ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                    VALUES ('porciuncula_prefeitura', :ano, '2', :codigo, '', 'Receita sintetica', :valor, '0,00')
                     """
                 ),
                 {"ano": str(ano), "codigo": codigo, "valor": valor},

@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import Connection, Engine
 from sqlmodel import create_engine
 
-from elt.core.config import PortalConfig
+from elt.core.config import PortalConfig, resolve_raw_schema
 
 _engine: Engine | None = None
 _table_cache: dict[tuple[str, str], Table] = {}
@@ -34,7 +34,7 @@ def create_tables(engine: Engine) -> None:
 
 def _get_table(db: Connectable, table_name: str, schema: str | None = None) -> Table:
     engine = db.engine if isinstance(db, Connection) else db
-    target_schema = schema or PortalConfig.load().raw_schema
+    target_schema = schema or f"raw_{PortalConfig.load().provider}"
     key = (str(engine.url), f"{target_schema}.{table_name}")
     if key not in _table_cache:
         meta = MetaData()
@@ -87,7 +87,7 @@ def upsert(
 
 
 def set_metadata(db: Connectable, key: str, value: str, portal_slug: str) -> None:
-    table = _get_table(db, "metadata")
+    table = _get_table(db, "metadata", schema=resolve_raw_schema(PortalConfig.load(portal_slug)))
     stmt = pg_insert(table).values(portal_slug=portal_slug, key=key, value=value)
     stmt = stmt.on_conflict_do_update(index_elements=["portal_slug", "key"], set_={"value": value})
     _execute(db, stmt)

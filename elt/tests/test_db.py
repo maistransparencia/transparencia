@@ -4,10 +4,7 @@ from elt.core import db
 def test_create_tables_creates_expected_tables(conn):
     from sqlalchemy import text
 
-    for schema in [
-        "raw_porciuncula_prefeitura",
-        "raw_natividade_prefeitura",
-    ]:
+    for schema in ["raw_fiorilli"]:
         rows = conn.execute(
             text(f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{schema}'")
         ).fetchall()
@@ -20,6 +17,7 @@ def test_create_tables_creates_expected_tables(conn):
 def test_upsert_inserts_rows(conn):
     rows = [
         {
+            "portal_slug": "zz_portal_teste",
             "ano": 2025,
             "empresa": "7",
             "codigo": "01",
@@ -32,7 +30,7 @@ def test_upsert_inserts_rows(conn):
             "dotacao_atualizada": "2000",
         },
     ]
-    count = db.upsert(conn, "despesas_por_orgao", rows, key_cols=["ano", "empresa", "codigo"])
+    count = db.upsert(conn, "despesas_por_orgao", rows, key_cols=["portal_slug", "ano", "empresa", "codigo"])
     assert count == 1
     from sqlalchemy import text
 
@@ -45,6 +43,7 @@ def test_upsert_inserts_rows(conn):
 
 def test_upsert_replaces_on_conflict(conn):
     row = {
+        "portal_slug": "zz_portal_teste",
         "ano": 2025,
         "empresa": "7",
         "codigo": "02",
@@ -56,9 +55,9 @@ def test_upsert_replaces_on_conflict(conn):
         "altdo": "0",
         "dotacao_atualizada": "2000",
     }
-    db.upsert(conn, "despesas_por_orgao", [row], key_cols=["ano", "empresa", "codigo"])
+    db.upsert(conn, "despesas_por_orgao", [row], key_cols=["portal_slug", "ano", "empresa", "codigo"])
     row["empenhado"] = "1500"
-    db.upsert(conn, "despesas_por_orgao", [row], key_cols=["ano", "empresa", "codigo"])
+    db.upsert(conn, "despesas_por_orgao", [row], key_cols=["portal_slug", "ano", "empresa", "codigo"])
     from sqlalchemy import text
 
     result = conn.execute(
@@ -135,9 +134,9 @@ def test_fct_licitacoes_enrichment_columns(conn):
     conn.execute(
         text(
             """
-            INSERT INTO "raw_porciuncula_prefeitura"."licitacoes" (ano, empresa, numero, discr, valor, situacao)
-            VALUES (2025, '1', 'PE 099/2025', 'Objeto truncado municipal', '1000.00', 'em_andamento')
-            ON CONFLICT (ano, empresa, numero) DO UPDATE SET discr = EXCLUDED.discr;
+            INSERT INTO "raw_fiorilli"."licitacoes" (portal_slug, ano, empresa, numero, discr, valor, situacao)
+            VALUES ('porciuncula_prefeitura', 2025, '1', 'PE 099/2025', 'Objeto truncado municipal', '1000.00', 'em_andamento')
+            ON CONFLICT (portal_slug, ano, empresa, numero) DO UPDATE SET discr = EXCLUDED.discr;
             """
         )
     )
@@ -200,9 +199,9 @@ def test_fct_licitacoes_situacao_codigo(conn):
             conn.execute(
                 text(
                     """
-                    INSERT INTO "raw_porciuncula_prefeitura"."licitacoes" (ano, empresa, numero, discr, valor, situacao)
-                    VALUES (2025, '1', :numero, 'Objeto de teste', '1000.00', :situacao)
-                    ON CONFLICT (ano, empresa, numero) DO UPDATE SET situacao = EXCLUDED.situacao;
+                    INSERT INTO "raw_fiorilli"."licitacoes" (portal_slug, ano, empresa, numero, discr, valor, situacao)
+                    VALUES ('porciuncula_prefeitura', 2025, '1', :numero, 'Objeto de teste', '1000.00', :situacao)
+                    ON CONFLICT (portal_slug, ano, empresa, numero) DO UPDATE SET situacao = EXCLUDED.situacao;
                     """
                 ),
                 {"numero": numero, "situacao": situacao},
@@ -239,7 +238,8 @@ def test_fct_licitacoes_situacao_codigo(conn):
     finally:
         conn.execute(
             text(
-                """DELETE FROM "raw_porciuncula_prefeitura"."licitacoes" WHERE ano = 2025 AND numero = ANY(:numeros)"""
+                """DELETE FROM "raw_fiorilli"."licitacoes"
+                WHERE portal_slug = 'porciuncula_prefeitura' AND ano = 2025 AND numero = ANY(:numeros)"""
             ),
             {"numeros": [n for n, _ in municipais]},
         )

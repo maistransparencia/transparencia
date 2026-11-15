@@ -27,16 +27,16 @@ def seed_receitas(conn):
         conn.execute(
             text(
                 """
-                INSERT INTO raw_porciuncula_prefeitura.receita_orcamentaria
-                    (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
-                VALUES ('2026', '99', :codigo, :fontestn, 'Receita sintetica', :valor, '0,00')
+                INSERT INTO raw_fiorilli.receita_orcamentaria
+                    (portal_slug, ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                VALUES ('porciuncula_prefeitura', '2026', '99', :codigo, :fontestn, 'Receita sintetica', :valor, '0,00')
                 """
             ),
             {"codigo": codigo, "fontestn": fontestn, "valor": valor},
         )
     conn.commit()
     yield
-    conn.execute(text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE empresa = '99'"))
+    conn.execute(text("DELETE FROM raw_fiorilli.receita_orcamentaria WHERE empresa = '99'"))
     conn.commit()
 
 

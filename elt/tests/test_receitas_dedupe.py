@@ -1,4 +1,4 @@
-"""Testes de integração do dedupe de receitas orçamentárias em int_receitas_consolidadas."""
+"""Testes de integração do dedupe de receitas orçamentárias em int_receitas."""
 
 from decimal import Decimal
 
@@ -45,35 +45,45 @@ _SQL_FOLHAS = """
 """
 
 
-PORTAIS = [
-    ("porciuncula_prefeitura", "raw_porciuncula_prefeitura"),
-    ("natividade_prefeitura", "raw_natividade_prefeitura"),
-]
+PORTAIS = ["porciuncula_prefeitura", "natividade_prefeitura"]
 
 
-@pytest.fixture(params=PORTAIS, ids=[p[0] for p in PORTAIS])
+@pytest.fixture(params=PORTAIS)
 def portal(request, conn):
-    portal_slug, schema = request.param
+    portal_slug = request.param
     conn.execute(
-        text(f"DELETE FROM {schema}.receita_orcamentaria WHERE ano = :ano AND empresa = :empresa"),
-        {"ano": str(_ANO), "empresa": _EMPRESA},
+        text(
+            "DELETE FROM raw_fiorilli.receita_orcamentaria "
+            "WHERE portal_slug = :portal_slug AND ano = :ano AND empresa = :empresa"
+        ),
+        {"portal_slug": portal_slug, "ano": str(_ANO), "empresa": _EMPRESA},
     )
     for codigo, fontestn, valor in _LINHAS:
         conn.execute(
             text(
-                f"""
-                INSERT INTO {schema}.receita_orcamentaria
-                    (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
-                VALUES (:ano, :empresa, :codigo, :fontestn, 'Receita sintetica', :valor, '0,00')
+                """
+                INSERT INTO raw_fiorilli.receita_orcamentaria
+                    (portal_slug, ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                VALUES (:portal_slug, :ano, :empresa, :codigo, :fontestn, 'Receita sintetica', :valor, '0,00')
                 """
             ),
-            {"ano": str(_ANO), "empresa": _EMPRESA, "codigo": codigo, "fontestn": fontestn, "valor": valor},
+            {
+                "portal_slug": portal_slug,
+                "ano": str(_ANO),
+                "empresa": _EMPRESA,
+                "codigo": codigo,
+                "fontestn": fontestn,
+                "valor": valor,
+            },
         )
     conn.commit()
     yield portal_slug
     conn.execute(
-        text(f"DELETE FROM {schema}.receita_orcamentaria WHERE ano = :ano AND empresa = :empresa"),
-        {"ano": str(_ANO), "empresa": _EMPRESA},
+        text(
+            "DELETE FROM raw_fiorilli.receita_orcamentaria "
+            "WHERE portal_slug = :portal_slug AND ano = :ano AND empresa = :empresa"
+        ),
+        {"portal_slug": portal_slug, "ano": str(_ANO), "empresa": _EMPRESA},
     )
     conn.commit()
 

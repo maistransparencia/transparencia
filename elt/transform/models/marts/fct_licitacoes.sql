@@ -18,7 +18,7 @@ with licitacoes as (
         carona,
         fonte_objeto,
         link_sistema_origem
-    from {{ ref('int_licitacoes_consolidadas') }}
+    from {{ ref('int_licitacoes') }}
 )
 
 select
