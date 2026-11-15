@@ -6,6 +6,8 @@
 -- Depois da migração, rode `make dbt/run` (stg_siconfi__rgf e fct_pessoal_rgf_metricas).
 -- Só rodar em produção com autorização explícita (Regra 15).
 BEGIN;
+-- Conferência de paridade sem índice excede o statement_timeout do pooler; vale só nesta transação.
+SET LOCAL statement_timeout = 0;
 
 CREATE SCHEMA IF NOT EXISTS raw_siconfi;
 CREATE TABLE IF NOT EXISTS raw_siconfi.siconfi_rgf (
