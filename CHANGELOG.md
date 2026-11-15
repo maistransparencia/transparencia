@@ -5,6 +5,8 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-15
+
 ### 🌟 Destaques da Versão (Fiorilli em schema por fonte: tabelas restantes)
 * **15 tabelas do portal Fiorilli em `raw_fiorilli` com `portal_slug` na chave:** despesas (gerais, restos a pagar, por órgão, por unidade e por fornecedor), receitas (orçamentária, União, Estado e extra-orçamentária), compras (licitações e contratos), pessoal e diárias e repasses (transferências e emendas) deixam de existir por município e são recarregadas por portal. Um staging só por tabela (`stg_fiorilli__*`) substitui os staging por município; as consolidações `int_*` e os marts leem esse staging, sem literal de município, e os números dos marts não mudam. Script de migração com conferência de contagem e hash por portal e ano em `elt/scripts/migrate_fiorilli_tabelas_para_raw_fiorilli.sql`.
 * **Código de entidade da folha por seed:** o remapeamento que cada município fazia no staging de pessoal passou para o seed `seed_fiorilli_pessoal_empresa`, por `portal_slug`, sem alterar o `empresa_id` de hoje.
