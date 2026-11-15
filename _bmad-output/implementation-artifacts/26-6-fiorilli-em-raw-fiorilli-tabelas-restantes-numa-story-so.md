@@ -2,7 +2,7 @@
 title: 'Story 26.6: Fiorilli em raw_fiorilli: tabelas restantes, numa story só'
 type: 'refactor'
 created: '2026-11-14'
-status: 'review'
+status: 'done'
 baseline_commit: '1aede91642667f810c18ac0d550f76a393662f90'
 route: 'dispatch'
 review_loop_iteration: 0

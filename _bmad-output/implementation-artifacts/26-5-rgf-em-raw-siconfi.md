@@ -2,7 +2,7 @@
 title: 'Story 26.5: RGF (`siconfi_rgf`) em `raw_siconfi`'
 type: 'refactor'
 created: '2026-11-14'
-status: 'review'
+status: 'done'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
