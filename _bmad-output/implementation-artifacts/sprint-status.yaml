@@ -293,7 +293,7 @@ development_status:
   26-1-siconfi-msc-patrimonial-em-schema-por-fonte: done
   26-2-inventario-e-plano-de-migracao-do-legado: done
   26-3-fiorilli-em-raw-fiorilli-base-do-loader-e-tabelas-sem-leitor: done
-  26-4-remocao-dos-schemas-por-municipio-e-dos-modelos-de-consolidacao: in-progress
+  26-4-remocao-dos-schemas-por-municipio-e-dos-modelos-de-consolidacao: done
   26-5-rgf-em-raw-siconfi: done
   26-6-fiorilli-em-raw-fiorilli-tabelas-restantes-numa-story-so: done
   epic-26-retrospective: optional

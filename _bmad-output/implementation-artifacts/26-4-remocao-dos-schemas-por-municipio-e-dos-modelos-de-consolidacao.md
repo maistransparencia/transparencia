@@ -2,7 +2,7 @@
 title: 'Story 26.4: Remoção dos schemas por município e dos modelos de consolidação'
 type: 'refactor'
 created: '2026-11-14'
-status: 'in-progress'
+status: 'done'
 baseline_commit: 'f33890bac70c2a4a2d9847f57a2573cd02cceb6f'
 route: 'dispatch'
 review_loop_iteration: 0

@@ -29,8 +29,8 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 - Modelo a seguir: Story 24.9 (SIOPE em `raw_siope`) e 26.1 (`raw_siconfi`): corte direto, `portal_slug` aplicado na carga, script SQL idempotente de migração que deriva o slug do nome do schema, confere linhas e valores e não apaga as tabelas antigas.
 - Já por fonte: `raw_siope`, `raw_siops`, `raw_farmacia_sus`, `raw_pncp`, `raw_obrasgov`, `raw_saude_rede`, `raw_inep_censo`, `raw_emendas_*`.
 - Legado por município: `raw_porciuncula_prefeitura` e `raw_natividade_prefeitura` (mesmo conjunto: contratos, `despesas_*`, diarias, `emendas_*`, empresas, licitacoes, metadata, pessoal, `receita_*`, transferencias).
-- A 26.3 cria um mapa temporário de tabelas migradas no loader (que a 26.4 remove); scripts de migração ficam em `elt/scripts/migrate_*_para_raw_fiorilli.sql`.
-- Escala do `raw_<fonte>`: limiares (20 municípios por provedor, 5 milhões de linhas, 10 min de carga, 150 colunas) em `elt/core/config.py`, avisados no log da carga mensal; nota de desenho em `docs/raw-por-fonte-escala.md`. A 26.4 entregou isso e o script `elt/scripts/drop_raw_por_municipio.sql` (não executado); a remoção do legado espera as 26.5 a 26.9.
+- A 26.3 criou um mapa temporário de tabelas migradas no loader; a 26.4 o removeu (schema fixo `raw_<provider>` com `portal_slug` na chave). Scripts de migração ficam em `elt/scripts/migrate_*_para_raw_fiorilli.sql`.
+- Escala do `raw_<fonte>`: limiares (20 municípios por provedor, 5 milhões de linhas, 10 min de carga, 150 colunas) em `elt/core/config.py`, avisados no log da carga mensal; nota de desenho em `docs/raw-por-fonte-escala.md`. A 26.4 entregou isso e o script `elt/scripts/drop_raw_por_municipio.sql` (não executado); a remoção do legado (staging por portal, `int_*_consolidad*`, `raw_schema`) foi concluída depois das 26.3, 26.5 e 26.6; resta só o DROP em produção, com o Julio.
 - Receitas por CSV são carga manual em produção; o código novo precisa estar em produção antes do próximo CSV.
 
 ## Cross-Story Dependencies
