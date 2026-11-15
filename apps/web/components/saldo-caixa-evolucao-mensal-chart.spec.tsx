@@ -28,7 +28,7 @@ describe("SaldoCaixaEvolucaoMensalChart", () => {
     const tabela = screen.getByRole("table", {
       name: "Saldo em caixa mês a mês",
     });
-    expect(tabela).toHaveClass("sr-only");
+    expect(tabela.parentElement).toHaveClass("sr-only");
     const linhas = within(tabela).getAllByRole("row");
     expect(linhas).toHaveLength(3);
     expect(within(tabela).getByText("Janeiro")).toBeInTheDocument();
