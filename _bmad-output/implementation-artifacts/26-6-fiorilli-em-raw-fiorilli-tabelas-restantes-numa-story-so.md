@@ -2,7 +2,7 @@
 title: 'Story 26.6: Fiorilli em raw_fiorilli: tabelas restantes, numa story só'
 type: 'refactor'
 created: '2026-11-14'
-status: 'ready-for-dev'
+status: 'review'
 baseline_commit: '1aede91642667f810c18ac0d550f76a393662f90'
 route: 'dispatch'
 review_loop_iteration: 0
@@ -71,6 +71,14 @@ Tabelas, em cinco grupos (um commit por grupo, paridade por tabela): **despesas*
 
 ## Implementation Notes
 
+- Cinco commits, um por grupo (despesas, receitas, compras, pessoal, repasses). Migração local rodada duas vezes (idempotente), com `make db/backup` antes; contagem e hash por portal/ano conferidos na própria migração.
+- Paridade dos marts (antes x depois, `except all` nos dois sentidos): `fct_receitas`, `fct_receita_extra_orcamentaria`, `fct_despesas_por_orgao`, `_por_unidade`, `_por_fornecedor`, `fct_licitacoes`, `fct_contratos`, `fct_pessoal`, `fct_diarias`, `fct_transferencias` e `fct_emendas` idênticos. `fct_despesas`: 244 linhas de restos a pagar diferem só em `funcao`/`subfuncao`/`elemento`: o `distinct on (portal_slug, codif)` do perfil do fornecedor empata em ano e data de empenho (ex.: subfunção 361 e 364) e a ordem física das linhas mudou com a migração. Instabilidade que já existia; a regra não foi alterada.
+- Desvio da spec: `pessoal` não era idêntico entre os dois portais (um remapeava `empresa` 0/1 para 7, o outro 0 para 6). Decisão do Julio: seed `seed_fiorilli_pessoal_empresa` (`portal_slug`, `empresa_origem`, `empresa_id`) com left join no staging único; `empresa_id` e `fct_pessoal` idênticos aos de antes. Fica para outra conversa uma chave substituta para esses ids.
+- Staging de Natividade nunca teve testes de coluna; ao compartilharem o YAML, `licitacoes.ano` falhou em 2000, 2004 e 2008 (dado real). Limite mínimo baixado de 2010 para 2000.
+- `despesas_por_fornecedor` não tinha staging (o mart lia a fonte): criado `stg_fiorilli__despesas_por_fornecedor`.
+- Fora do escopo e mantido: `int_siconfi_rgf_consolidada`, staging por portal, `int_*` órfãos, `MIGRATED_RAW_TABLES` e `raw_schema` (26.4).
+- Verificação: `make test` (559), `make check`, `make db/test/build`, `pnpm test --force` (UI 397, db 464, web 1935) e `pnpm typecheck` verdes.
+
 ## Spec Change Log
 
 ## Review Triage Log
@@ -88,3 +96,13 @@ Tabelas, em cinco grupos (um commit por grupo, paridade por tabela): **despesas*
 - `make test` e `make check` -- expected: verde
 - `make db/test/build && make test/ts` -- expected: verde (`TEST_DATABASE_URL` 5545; nunca `elt/extract` nem carga)
 - `pnpm typecheck` -- expected: sem erros
+
+## Produção (NÃO executada)
+
+Nada foi rodado em produção (Regra 15). Para aplicar, com autorização explícita do Julio:
+
+1. Backup do raw de produção.
+2. `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f elt/scripts/migrate_fiorilli_tabelas_para_raw_fiorilli.sql` (idempotente; aborta se contagem ou hash por portal/ano divergir; não apaga `raw_<portal>`).
+3. `dbt seed --select seed_fiorilli_pessoal_empresa` e `dbt run` completo (full-refresh dos marts afetados).
+4. Conferir os marts de despesas, receitas, compras, pessoal e repasses contra o antes, lembrando da instabilidade de empate em restos a pagar de `fct_despesas`.
+5. Só depois liberar a carga mensal com o código novo; a remoção das tabelas antigas fica na 26.4.

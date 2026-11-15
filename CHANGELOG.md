@@ -5,6 +5,10 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (Fiorilli em schema por fonte: tabelas restantes)
+* **15 tabelas do portal Fiorilli em `raw_fiorilli` com `portal_slug` na chave:** despesas (gerais, restos a pagar, por órgão, por unidade e por fornecedor), receitas (orçamentária, União, Estado e extra-orçamentária), compras (licitações e contratos), pessoal e diárias e repasses (transferências e emendas) deixam de existir por município e são recarregadas por portal. Um staging só por tabela (`stg_fiorilli__*`) substitui os staging por município; as consolidações `int_*` e os marts leem esse staging, sem literal de município, e os números dos marts não mudam. Script de migração com conferência de contagem e hash por portal e ano em `elt/scripts/migrate_fiorilli_tabelas_para_raw_fiorilli.sql`.
+* **Código de entidade da folha por seed:** o remapeamento que cada município fazia no staging de pessoal passou para o seed `seed_fiorilli_pessoal_empresa`, por `portal_slug`, sem alterar o `empresa_id` de hoje.
+
 ### 🌟 Destaques da Versão (RGF do Siconfi em schema por fonte)
 * **RGF em `raw_siconfi` com `portal_slug` na chave:** a despesa com pessoal (RGF Anexo 01) passa a ter uma tabela única da fonte, recarregada por portal, e um staging só (`stg_siconfi__rgf`) no lugar dos staging por município; `fct_pessoal_rgf_metricas` junta por `portal_slug` e os números não mudam. Script de migração em `elt/scripts/migrate_siconfi_rgf_para_raw_siconfi.sql`.
 
