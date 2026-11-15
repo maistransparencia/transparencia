@@ -243,7 +243,6 @@ def test_extract_and_load_siconfi(tmp_path):
     portal.slug = "porciuncula_prefeitura"
     portal.cod_ibge = 3304102
     portal.ano_inicial = 2024
-    portal.raw_schema = "raw_porciuncula_prefeitura"
 
     mock_db = MagicMock(spec=Engine)
     sample_rows = [{"ano": 2024, "mes_referencia": 12, "valor": 100.0}]

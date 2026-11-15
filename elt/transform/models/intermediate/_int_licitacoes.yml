@@ -1,8 +1,8 @@
 version: 2
 
 models:
-  - name: int_emendas_consolidadas
-    description: "Emendas parlamentares consolidadas de todos os portais via union all"
+  - name: int_licitacoes
+    description: "Licitações consolidadas de todos os portais via union all"
     columns:
       - name: portal_slug
         data_type: text
@@ -14,29 +14,31 @@ models:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
-                min_value: 2015
+                min_value: 2000
                 max_value: 2035
       - name: empresa_id
         data_type: text
         tests:
           - not_null
-      - name: numero_emenda
+      - name: licitacao_numero
         data_type: text
-      - name: resumo
+      - name: modalidade
         data_type: text
-      - name: objeto_emenda
+      - name: objeto
         data_type: text
-      - name: valor_total
+      - name: discriminacao
+        data_type: text
+      - name: valor
         data_type: numeric
-      - name: empenhado
+      - name: valor_estimado
         data_type: numeric
-      - name: autor
+      - name: valor_homologado
+        data_type: numeric
+      - name: data_abertura
+        data_type: date
+      - name: carona
         data_type: text
-      - name: tipo_emenda
+      - name: fonte_objeto
         data_type: text
-      - name: esfera_origem
-        data_type: text
-      - name: ato_normativo
-        data_type: text
-      - name: destinacao
+      - name: link_sistema_origem
         data_type: text

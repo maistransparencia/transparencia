@@ -92,7 +92,7 @@ unit_tests:
     description: "Confirma pelo número da proposta, trata valor igual como indício e respeita o limite de linhas de receita e o isolamento por portal"
     model: fct_emendas
     given:
-      - input: ref('int_emendas_consolidadas')
+      - input: ref('stg_fiorilli__emendas_cad')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "63000759632202600", resumo: "EMENDA A", valor_total: 2031183.00, empenhado: 0 }
           - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "11", resumo: "EMENDA B", valor_total: 500000.00, empenhado: 0 }
@@ -114,7 +114,7 @@ unit_tests:
     description: "Duas emendas de mesmo valor e mesma proposta não confirmam a mesma linha de receita"
     model: fct_emendas
     given:
-      - input: ref('int_emendas_consolidadas')
+      - input: ref('stg_fiorilli__emendas_cad')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "63000759632202600", resumo: "EMENDA A", valor_total: 100000.00, empenhado: 0 }
           - { portal_slug: "porciuncula_prefeitura", ano: 2026, empresa_id: "2", numero_emenda: "63000759639999999", resumo: "EMENDA B", valor_total: 100000.00, empenhado: 0 }

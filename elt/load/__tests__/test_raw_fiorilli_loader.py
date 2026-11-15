@@ -4,36 +4,27 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from elt.core.config import MIGRATED_RAW_TABLES, resolve_key_cols, resolve_raw_schema, tag_rows_with_portal
+from elt.core.config import resolve_key_cols, resolve_raw_schema, tag_rows_with_portal
 from elt.load.run import _upsert_raw
 from sqlalchemy import text
 
 SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "scripts"
 MIGRATION_SCRIPT = SCRIPTS_DIR / "migrate_fiorilli_base_para_raw_fiorilli.sql"
 TABLES_MIGRATION_SCRIPT = SCRIPTS_DIR / "migrate_fiorilli_tabelas_para_raw_fiorilli.sql"
-portal_a = SimpleNamespace(slug="zz_portal_a", provider="fiorilli", raw_schema="raw_zz_portal_a")
-portal_b = SimpleNamespace(slug="zz_portal_b", provider="fiorilli", raw_schema="raw_zz_portal_b")
+portal_a = SimpleNamespace(slug="zz_portal_a", provider="fiorilli")
+portal_b = SimpleNamespace(slug="zz_portal_b", provider="fiorilli")
 
 
-@pytest.mark.parametrize("table", sorted(MIGRATED_RAW_TABLES["fiorilli"]))
-def test_migrated_table_goes_to_provider_schema_with_portal_slug_in_key(table):
-    assert resolve_raw_schema(portal_a, table) == "raw_fiorilli"
-    assert resolve_key_cols(portal_a, table, ["ano", "codigo"]) == ["portal_slug", "ano", "codigo"]
-    assert tag_rows_with_portal(portal_a, table, [{"ano": "2024"}]) == [{"ano": "2024", "portal_slug": "zz_portal_a"}]
-
-
-def test_table_not_migrated_stays_in_legacy_schema_without_portal_slug():
-    rows = [{"ano": "2024"}]
-    assert resolve_raw_schema(portal_a, "tabela_nao_migrada") == "raw_zz_portal_a"
-    assert resolve_key_cols(portal_a, "tabela_nao_migrada", ["ano", "numero"]) == ["ano", "numero"]
-    assert tag_rows_with_portal(portal_a, "tabela_nao_migrada", rows) is rows
+def test_raw_schema_is_per_provider_with_portal_slug_in_key():
+    assert resolve_raw_schema(portal_a) == "raw_fiorilli"
+    assert resolve_key_cols(["ano", "codigo"]) == ["portal_slug", "ano", "codigo"]
+    assert resolve_key_cols(["portal_slug", "key"]) == ["portal_slug", "key"]
+    assert tag_rows_with_portal(portal_a, [{"ano": "2024"}]) == [{"ano": "2024", "portal_slug": "zz_portal_a"}]
 
 
 def _load(engine, portal, rows):
-    key_cols = resolve_key_cols(portal, "receita_detalhes", ["ano", "empresa", "codigo"])
-    return _upsert_raw(
-        engine, "raw_fiorilli", "receita_detalhes", tag_rows_with_portal(portal, "receita_detalhes", rows), key_cols
-    )
+    key_cols = resolve_key_cols(["ano", "empresa", "codigo"])
+    return _upsert_raw(engine, "raw_fiorilli", "receita_detalhes", tag_rows_with_portal(portal, rows), key_cols)
 
 
 def _valores(engine) -> dict[str, str]:

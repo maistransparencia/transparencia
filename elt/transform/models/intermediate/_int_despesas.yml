@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: int_despesas_consolidadas
+  - name: int_despesas
     description: "Despesas consolidadas de todos os portais via union all (exercício + restos a pagar)"
     columns:
       - name: portal_slug

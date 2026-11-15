@@ -196,6 +196,6 @@ def engine(pg):
 @pytest.fixture
 def conn(engine) -> Iterator[Connection]:
     with engine.connect() as connection:
-        connection.execute(text("SET search_path = analytics, raw_porciuncula_prefeitura, public"))
+        connection.execute(text("SET search_path = analytics, raw_fiorilli, public"))
         yield connection
         connection.rollback()

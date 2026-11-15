@@ -4,10 +4,7 @@ from elt.core import db
 def test_create_tables_creates_expected_tables(conn):
     from sqlalchemy import text
 
-    for schema in [
-        "raw_porciuncula_prefeitura",
-        "raw_natividade_prefeitura",
-    ]:
+    for schema in ["raw_fiorilli"]:
         rows = conn.execute(
             text(f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{schema}'")
         ).fetchall()
@@ -20,6 +17,7 @@ def test_create_tables_creates_expected_tables(conn):
 def test_upsert_inserts_rows(conn):
     rows = [
         {
+            "portal_slug": "zz_portal_teste",
             "ano": 2025,
             "empresa": "7",
             "codigo": "01",
@@ -32,7 +30,7 @@ def test_upsert_inserts_rows(conn):
             "dotacao_atualizada": "2000",
         },
     ]
-    count = db.upsert(conn, "despesas_por_orgao", rows, key_cols=["ano", "empresa", "codigo"])
+    count = db.upsert(conn, "despesas_por_orgao", rows, key_cols=["portal_slug", "ano", "empresa", "codigo"])
     assert count == 1
     from sqlalchemy import text
 
@@ -45,6 +43,7 @@ def test_upsert_inserts_rows(conn):
 
 def test_upsert_replaces_on_conflict(conn):
     row = {
+        "portal_slug": "zz_portal_teste",
         "ano": 2025,
         "empresa": "7",
         "codigo": "02",
@@ -56,9 +55,9 @@ def test_upsert_replaces_on_conflict(conn):
         "altdo": "0",
         "dotacao_atualizada": "2000",
     }
-    db.upsert(conn, "despesas_por_orgao", [row], key_cols=["ano", "empresa", "codigo"])
+    db.upsert(conn, "despesas_por_orgao", [row], key_cols=["portal_slug", "ano", "empresa", "codigo"])
     row["empenhado"] = "1500"
-    db.upsert(conn, "despesas_por_orgao", [row], key_cols=["ano", "empresa", "codigo"])
+    db.upsert(conn, "despesas_por_orgao", [row], key_cols=["portal_slug", "ano", "empresa", "codigo"])
     from sqlalchemy import text
 
     result = conn.execute(

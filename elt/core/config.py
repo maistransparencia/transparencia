@@ -14,62 +14,18 @@ SCALE_MAX_LOAD_MINUTES = 10
 SCALE_MAX_COLUMNS_PER_TABLE = 150
 SCALE_DESIGN_NOTE = "docs/raw-por-fonte-escala.md"
 
-# Tabelas já migradas para o schema único da fonte (raw_<provider>), com portal_slug na chave primária.
-# Única fonte da verdade do loader: a Story 26.4 remove o mapa quando todas as tabelas estiverem migradas.
-MIGRATED_RAW_TABLES: dict[str, frozenset[str]] = {
-    "fiorilli": frozenset(
-        {
-            "despesas_extra_orcamentaria",
-            "despesas_por_exigibilidade",
-            "emendas_impositivas",
-            "empresas",
-            "receita_detalhes",
-            "metadata",
-            # Story 26.6: despesas
-            "despesas_gerais",
-            "despesas_restos_pagar",
-            "despesas_por_orgao",
-            "despesas_por_unidade",
-            "despesas_por_fornecedor",
-            # receitas
-            "receita_orcamentaria",
-            "receita_uniao",
-            "receita_estado",
-            "receita_extra_orcamentaria",
-            # compras
-            "licitacoes",
-            "contratos",
-            # pessoal
-            "pessoal",
-            "diarias",
-            # repasses
-            "transferencias",
-            "emendas_cad",
-        }
-    ),
-}
+
+def resolve_raw_schema(portal: Any) -> str:
+    """Schema raw único da fonte: raw_<provider> (o município vai em portal_slug na chave)."""
+    return f"raw_{portal.provider}"
 
 
-def is_migrated_table(provider: str, table: str) -> bool:
-    return table in MIGRATED_RAW_TABLES.get(provider, frozenset())
+def resolve_key_cols(key_cols: list[str]) -> list[str]:
+    """Chave da tabela raw: portal_slug sempre à frente."""
+    return list(key_cols) if "portal_slug" in key_cols else ["portal_slug", *key_cols]
 
 
-def resolve_raw_schema(portal: Any, table: str) -> str:
-    """Schema da tabela raw: raw_<provider> se já migrada, senão o schema legado do portal."""
-    return f"raw_{portal.provider}" if is_migrated_table(portal.provider, table) else portal.raw_schema
-
-
-def resolve_key_cols(portal: Any, table: str, key_cols: list[str]) -> list[str]:
-    """Chave da tabela raw: tabelas migradas levam portal_slug à frente da chave."""
-    if not is_migrated_table(portal.provider, table) or "portal_slug" in key_cols:
-        return list(key_cols)
-    return ["portal_slug", *key_cols]
-
-
-def tag_rows_with_portal(portal: Any, table: str, rows: list[dict]) -> list[dict]:
-    """Aplica portal_slug nas linhas de tabelas migradas; as demais passam intactas."""
-    if not is_migrated_table(portal.provider, table):
-        return rows
+def tag_rows_with_portal(portal: Any, rows: list[dict]) -> list[dict]:
     return [{**row, "portal_slug": portal.slug} for row in rows]
 
 
@@ -89,10 +45,6 @@ class PortalConfig:
     provider: str = "fiorilli"
     rpps: dict[str, Any] | None = None
     entidades_alternativas: dict[str, list[str]] | None = None
-
-    @property
-    def raw_schema(self) -> str:
-        return f"raw_{self.slug}"
 
     @property
     def orgaos_csv_path(self) -> Path:

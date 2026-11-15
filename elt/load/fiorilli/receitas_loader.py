@@ -221,13 +221,13 @@ def run_load_receitas_csv(portal_slug: str) -> None:
                 item = ep_config.post_process(item)
             rows.append(item)
 
-        schema = resolve_raw_schema(portal, table_name)
+        schema = resolve_raw_schema(portal)
         count = _upsert_raw(
             engine,
             schema,
             table_name,
-            tag_rows_with_portal(portal, table_name, rows),
-            resolve_key_cols(portal, table_name, ep_config.key_cols),
+            tag_rows_with_portal(portal, rows),
+            resolve_key_cols(ep_config.key_cols),
         )
         print(f"✓ {file_path.name} → {count} rows into {schema}.{table_name}")
 

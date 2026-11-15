@@ -10,7 +10,7 @@ with transferencias as (
         entidade_recebedora,
         repasse,
         devolucao
-    from {{ ref('int_transferencias_consolidadas') }}
+    from {{ ref('stg_fiorilli__transferencias') }}
 )
 
 select

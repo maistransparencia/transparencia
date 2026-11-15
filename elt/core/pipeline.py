@@ -264,9 +264,9 @@ class DatabaseLoader:
             n = upsert(
                 engine,
                 cfg.table,
-                tag_rows_with_portal(_portal, cfg.table, rows),
-                resolve_key_cols(_portal, cfg.table, cfg.key_cols),
-                schema=resolve_raw_schema(_portal, cfg.table),
+                tag_rows_with_portal(_portal, rows),
+                resolve_key_cols(cfg.key_cols),
+                schema=resolve_raw_schema(_portal),
             )
             logger.info("Loaded %d rows into %s", n, cfg.table)
             total_inserted += n
@@ -360,9 +360,9 @@ class PipelineRunner:
                         count = upsert(
                             engine,
                             target_table_for_upsert,
-                            tag_rows_with_portal(_portal, target_table_for_upsert, normalised),
-                            resolve_key_cols(_portal, target_table_for_upsert, config.key_cols),
-                            schema=resolve_raw_schema(_portal, target_table_for_upsert),
+                            tag_rows_with_portal(_portal, normalised),
+                            resolve_key_cols(config.key_cols),
+                            schema=resolve_raw_schema(_portal),
                         )
                         logger.info(
                             "[%d/%d] %s / %s / %d → %d rows",

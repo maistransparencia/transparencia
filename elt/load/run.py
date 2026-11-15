@@ -229,7 +229,7 @@ def main() -> None:
     portal = PortalConfig.load(args.portal)
     mod = importlib.import_module(f"elt.extract.{portal.provider}.{portal.slug}.api_endpoints")
     endpoint_configs = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
-    schema = portal.raw_schema
+    schema = resolve_raw_schema(portal)
 
     run_dir_path = args.dir
     if not run_dir_path:
@@ -420,13 +420,13 @@ def main() -> None:
 
         rows = json.loads(json_file.read_text(encoding="utf-8"))
         normalised = _normalize(rows, year, empresa_id, config.post_process)
-        target_schema = resolve_raw_schema(portal, target_table)
+        target_schema = resolve_raw_schema(portal)
         count = _upsert_raw(
             engine,
             target_schema,
             target_table,
-            tag_rows_with_portal(portal, target_table, normalised),
-            resolve_key_cols(portal, target_table, key_cols),
+            tag_rows_with_portal(portal, normalised),
+            resolve_key_cols(key_cols),
         )
         logger.info(
             "Loaded %s / %s / %d → %d rows into %s.%s", table, empresa_id, year, count, target_schema, target_table
@@ -436,7 +436,7 @@ def main() -> None:
     if extraction_date:
         _upsert_raw(
             engine,
-            resolve_raw_schema(portal, "metadata"),
+            resolve_raw_schema(portal),
             "metadata",
             [{"portal_slug": portal.slug, "key": "last_extracted_at", "value": extraction_date}],
             ["portal_slug", "key"],

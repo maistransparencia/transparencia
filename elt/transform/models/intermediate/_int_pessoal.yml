@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: int_pessoal_consolidado
+  - name: int_pessoal
     description: "Pessoal consolidado de todos os portais via union all"
     columns:
       - name: portal_slug

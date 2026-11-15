@@ -21,7 +21,7 @@ with emendas as (
         ato_normativo,
         destinacao,
         regexp_replace(coalesce(numero_emenda, ''), '\D', '', 'g') as numero_digitos
-    from {{ ref('int_emendas_consolidadas') }}
+    from {{ ref('stg_fiorilli__emendas_cad') }}
 ),
 
 linhas_receita as (
