@@ -4,24 +4,18 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from elt.core.config import resolve_key_cols, resolve_raw_schema, tag_rows_with_portal
+from elt.core.config import MIGRATED_RAW_TABLES, resolve_key_cols, resolve_raw_schema, tag_rows_with_portal
 from elt.load.run import _upsert_raw
 from sqlalchemy import text
 
-MIGRATION_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "migrate_fiorilli_base_para_raw_fiorilli.sql"
-MIGRATED_TABLES = [
-    "despesas_extra_orcamentaria",
-    "despesas_por_exigibilidade",
-    "emendas_impositivas",
-    "empresas",
-    "receita_detalhes",
-    "metadata",
-]
+SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "scripts"
+MIGRATION_SCRIPT = SCRIPTS_DIR / "migrate_fiorilli_base_para_raw_fiorilli.sql"
+TABLES_MIGRATION_SCRIPT = SCRIPTS_DIR / "migrate_fiorilli_tabelas_para_raw_fiorilli.sql"
 portal_a = SimpleNamespace(slug="zz_portal_a", provider="fiorilli", raw_schema="raw_zz_portal_a")
 portal_b = SimpleNamespace(slug="zz_portal_b", provider="fiorilli", raw_schema="raw_zz_portal_b")
 
 
-@pytest.mark.parametrize("table", MIGRATED_TABLES)
+@pytest.mark.parametrize("table", sorted(MIGRATED_RAW_TABLES["fiorilli"]))
 def test_migrated_table_goes_to_provider_schema_with_portal_slug_in_key(table):
     assert resolve_raw_schema(portal_a, table) == "raw_fiorilli"
     assert resolve_key_cols(portal_a, table, ["ano", "codigo"]) == ["portal_slug", "ano", "codigo"]
@@ -30,9 +24,9 @@ def test_migrated_table_goes_to_provider_schema_with_portal_slug_in_key(table):
 
 def test_table_not_migrated_stays_in_legacy_schema_without_portal_slug():
     rows = [{"ano": "2024"}]
-    assert resolve_raw_schema(portal_a, "licitacoes") == "raw_zz_portal_a"
-    assert resolve_key_cols(portal_a, "licitacoes", ["ano", "numero"]) == ["ano", "numero"]
-    assert tag_rows_with_portal(portal_a, "licitacoes", rows) is rows
+    assert resolve_raw_schema(portal_a, "tabela_nao_migrada") == "raw_zz_portal_a"
+    assert resolve_key_cols(portal_a, "tabela_nao_migrada", ["ano", "numero"]) == ["ano", "numero"]
+    assert tag_rows_with_portal(portal_a, "tabela_nao_migrada", rows) is rows
 
 
 def _load(engine, portal, rows):
@@ -105,10 +99,10 @@ def legacy_schema(engine):
     drop()
 
 
-def _run_migration(engine) -> None:
+def _run_migration(engine, script: Path = MIGRATION_SCRIPT) -> None:
     connection = engine.raw_connection()
     try:
-        connection.cursor().execute(MIGRATION_SCRIPT.read_text(encoding="utf-8"))
+        connection.cursor().execute(script.read_text(encoding="utf-8"))
         connection.commit()
     finally:
         connection.close()
@@ -126,3 +120,52 @@ def test_migration_derives_slug_from_schema_and_is_idempotent(engine):
         metadata = conn.execute(text("SELECT portal_slug, key, value FROM raw_fiorilli.metadata")).all()
     assert [tuple(row) for row in receitas] == [("zz_legacy", 2, 15)]
     assert [tuple(row) for row in metadata] == [("zz_legacy", "last_extracted_at", "2026-11-01")]
+
+
+@pytest.fixture
+def legacy_contratos(engine):
+    def drop():
+        with engine.begin() as conn:
+            conn.execute(text("DROP SCHEMA IF EXISTS raw_zz_legacy CASCADE"))
+            conn.execute(text("DELETE FROM raw_fiorilli.contratos WHERE portal_slug LIKE 'zz\\_%'"))
+            conn.execute(text("DELETE FROM raw_fiorilli.metadata WHERE portal_slug LIKE 'zz\\_%'"))
+
+    drop()
+    with engine.begin() as conn:
+        conn.execute(text("CREATE SCHEMA raw_zz_legacy"))
+        conn.execute(text("CREATE TABLE raw_zz_legacy.metadata (key TEXT PRIMARY KEY, value TEXT)"))
+        conn.execute(
+            text(
+                "CREATE TABLE raw_zz_legacy.contratos (ano INTEGER, empresa TEXT, numero TEXT, valor TEXT, "
+                "PRIMARY KEY (ano, empresa, numero))"
+            )
+        )
+        conn.execute(text("INSERT INTO raw_zz_legacy.contratos VALUES (2024,'1','1','10,50'), (2025,'1','2','5,00')"))
+    yield
+    drop()
+
+
+@pytest.mark.usefixtures("legacy_contratos")
+def test_tables_migration_is_idempotent_and_keeps_portal_slug_in_key(engine):
+    _run_migration(engine, TABLES_MIGRATION_SCRIPT)
+    _run_migration(engine, TABLES_MIGRATION_SCRIPT)
+
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                "SELECT portal_slug, ano, valor FROM raw_fiorilli.contratos WHERE portal_slug = 'zz_legacy' ORDER BY ano"
+            )
+        ).all()
+    assert [tuple(row) for row in rows] == [("zz_legacy", 2024, "10,50"), ("zz_legacy", 2025, "5,00")]
+
+
+@pytest.mark.usefixtures("legacy_contratos")
+def test_tables_migration_aborts_when_destination_diverges_from_source(engine):
+    _run_migration(engine, TABLES_MIGRATION_SCRIPT)
+    with engine.begin() as conn:
+        conn.execute(
+            text("UPDATE raw_fiorilli.contratos SET valor = '99,99' WHERE portal_slug = 'zz_legacy' AND ano = 2024")
+        )
+
+    with pytest.raises(Exception, match="Paridade falhou"):
+        _run_migration(engine, TABLES_MIGRATION_SCRIPT)
