@@ -120,18 +120,18 @@ export default async function PessoalPage({
           {barraLimitesLrf && (
             <ThresholdMeter
               value={percentualExibido}
-              threshold={
+              max={barraLimitesLrf.escalaMaxima}
+              bands={
                 barraLimitesLrf.exibirMarcadores
-                  ? barraLimitesLrf.teto
-                  : undefined
-              }
-              secondaryThreshold={
-                barraLimitesLrf.exibirMarcadores
-                  ? barraLimitesLrf.prudencial
+                  ? [
+                      { from: 0, tone: "ok" },
+                      { from: barraLimitesLrf.alerta, tone: "warn" },
+                      { from: barraLimitesLrf.prudencial, tone: "danger" },
+                    ]
                   : undefined
               }
               label="Gasto com pessoal sobre a receita"
-              valueText={`${fmtPercent(percentualExibido)} da receita${barraLimitesLrf.exibirMarcadores ? `; teto de ${barraLimitesLrf.tetoTexto}; limite prudencial de ${barraLimitesLrf.prudencialTexto}` : ""}`}
+              valueText={`${fmtPercent(percentualExibido)} da receita${barraLimitesLrf.exibirMarcadores ? `; limite de alerta de ${barraLimitesLrf.alertaTexto}; limite prudencial de ${barraLimitesLrf.prudencialTexto}; teto de ${barraLimitesLrf.tetoTexto}` : ""}`}
             />
           )}
           <p className="caption space-y-0.5">
@@ -140,17 +140,25 @@ export default async function PessoalPage({
                 <span className="flex items-center gap-x-2">
                   <span
                     aria-hidden="true"
-                    className="bg-ink inline-block h-3 w-0.5"
+                    className="bg-ok-fill inline-block h-3 w-3"
                   />
-                  Teto: {barraLimitesLrf.tetoTexto}
+                  Dentro do limite
                 </span>
                 <span className="flex items-center gap-x-2">
                   <span
                     aria-hidden="true"
-                    className="bg-warn-fill inline-block h-3 w-0.5"
+                    className="bg-warn-fill inline-block h-3 w-3"
                   />
-                  Limite prudencial: {barraLimitesLrf.prudencialTexto}
+                  Alerta: a partir de {barraLimitesLrf.alertaTexto}
                 </span>
+                <span className="flex items-center gap-x-2">
+                  <span
+                    aria-hidden="true"
+                    className="bg-danger-fill inline-block h-3 w-3"
+                  />
+                  Prudencial: a partir de {barraLimitesLrf.prudencialTexto}
+                </span>
+                <span>Teto: {barraLimitesLrf.tetoTexto}</span>
               </span>
             )}
             {(folhaKpi.subtext || folhaTrend) && (

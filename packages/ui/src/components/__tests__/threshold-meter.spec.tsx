@@ -96,6 +96,35 @@ describe("ThresholdMeter", () => {
     expect(screen.getByTestId("threshold-meter-marker").style.left).toBe("64%");
   });
 
+  it("com faixas, desenha as faixas e um marcador no valor em vez do preenchimento", () => {
+    render(
+      <ThresholdMeter
+        value={49.28}
+        max={60}
+        bands={[
+          { from: 0, tone: "ok" },
+          { from: 48.6, tone: "warn" },
+          { from: 51.3, tone: "danger" },
+        ]}
+        label="Gasto"
+        valueText="49,28%"
+      />,
+    );
+    const faixas = screen.getAllByTestId("threshold-meter-band");
+    expect(faixas.map((f) => f.className)).toEqual([
+      expect.stringContaining("bg-ok-fill"),
+      expect.stringContaining("bg-warn-fill"),
+      expect.stringContaining("bg-danger-fill"),
+    ]);
+    expect(faixas[0]?.style.width).toBe("81%");
+    expect(
+      Number.parseFloat(
+        screen.getByTestId("threshold-meter-value-marker").style.left,
+      ),
+    ).toBeCloseTo((49.28 / 60) * 100, 2);
+    expect(screen.queryByTestId("threshold-meter-fill")).toBeNull();
+  });
+
   it("sem valor não desenha a barra", () => {
     const { container } = render(
       <ThresholdMeter value={null} {...propsBase} />,
