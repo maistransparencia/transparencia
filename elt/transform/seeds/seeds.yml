@@ -299,3 +299,11 @@ seeds:
           - accepted_values:
               arguments:
                 values: [nacional, estadual, municipal]
+
+  - name: seed_fiorilli_pessoal_empresa
+    description: "Remapeamento por portal do código de entidade da folha (pessoal) do Fiorilli; sem linha, vale o código do portal sem zeros à esquerda"
+    config:
+      column_types:
+        portal_slug: text
+        empresa_origem: text
+        empresa_id: text

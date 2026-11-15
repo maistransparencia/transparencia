@@ -366,3 +366,48 @@ sources:
     - name: saldoempenhar
     - name: aditado
     - name: insmf
+  - name: diarias
+    description: Diárias pagas a servidores
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - numero
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: numero
+    - name: valor
+    - name: favorecido
+    - name: cargo
+    - name: data
+    - name: unidade
+    - name: descricao
+  - name: pessoal
+    description: Folha de pessoal
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - mes
+      - matricula
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: mes
+    - name: matricula
+    - name: nome
+    - name: cargo
+    - name: proventos
+    - name: remuneracao
+    - name: categoriafuncional
+    - name: vinculo
+    - name: formaprovimento
+    - name: tiporegime
+    - name: tipocontrato
+    - name: situacaofuncional
+    - name: referencia_nome

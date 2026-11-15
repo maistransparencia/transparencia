@@ -39,6 +39,9 @@ MIGRATED_RAW_TABLES: dict[str, frozenset[str]] = {
             # compras
             "licitacoes",
             "contratos",
+            # pessoal
+            "pessoal",
+            "diarias",
         }
     ),
 }
