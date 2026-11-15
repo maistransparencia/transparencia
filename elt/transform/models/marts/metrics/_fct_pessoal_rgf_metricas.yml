@@ -45,14 +45,14 @@ unit_tests:
     description: Pivota as contas do RGF por período sem misturar portais com o mesmo período.
     model: fct_pessoal_rgf_metricas
     given:
-      - input: ref('int_siconfi_rgf_consolidada')
+      - input: ref('stg_siconfi__rgf')
         rows:
-          - { ano: 2024, cod_ibge: 1, periodicidade: quadrimestral, periodo: 3, cod_conta: DespesaComPessoalTotal, coluna: Valor, valor: 70 }
-          - { ano: 2024, cod_ibge: 1, periodicidade: quadrimestral, periodo: 3, cod_conta: DespesaComPessoalTotal, coluna: '% sobre a RCL Ajustada', valor: 50 }
-          - { ano: 2024, cod_ibge: 1, periodicidade: quadrimestral, periodo: 3, cod_conta: ReceitaCorrenteLiquidaAjustada, coluna: Valor, valor: 140 }
-          - { ano: 2024, cod_ibge: 2, periodicidade: semestral, periodo: 2, cod_conta: DespesaComPessoalTotal, coluna: Valor, valor: 30 }
-          - { ano: 2024, cod_ibge: 2, periodicidade: semestral, periodo: 2, cod_conta: DespesaComPessoalTotal, coluna: '% sobre a RCL Ajustada', valor: 20 }
-          - { ano: 2024, cod_ibge: 2, periodicidade: semestral, periodo: 2, cod_conta: ReceitaCorrenteLiquidaAjustada, coluna: Valor, valor: 150 }
+          - { portal_slug: portal_a, ano: 2024, cod_ibge: 1, periodicidade: quadrimestral, periodo: 3, cod_conta: DespesaComPessoalTotal, coluna: Valor, valor: 70 }
+          - { portal_slug: portal_a, ano: 2024, cod_ibge: 1, periodicidade: quadrimestral, periodo: 3, cod_conta: DespesaComPessoalTotal, coluna: '% sobre a RCL Ajustada', valor: 50 }
+          - { portal_slug: portal_a, ano: 2024, cod_ibge: 1, periodicidade: quadrimestral, periodo: 3, cod_conta: ReceitaCorrenteLiquidaAjustada, coluna: Valor, valor: 140 }
+          - { portal_slug: portal_b, ano: 2024, cod_ibge: 2, periodicidade: semestral, periodo: 2, cod_conta: DespesaComPessoalTotal, coluna: Valor, valor: 30 }
+          - { portal_slug: portal_b, ano: 2024, cod_ibge: 2, periodicidade: semestral, periodo: 2, cod_conta: DespesaComPessoalTotal, coluna: '% sobre a RCL Ajustada', valor: 20 }
+          - { portal_slug: portal_b, ano: 2024, cod_ibge: 2, periodicidade: semestral, periodo: 2, cod_conta: ReceitaCorrenteLiquidaAjustada, coluna: Valor, valor: 150 }
       - input: ref('dim_portais')
         rows:
           - { portal_slug: portal_a, cod_ibge: 1 }

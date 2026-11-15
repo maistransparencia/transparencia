@@ -383,3 +383,28 @@ def test_load_siconfi_msc_isola_portais_com_chaves_identicas(conn):
         ).fetchall()
     )
     assert {slug: float(valor) for slug, valor in valores.items()} == {"portal_a": 300.0, "portal_b": 200.0}
+
+
+def test_load_siconfi_rgf_isola_portais_com_chaves_identicas(conn):
+    """Dois portais com a mesma chave RGF convivem; recarregar um não altera o outro."""
+    from elt.load.siconfi import ensure_siconfi_rgf_table, load_siconfi_rgf
+
+    linha = {
+        "ano": 2024,
+        "cod_ibge": 1234567,
+        "periodicidade": "Q",
+        "periodo": 3,
+        "anexo": "RGF-Anexo 01",
+        "cod_conta": "DespesaComPessoalTotal",
+        "coluna": "Valor",
+        "rotulo": "TOTAL",
+        "valor": 100.0,
+    }
+    ensure_siconfi_rgf_table(conn)
+    conn.execute(text("DELETE FROM raw_siconfi.siconfi_rgf"))
+    load_siconfi_rgf(conn, [linha], "portal_a")
+    load_siconfi_rgf(conn, [{**linha, "valor": 200.0}], "portal_b")
+    load_siconfi_rgf(conn, [{**linha, "valor": 300.0}], "portal_a")
+
+    valores = dict(conn.execute(text("SELECT portal_slug, valor FROM raw_siconfi.siconfi_rgf")).fetchall())
+    assert {slug: float(valor) for slug, valor in valores.items()} == {"portal_a": 300.0, "portal_b": 200.0}

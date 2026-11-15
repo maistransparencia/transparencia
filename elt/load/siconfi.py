@@ -65,14 +65,16 @@ def ensure_siconfi_table(engine: Connectable, schema: str = SCHEMA) -> None:
         engine.execute(text(ddl))
 
 
-RGF_KEY_COLS = ["ano", "cod_ibge", "periodicidade", "periodo", "anexo", "cod_conta", "coluna", "rotulo"]
+RGF_TABLE_NAME = "siconfi_rgf"
+RGF_KEY_COLS = ["portal_slug", "ano", "cod_ibge", "periodicidade", "periodo", "anexo", "cod_conta", "coluna", "rotulo"]
 
 
-def ensure_siconfi_rgf_table(engine: Connectable, schema: str) -> None:
-    """Garante a existência da tabela raw do RGF Anexo 01 (despesa com pessoal) no schema especificado."""
+def ensure_siconfi_rgf_table(engine: Connectable, schema: str = SCHEMA) -> None:
+    """Garante a existência da tabela raw do RGF Anexo 01 (despesa com pessoal), compartilhada por todos os portais."""
     ddl = f"""
     CREATE SCHEMA IF NOT EXISTS "{schema}";
     CREATE TABLE IF NOT EXISTS "{schema}"."siconfi_rgf" (
+        portal_slug TEXT NOT NULL,
         ano INTEGER NOT NULL,
         cod_ibge INTEGER NOT NULL,
         periodicidade TEXT NOT NULL,
@@ -85,7 +87,7 @@ def ensure_siconfi_rgf_table(engine: Connectable, schema: str) -> None:
         valor NUMERIC,
         populacao INTEGER,
         data_extracao TEXT,
-        PRIMARY KEY (ano, cod_ibge, periodicidade, periodo, anexo, cod_conta, coluna, rotulo)
+        PRIMARY KEY (portal_slug, ano, cod_ibge, periodicidade, periodo, anexo, cod_conta, coluna, rotulo)
     );
     """
     if isinstance(engine, Engine):
@@ -98,14 +100,14 @@ def ensure_siconfi_rgf_table(engine: Connectable, schema: str) -> None:
 def load_siconfi_rgf(
     db: Connectable,
     rows: list[dict[str, Any]],
-    schema: str | None = None,
+    portal_slug: str,
+    schema: str = SCHEMA,
 ) -> int:
-    """Insere ou atualiza os registros do RGF Anexo 01 na tabela raw_<portal>.siconfi_rgf."""
+    """Insere ou atualiza os registros do RGF Anexo 01 em raw_siconfi, sem tocar nas linhas de outros portais."""
     if not rows:
         return 0
-    if schema:
-        return upsert(db, "siconfi_rgf", rows, RGF_KEY_COLS, schema=schema)
-    return upsert(db, "siconfi_rgf", rows, RGF_KEY_COLS)
+    rows_do_portal = [{**row, "portal_slug": portal_slug} for row in rows]
+    return upsert(db, RGF_TABLE_NAME, rows_do_portal, RGF_KEY_COLS, schema=schema)
 
 
 def load_siconfi_msc(

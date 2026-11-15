@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: stg_siconfi__rgf
+    description: "Staging do RGF Anexo 01 (despesa total com pessoal e receita corrente líquida ajustada) do SICONFI, de todos os portais"
+    columns:
+      - name: portal_slug
+        description: "Identificador do portal (município) dono do registro"
+        data_type: text
+        tests:
+          - not_null
+      - name: ano
+        description: "Exercício do demonstrativo"
+        data_type: integer
+        tests:
+          - not_null
+      - name: cod_ibge
+        description: "Código IBGE de 7 dígitos do ente municipal"
+        data_type: integer
+        tests:
+          - not_null
+      - name: periodicidade
+        description: "quadrimestral ou semestral"
+        data_type: text
+        tests:
+          - not_null
+      - name: periodo
+        description: "Número do quadrimestre ou semestre"
+        data_type: integer
+        tests:
+          - not_null
+      - name: cod_conta
+        description: "Conta do demonstrativo (DespesaComPessoalTotal ou ReceitaCorrenteLiquidaAjustada)"
+        data_type: text
+      - name: coluna
+        description: "Coluna do demonstrativo (Valor ou % sobre a RCL Ajustada)"
+        data_type: text
+      - name: valor
+        description: "Valor da conta na coluna"
+        data_type: numeric
+      - name: data_extracao
+        description: "Data da extração na fonte"
+        data_type: text

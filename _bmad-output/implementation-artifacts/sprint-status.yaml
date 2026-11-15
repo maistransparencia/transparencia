@@ -294,7 +294,7 @@ development_status:
   26-2-inventario-e-plano-de-migracao-do-legado: review
   26-3-fiorilli-em-raw-fiorilli-base-do-loader-e-tabelas-sem-leitor: review
   26-4-remocao-dos-schemas-por-municipio-e-dos-modelos-de-consolidacao: in-progress
-  26-5-rgf-em-raw-siconfi: backlog
+  26-5-rgf-em-raw-siconfi: review
   26-6-fiorilli-em-raw-fiorilli-diarias-transferencias-emendas-e-pessoal: backlog
   26-7-fiorilli-em-raw-fiorilli-licitacoes-contratos-e-despesas-por-fornecedor: backlog
   26-8-fiorilli-em-raw-fiorilli-despesas-gerais-restos-a-pagar-orgao-e-unidade: backlog

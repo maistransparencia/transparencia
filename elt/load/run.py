@@ -300,12 +300,15 @@ def main() -> None:
                 rows_loaded["siconfi_msc"] += count
                 continue
             if table == "siconfi_rgf":
+                from elt.load.siconfi import SCHEMA as SICONFI_SCHEMA
                 from elt.load.siconfi import ensure_siconfi_rgf_table, load_siconfi_rgf
 
-                ensure_siconfi_rgf_table(engine, schema)
+                ensure_siconfi_rgf_table(engine)
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                count = load_siconfi_rgf(engine, rows, schema=schema)
-                logger.info("Loaded siconfi_rgf (%s) → %d rows into %s.siconfi_rgf", json_file.name, count, schema)
+                count = load_siconfi_rgf(engine, rows, portal.slug)
+                logger.info(
+                    "Loaded siconfi_rgf (%s) → %d rows into %s.siconfi_rgf", json_file.name, count, SICONFI_SCHEMA
+                )
                 rows_loaded["siconfi_rgf"] += count
                 continue
             if table in ("siope_indicadores", "siops_indicadores"):
