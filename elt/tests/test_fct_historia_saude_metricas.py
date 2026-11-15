@@ -22,9 +22,7 @@ _LINHAS = [
 @pytest.fixture
 def seed_receitas(conn):
     def limpar():
-        conn.execute(
-            text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE ano = :ano"), {"ano": str(_ANO)}
-        )
+        conn.execute(text("DELETE FROM raw_fiorilli.receita_orcamentaria WHERE ano = :ano"), {"ano": str(_ANO)})
         conn.execute(
             text("DELETE FROM raw_fiorilli.despesas_gerais WHERE portal_slug = :portal_slug AND ano = :ano"),
             {"portal_slug": _PORTAL, "ano": str(_ANO)},
@@ -47,9 +45,9 @@ def seed_receitas(conn):
         conn.execute(
             text(
                 """
-                INSERT INTO raw_porciuncula_prefeitura.receita_orcamentaria
-                    (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
-                VALUES (:ano, :empresa, :codigo, '', 'Receita sintetica', :valor, '0,00')
+                INSERT INTO raw_fiorilli.receita_orcamentaria
+                    (portal_slug, ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                VALUES ('porciuncula_prefeitura', :ano, :empresa, :codigo, '', 'Receita sintetica', :valor, '0,00')
                 """
             ),
             {"ano": str(_ANO), "empresa": empresa, "codigo": codigo, "valor": valor},

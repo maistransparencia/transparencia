@@ -31,6 +31,11 @@ MIGRATED_RAW_TABLES: dict[str, frozenset[str]] = {
             "despesas_por_orgao",
             "despesas_por_unidade",
             "despesas_por_fornecedor",
+            # receitas
+            "receita_orcamentaria",
+            "receita_uniao",
+            "receita_estado",
+            "receita_extra_orcamentaria",
         }
     ),
 }

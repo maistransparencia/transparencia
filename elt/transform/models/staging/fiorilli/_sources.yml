@@ -222,3 +222,92 @@ sources:
     - name: empenhado
     - name: liquidado
     - name: pago
+  - name: receita_orcamentaria
+    description: Receitas orçamentárias detalhadas
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - codigo
+      - fontestn
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: codigo
+    - name: descricao
+    - name: nome
+    - name: especificacao
+    - name: previsto
+    - name: arrecadado
+    - name: previsao_atualizada
+    - name: prev_atualizada
+    - name: arrecadado_total
+    - name: arrec_total
+    - name: fontestn
+    - name: fonte_stn
+  - name: receita_uniao
+    description: Transferências recebidas da União
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - codigo
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: codigo
+    - name: descricao
+    - name: nome
+    - name: especificacao
+    - name: previsto
+    - name: arrecadado
+    - name: previsao_atualizada
+    - name: prev_atualizada
+    - name: arrecadado_total
+    - name: arrec_total
+  - name: receita_estado
+    description: Transferências recebidas do Estado
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - codigo
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: codigo
+    - name: descricao
+    - name: nome
+    - name: especificacao
+    - name: previsto
+    - name: arrecadado
+    - name: previsao_atualizada
+    - name: prev_atualizada
+    - name: arrecadado_total
+    - name: arrec_total
+  - name: receita_extra_orcamentaria
+    description: Receitas extra-orçamentárias
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - codigo
+      - dtlan
+      - descricao
+      - valor
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: codigo
+    - name: descricao
+    - name: valor
+    - name: dtlan
+    - name: empresanome
