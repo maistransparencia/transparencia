@@ -20,14 +20,15 @@ def seed_despesas_educacao(conn):
     for portal, empresa, numero, funcao, funcao_nome, empenhado, pago in despesas:
         conn.execute(
             text(
-                f"""
-                INSERT INTO raw_{portal}.despesas_gerais
-                    (ano, empresa, numero, funcao, funcaonome, empenhado, pago)
-                VALUES (:ano, :empresa, :numero, :funcao, :funcao_nome, :empenhado, :pago)
-                ON CONFLICT (ano, empresa, numero) DO UPDATE SET pago = EXCLUDED.pago
+                """
+                INSERT INTO raw_fiorilli.despesas_gerais
+                    (portal_slug, ano, empresa, numero, funcao, funcaonome, empenhado, pago)
+                VALUES (:portal_slug, :ano, :empresa, :numero, :funcao, :funcao_nome, :empenhado, :pago)
+                ON CONFLICT (portal_slug, ano, empresa, numero) DO UPDATE SET pago = EXCLUDED.pago
                 """
             ),
             {
+                "portal_slug": portal,
                 "ano": ANO_TESTE,
                 "empresa": empresa,
                 "numero": numero,
@@ -42,9 +43,9 @@ def seed_despesas_educacao(conn):
     for portal in ("porciuncula_prefeitura", "natividade_prefeitura"):
         conn.execute(
             text(
-                f"DELETE FROM raw_{portal}.despesas_gerais WHERE ano = :ano AND empresa = '1' AND numero IN ('1', '2', '3')"
+                "DELETE FROM raw_fiorilli.despesas_gerais WHERE portal_slug = :portal_slug AND ano = :ano AND empresa = '1' AND numero IN ('1', '2', '3')"
             ),
-            {"ano": ANO_TESTE},
+            {"portal_slug": portal, "ano": ANO_TESTE},
         )
     conn.commit()
 

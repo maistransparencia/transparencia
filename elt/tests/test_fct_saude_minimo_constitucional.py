@@ -204,13 +204,14 @@ def seed_receitas_e_despesas(conn):
     for numero, funcao, funcao_nome, fonte, liquidado in despesas:
         conn.execute(
             text(
-                f"""
-                INSERT INTO {schema}.despesas_gerais
-                    (ano, empresa, numero, funcao, funcaonome, descfonrec, empenhado, liquidado, pago)
-                VALUES (:ano, '98', :numero, :funcao, :funcao_nome, :fonte, :valor, :valor, :valor)
+                """
+                INSERT INTO raw_fiorilli.despesas_gerais
+                    (portal_slug, ano, empresa, numero, funcao, funcaonome, descfonrec, empenhado, liquidado, pago)
+                VALUES (:portal_slug, :ano, '98', :numero, :funcao, :funcao_nome, :fonte, :valor, :valor, :valor)
                 """
             ),
             {
+                "portal_slug": _PORTAL,
                 "ano": _ANO_CONFERENCIA,
                 "numero": numero,
                 "funcao": funcao,
@@ -226,7 +227,10 @@ def seed_receitas_e_despesas(conn):
         {"ano": str(_ANO_CONFERENCIA)},
     )
     conn.execute(
-        text(f"DELETE FROM {schema}.despesas_gerais WHERE ano = :ano AND empresa = '98'"), {"ano": _ANO_CONFERENCIA}
+        text(
+            "DELETE FROM raw_fiorilli.despesas_gerais WHERE portal_slug = :portal_slug AND ano = :ano AND empresa = '98'"
+        ),
+        {"portal_slug": _PORTAL, "ano": _ANO_CONFERENCIA},
     )
     conn.commit()
 

@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import text
 
 _ANO = 2032
+_PORTAL = "porciuncula_prefeitura"
 
 # (empresa, codigo, valor): fundo de saúde é a empresa 2 do portal de Porciúncula
 _LINHAS = [
@@ -21,21 +22,26 @@ _LINHAS = [
 @pytest.fixture
 def seed_receitas(conn):
     def limpar():
-        for tabela in ("receita_orcamentaria", "despesas_gerais"):
-            conn.execute(text(f"DELETE FROM raw_porciuncula_prefeitura.{tabela} WHERE ano = :ano"), {"ano": str(_ANO)})
+        conn.execute(
+            text("DELETE FROM raw_porciuncula_prefeitura.receita_orcamentaria WHERE ano = :ano"), {"ano": str(_ANO)}
+        )
+        conn.execute(
+            text("DELETE FROM raw_fiorilli.despesas_gerais WHERE portal_slug = :portal_slug AND ano = :ano"),
+            {"portal_slug": _PORTAL, "ano": str(_ANO)},
+        )
         conn.commit()
 
     limpar()
     conn.execute(
         text(
             """
-            INSERT INTO raw_porciuncula_prefeitura.despesas_gerais
-                (ano, empresa, numero, funcao, funcaonome, empenhado, pago)
-            VALUES (:ano, '2', 'historia-saude-1', '10', 'Saude', '100,00', '50,00')
-            ON CONFLICT (ano, empresa, numero) DO UPDATE SET pago = EXCLUDED.pago
+            INSERT INTO raw_fiorilli.despesas_gerais
+                (portal_slug, ano, empresa, numero, funcao, funcaonome, empenhado, pago)
+            VALUES (:portal_slug, :ano, '2', 'historia-saude-1', '10', 'Saude', '100,00', '50,00')
+            ON CONFLICT (portal_slug, ano, empresa, numero) DO UPDATE SET pago = EXCLUDED.pago
             """
         ),
-        {"ano": str(_ANO)},
+        {"portal_slug": _PORTAL, "ano": str(_ANO)},
     )
     for empresa, codigo, valor in _LINHAS:
         conn.execute(
@@ -74,7 +80,10 @@ def test_ano_sem_dado_de_origem_fica_nulo_e_nao_zero(conn):
     ano = _ANO - 3
 
     def limpar():
-        conn.execute(text("DELETE FROM raw_porciuncula_prefeitura.despesas_gerais WHERE ano = :ano"), {"ano": str(ano)})
+        conn.execute(
+            text("DELETE FROM raw_fiorilli.despesas_gerais WHERE portal_slug = :portal_slug AND ano = :ano"),
+            {"portal_slug": _PORTAL, "ano": str(ano)},
+        )
         conn.commit()
 
     limpar()
@@ -82,12 +91,12 @@ def test_ano_sem_dado_de_origem_fica_nulo_e_nao_zero(conn):
         conn.execute(
             text(
                 """
-                INSERT INTO raw_porciuncula_prefeitura.despesas_gerais
-                    (ano, empresa, numero, funcao, funcaonome, empenhado, pago)
-                VALUES (:ano, '2', 'historia-saude-sem-origem', '10', 'Saude', '100,00', '50,00')
+                INSERT INTO raw_fiorilli.despesas_gerais
+                    (portal_slug, ano, empresa, numero, funcao, funcaonome, empenhado, pago)
+                VALUES (:portal_slug, :ano, '2', 'historia-saude-sem-origem', '10', 'Saude', '100,00', '50,00')
                 """
             ),
-            {"ano": str(ano)},
+            {"portal_slug": _PORTAL, "ano": str(ano)},
         )
         conn.commit()
         row = conn.execute(

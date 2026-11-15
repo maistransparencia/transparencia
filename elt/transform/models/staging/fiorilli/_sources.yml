@@ -81,3 +81,144 @@ sources:
     - name: portal_slug
     - name: key
     - name: value
+  - name: despesas_gerais
+    description: Empenhos, liquidações e pagamentos individuais
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - numero
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: numero
+    - name: pkemp
+    - name: pkempa
+    - name: tpem
+    - name: funcao
+    - name: funcaonome
+    - name: subfuncao
+    - name: subfuncaonome
+    - name: elemento
+    - name: natureza
+    - name: categoria
+    - name: catec
+    - name: gruponatureza
+    - name: modalidade
+    - name: programa
+    - name: programanome
+    - name: projativ
+    - name: projeto_atividade_nome
+    - name: mes
+    - name: nomefor
+    - name: cpfformatado
+    - name: numlicit
+    - name: licit
+    - name: desclicit_detalhesempenho
+    - name: fongrupo
+    - name: fongrupodesc
+    - name: foncodigo
+    - name: foncodigodesc
+    - name: fonro
+    - name: fonrodesc
+    - name: fonte_stn
+    - name: fonte_stndesc
+    - name: descfonrec
+    - name: datae
+    - name: empenhado
+    - name: liquidado
+    - name: pago
+    - name: dotac
+    - name: altdo
+    - name: dotacatualizada
+    - name: anulado
+    - name: reforco
+    - name: produ
+    - name: nomeempresa
+    - name: proc
+    - name: codlo
+    - name: cfpro
+    - name: ficha
+    - name: codif
+    - name: codigo
+    - name: vingrupo_vincodigo
+    - name: vincodigonome
+  - name: despesas_restos_pagar
+    description: Restos a pagar de exercícios anteriores
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - numero
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: numero
+    - name: codigo
+    - name: descricao
+    - name: empenhado
+    - name: liquidado
+    - name: pago
+  - name: despesas_por_orgao
+    description: Despesas agregadas por órgão/secretaria
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - codigo
+    columns:
+    - name: portal_slug
+    - name: empresa
+    - name: ano
+    - name: codigo
+    - name: descricao
+    - name: empenhado
+    - name: liquidado
+    - name: pago
+    - name: dotac
+    - name: altdo
+    - name: dotacao_atualizada
+  - name: despesas_por_unidade
+    description: Despesas agregadas por unidade orçamentária
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - codigo
+    columns:
+    - name: portal_slug
+    - name: empresa
+    - name: ano
+    - name: codigo
+    - name: descricao
+    - name: empenhado
+    - name: liquidado
+    - name: pago
+    - name: dotac
+    - name: altdo
+    - name: dotacao_atualizada
+  - name: despesas_por_fornecedor
+    description: Despesas agregadas por fornecedor
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - codigo
+    columns:
+    - name: portal_slug
+    - name: empresa
+    - name: ano
+    - name: codigo
+    - name: descricao
+    - name: insmf
+    - name: cepci
+    - name: empenhado
+    - name: liquidado
+    - name: pago
