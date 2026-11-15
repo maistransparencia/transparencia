@@ -59,9 +59,9 @@ unit_tests:
     description: "Valida conversão de datas (DD/MM/YYYY e YYYY-MM-DD), CNPJ e substituição de vírgula por ponto em campos numéricos"
     model: stg_fiorilli__contratos
     given:
-      - input: source('porciuncula_prefeitura', 'contratos')
+      - input: source('raw_fiorilli', 'contratos')
         rows:
-          - { ano: "2026", empresa: "7", numero: "001/2026", fornecedor: "FORNECEDOR TESTE", insmf: "12.345.678/0001-90", valcon: "50.000,00", aditado: "5.000,00", data_inicio: "01/01/2026 00:00:00", vencimento_atual: "31/12/2026 00:00:00" }
+          - { portal_slug: "portal_teste", ano: "2026", empresa: "7", numero: "001/2026", fornecedor: "FORNECEDOR TESTE", insmf: "12.345.678/0001-90", valcon: "50.000,00", aditado: "5.000,00", data_inicio: "01/01/2026 00:00:00", vencimento_atual: "31/12/2026 00:00:00" }
     expect:
       rows:
-        - { ano: 2026, empresa_id: "7", contrato_numero: "001/2026", fornecedor_nome: "FORNECEDOR TESTE", fornecedor_cpf_cnpj: "12.345.678/0001-90", valor_contrato: 50000.00, valor_aditado: 5000.00, data_inicio: "2026-01-01", vencimento_atual: "2026-12-31" }
+        - { portal_slug: "portal_teste", ano: 2026, empresa_id: "7", contrato_numero: "001/2026", fornecedor_nome: "FORNECEDOR TESTE", fornecedor_cpf_cnpj: "12.345.678/0001-90", valor_contrato: 50000.00, valor_aditado: 5000.00, data_inicio: "2026-01-01", vencimento_atual: "2026-12-31" }

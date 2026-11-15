@@ -411,3 +411,45 @@ sources:
     - name: tipocontrato
     - name: situacaofuncional
     - name: referencia_nome
+  - name: transferencias
+    description: Transferências a terceiros
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - codigo
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: codigo
+    - name: mes
+    - name: entidade_pagadora
+    - name: entidade_recebedora
+    - name: repasse
+    - name: devolucao
+  - name: emendas_cad
+    description: Cadastro detalhado de emendas
+    meta:
+      primary_key:
+      - portal_slug
+      - ano
+      - empresa
+      - numero
+    columns:
+    - name: portal_slug
+    - name: ano
+    - name: empresa
+    - name: numero
+    - name: numero_emenda
+    - name: resumo
+    - name: objeto
+    - name: valor_total
+    - name: empenhado
+    - name: autor
+    - name: tipo_emenda_descr
+    - name: esfera_origem
+    - name: ato_normativo
+    - name: destinacao_descr
+    - name: pk_ep_emenda

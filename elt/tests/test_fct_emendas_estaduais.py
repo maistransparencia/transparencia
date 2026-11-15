@@ -203,9 +203,9 @@ def seed_conferencia(conn, seed_emendas):  # noqa: ARG001 - depende da lista do 
         conn.execute(
             text(
                 """
-                INSERT INTO raw_porciuncula_prefeitura.emendas_cad
-                    (ano, empresa, numero, numero_emenda, resumo, valor_total, empenhado, autor)
-                VALUES ('2026', '1', :numero || :autor, :numero, 'resumo ' || :autor, :valor, '30000', :autor)
+                INSERT INTO raw_fiorilli.emendas_cad
+                    (portal_slug, ano, empresa, numero, numero_emenda, resumo, valor_total, empenhado, autor)
+                VALUES ('porciuncula_prefeitura', '2026', '1', :numero || :autor, :numero, 'resumo ' || :autor, :valor, '30000', :autor)
                 """
             ),
             {"numero": numero, "autor": autor, "valor": valor},
@@ -213,7 +213,7 @@ def seed_conferencia(conn, seed_emendas):  # noqa: ARG001 - depende da lista do 
     conn.commit()
     yield
     conn.execute(text("DELETE FROM raw_emendas_estaduais.execucao_emendas"))
-    conn.execute(text("DELETE FROM raw_porciuncula_prefeitura.emendas_cad"))
+    conn.execute(text("DELETE FROM raw_fiorilli.emendas_cad"))
     conn.commit()
 
 
