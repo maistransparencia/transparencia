@@ -1,0 +1,25 @@
+codigo_fonte_stn,descricao_portal,palavra_chave,conferido
+1551,PDDE - Programa Dinheiro Direto na Escola,pdde,true
+1552,PNAE - Programa Nacional de Alimentação Escolar,pnae,true
+1553,PNATE - Programa Nacional de Transporte Escolar,pnate,true
+1704,Royalties de petróleo,royalties,true
+1705,Royalties de petróleo,royalties,true
+1708,CFEM,cfem,true
+1710,Transferências especiais do Estado,estado,true
+1715,Lei Paulo Gustavo,paulo_gustavo,true
+1719,Aldir Blanc,aldir_blanc,true
+1720,Royalties de petróleo,petroleo,true
+1721,FEP,fep,false
+1750,Cota-parte da CIDE,cide,true
+1751,Contribuição de iluminação pública,iluminacao_publica,true
+1755,Alienação de bens móveis,alienacao,true
+11160000,Transferências de Recursos do FUNDEB,fundeb,true
+11200000,Transferências do Salário-Educação,salario,true
+11210000,Transferências Diretas do FNDE - Programa PDDE,pdde,true
+11220000,Transferências Diretas do FNDE - Programa PNAE,pnae,true
+11230000,Transferências Diretas do FNDE - Programa PNATE,pnate,true
+12142100,Transferências de Recursos do SUS - COVID,covid,true
+13110000,Transferências de Recursos do Fundo Nacional de Assistência Social,fnas,true
+15400000,Cota-Parte Royalties - Petróleo,royalties,true
+16100000,Cota-Parte da CIDE,cide,true
+16200000,Contribuição de Custeio do Serviço de Iluminação Pública,iluminacao_publica,true

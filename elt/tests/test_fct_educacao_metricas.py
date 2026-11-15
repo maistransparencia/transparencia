@@ -2,107 +2,7 @@
 
 from decimal import Decimal
 
-import pytest
 from sqlalchemy import text
-
-
-@pytest.fixture
-def seed_despesas_educacao(conn):
-    """Insere registros sintéticos de despesas da Função 12 para Porciúncula e Natividade no banco efêmero de testes."""
-    porc_despesas = [
-        {
-            "ano": 2021,
-            "empresa": "1",
-            "numero": "1",
-            "funcao": "12",
-            "funcaonome": "Educação",
-            "liquidado": "17767942.77",
-        },
-        {
-            "ano": 2023,
-            "empresa": "1",
-            "numero": "2",
-            "funcao": "12",
-            "funcaonome": "Educação",
-            "liquidado": "25773292.31",
-        },
-        {
-            "ano": 2025,
-            "empresa": "1",
-            "numero": "3",
-            "funcao": "12",
-            "funcaonome": "Educação",
-            "liquidado": "34291936.64",
-        },
-    ]
-    for r in porc_despesas:
-        conn.execute(
-            text(
-                """
-                INSERT INTO raw_porciuncula_prefeitura.despesas_gerais (ano, empresa, numero, funcao, funcaonome, liquidado)
-                VALUES (:ano, :empresa, :numero, :funcao, :funcaonome, :liquidado)
-                ON CONFLICT (ano, empresa, numero) DO UPDATE SET liquidado = EXCLUDED.liquidado
-                """
-            ),
-            r,
-        )
-
-    nat_despesas = [
-        {
-            "ano": 2021,
-            "empresa": "1",
-            "numero": "1",
-            "funcao": "12",
-            "funcaonome": "Educação",
-            "liquidado": "18480737.54",
-        },
-        {
-            "ano": 2023,
-            "empresa": "1",
-            "numero": "2",
-            "funcao": "12",
-            "funcaonome": "Educação",
-            "liquidado": "26292597.19",
-        },
-        {
-            "ano": 2025,
-            "empresa": "1",
-            "numero": "3",
-            "funcao": "12",
-            "funcaonome": "Educação",
-            "liquidado": "35602451.65",
-        },
-    ]
-    for r in nat_despesas:
-        conn.execute(
-            text(
-                """
-                INSERT INTO raw_natividade_prefeitura.despesas_gerais (ano, empresa, numero, funcao, funcaonome, liquidado)
-                VALUES (:ano, :empresa, :numero, :funcao, :funcaonome, :liquidado)
-                ON CONFLICT (ano, empresa, numero) DO UPDATE SET liquidado = EXCLUDED.liquidado
-                """
-            ),
-            r,
-        )
-    conn.commit()
-    yield
-    conn.execute(
-        text(
-            """
-            DELETE FROM raw_porciuncula_prefeitura.despesas_gerais
-            WHERE ano IN (2021, 2023, 2025) AND empresa = '1' AND numero IN ('1', '2', '3')
-            """
-        )
-    )
-    conn.execute(
-        text(
-            """
-            DELETE FROM raw_natividade_prefeitura.despesas_gerais
-            WHERE ano IN (2021, 2023, 2025) AND empresa = '1' AND numero IN ('1', '2', '3')
-            """
-        )
-    )
-    conn.commit()
 
 
 def test_fct_educacao_metricas_materialization_and_grain(conn):
@@ -123,9 +23,8 @@ def test_fct_educacao_metricas_materialization_and_grain(conn):
     assert total_count > 0, "A tabela fct_educacao_metricas não deve estar vazia."
 
 
-@pytest.mark.usefixtures("seed_despesas_educacao")
-def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
-    """Valida o salto histórico de +1,4 ponto no IDEB 2025 de Porciúncula e o custo anual por aluno."""
+def test_fct_educacao_metricas_porciuncula_growth(conn):
+    """Valida o salto histórico de +1,4 ponto no IDEB 2025 de Porciúncula."""
     rows = conn.execute(
         text(
             """
@@ -139,10 +38,7 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
                 saeb_matematica,
                 variacao_saeb_matematica,
                 saeb_lingua_portuguesa,
-                variacao_saeb_portugues,
-                despesa_liquidada_educacao,
-                total_matriculas_rede_municipal,
-                custo_anual_por_aluno
+                variacao_saeb_portugues
             FROM analytics.fct_educacao_metricas
             WHERE portal_slug = 'porciuncula_prefeitura'
               AND etapa_ensino = 'anos_iniciais'
@@ -161,9 +57,6 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
     assert Decimal(str(r2021[3])) == Decimal("6.4")
     assert r2021[4] is False  # meta não atingida (5.2 < 6.4)
     assert r2021[5] is None  # sem ciclo anterior via LAG
-    assert Decimal(str(r2021[10])) == Decimal("17767942.77")
-    assert r2021[11] == 2210
-    assert Decimal(str(r2021[12])) == Decimal("8039.79")
 
     # Ciclo 2023 (Retração pós-pandemia)
     r2023 = rows[1]
@@ -176,11 +69,8 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
     assert Decimal(str(r2023[7])) == Decimal("-20.61")
     assert Decimal(str(r2023[8])) == Decimal("175.60")
     assert Decimal(str(r2023[9])) == Decimal("-22.68")
-    assert Decimal(str(r2023[10])) == Decimal("25773292.31")
-    assert r2023[11] == 2250
-    assert Decimal(str(r2023[12])) == Decimal("11454.80")
 
-    # Ciclo 2025 (Recuperação histórica de +1,4 ponto e cálculo de custo por aluno)
+    # Ciclo 2025 (Recuperação histórica de +1,4 ponto)
     r2025 = rows[2]
     assert r2025[0] == 2025
     assert Decimal(str(r2025[2])) == Decimal("5.9")
@@ -191,12 +81,8 @@ def test_fct_educacao_metricas_porciuncula_growth_and_financials(conn):
     assert Decimal(str(r2025[7])) == Decimal("28.21")  # 218.39 - 190.18
     assert Decimal(str(r2025[8])) == Decimal("210.91")
     assert Decimal(str(r2025[9])) == Decimal("35.31")  # 210.91 - 175.60
-    assert Decimal(str(r2025[10])) == Decimal("34291936.64")
-    assert r2025[11] == 2290
-    assert Decimal(str(r2025[12])) == Decimal("14974.64")  # 34291936.64 / 2290
 
 
-@pytest.mark.usefixtures("seed_despesas_educacao")
 def test_fct_educacao_metricas_natividade_and_tenant_isolation(conn):
     """Valida métricas da rede municipal de Natividade e garantia de isolamento multi-tenant."""
     rows = conn.execute(
@@ -206,10 +92,7 @@ def test_fct_educacao_metricas_natividade_and_tenant_isolation(conn):
                 ano,
                 etapa_ensino,
                 nota_ideb,
-                crescimento_pontos_ideb,
-                despesa_liquidada_educacao,
-                total_matriculas_rede_municipal,
-                custo_anual_por_aluno
+                crescimento_pontos_ideb
             FROM analytics.fct_educacao_metricas
             WHERE portal_slug = 'natividade_prefeitura'
               AND etapa_ensino = 'anos_iniciais'
@@ -225,9 +108,6 @@ def test_fct_educacao_metricas_natividade_and_tenant_isolation(conn):
     assert r2025[0] == 2025
     assert Decimal(str(r2025[2])) == Decimal("6.0")
     assert Decimal(str(r2025[3])) == Decimal("0.3")  # 6.0 - 5.7
-    assert Decimal(str(r2025[4])) == Decimal("35602451.65")
-    assert r2025[5] == 1790
-    assert Decimal(str(r2025[6])) == Decimal("19889.64")
 
     # Verifica ausência de registros sem portal_slug (Regra 23)
     null_portals = conn.execute(

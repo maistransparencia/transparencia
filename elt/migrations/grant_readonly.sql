@@ -51,6 +51,15 @@ BEGIN
       EXECUTE 'CREATE POLICY city_interest_requests_read_only_all ON public.city_interest_requests FOR ALL TO read_only USING (true) WITH CHECK (true);';
     END IF;
   END IF;
+  -- Exceção: Permissões de escrita e políticas RLS para feedback_reports
+  IF to_regclass('public.feedback_reports') IS NOT NULL THEN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'read_only') THEN
+      EXECUTE 'GRANT USAGE ON SCHEMA public TO read_only;';
+      EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.feedback_reports TO read_only;';
+      EXECUTE 'DROP POLICY IF EXISTS feedback_reports_read_only_all ON public.feedback_reports;';
+      EXECUTE 'CREATE POLICY feedback_reports_read_only_all ON public.feedback_reports FOR ALL TO read_only USING (true) WITH CHECK (true);';
+    END IF;
+  END IF;
 END
 $$;
 

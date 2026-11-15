@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { PORTAL_SLUG, TEST_YEAR } from "../../test-helpers";
-import { getExecucaoOrcamentariaMetrics } from "../execucao-orcamentaria-metrics";
+import {
+  getExecucaoAnoAnterior,
+  getExecucaoOrcamentariaMetrics,
+} from "../execucao-orcamentaria-metrics";
 import { getEntidades } from "../metadata";
 
 describe("getExecucaoOrcamentariaMetrics", () => {
@@ -33,5 +36,25 @@ describe("getExecucaoOrcamentariaMetrics", () => {
       [],
     );
     expect(emptyFilter).toEqual([]);
+  });
+});
+
+describe("getExecucaoAnoAnterior", () => {
+  it("devolve o ano anterior e percentual nulo sem entidades", async () => {
+    const execucao = await getExecucaoAnoAnterior(PORTAL_SLUG, TEST_YEAR, []);
+    expect(execucao.anoAnterior).toBe(TEST_YEAR - 1);
+    expect(execucao.percentualPago).toBeNull();
+  });
+
+  it("devolve percentual nulo quando o ano anterior não tem dotação", async () => {
+    const entidades = await getEntidades(PORTAL_SLUG);
+    const empresaIds = entidades.map((e: { id: string }) => e.id);
+    const execucao = await getExecucaoAnoAnterior(
+      PORTAL_SLUG,
+      TEST_YEAR - 100,
+      empresaIds.length > 0 ? empresaIds : ["1"],
+    );
+    expect(execucao.anoAnterior).toBe(TEST_YEAR - 101);
+    expect(execucao.percentualPago).toBeNull();
   });
 });

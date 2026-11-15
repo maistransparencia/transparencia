@@ -27,7 +27,6 @@ describe("buildRadarHistoricoViewModel", () => {
     const vm = buildRadarHistoricoViewModel(raw);
 
     expect(vm.hasAlertas).toBe(false);
-    expect(vm.totalAlertasGeral).toBe(0);
     expect(vm.secoes).toHaveLength(0);
     expect(vm.emptyState.title).toContain("Plena Conformidade Histórica");
     expect(vm.emptyState.message).toContain("Porciúncula");
@@ -105,7 +104,6 @@ describe("buildRadarHistoricoViewModel", () => {
     const vm = buildRadarHistoricoViewModel(raw);
 
     expect(vm.hasAlertas).toBe(true);
-    expect(vm.totalAlertasGeral).toBe(4);
     // Deve conter seções para 2026, 2024 e 2023. O ano 2025 não teve alertas e deve ser omitido!
     expect(vm.secoes).toHaveLength(3);
     expect(vm.secoes[0].ano).toBe(2026);

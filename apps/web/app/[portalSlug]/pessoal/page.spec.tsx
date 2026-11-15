@@ -14,6 +14,15 @@ vi.mock("./loader", () => ({
 
 const { default: PessoalPage } = await import("./page");
 
+const rgfDe = (percentualDespesaPessoal: number, statusLrf: string) => ({
+  periodicidade: "quadrimestral",
+  periodo: 3,
+  despesaPessoal12Meses: 1000,
+  receitaCorrenteLiquidaAjustada: 2000,
+  percentualDespesaPessoal,
+  statusLrf,
+});
+
 function makeRaw(overrides: Record<string, unknown> = {}): RawData {
   return {
     context: {
@@ -22,7 +31,12 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       entidadesIds: undefined,
     },
     folhaData: [
-      { totalFolha: 1000, totalPago: 900, rclProxy: 2000, percentualFolha: 45 },
+      {
+        totalFolha: 1000,
+        totalPago: 900,
+        receitaCorrenteLiquida: 2000,
+        percentualFolha: 45,
+      },
     ],
     pctChefias: 60,
     decimo13: { empenhado: 100, pago: 90, pctPago: 90 },
@@ -46,8 +60,32 @@ describe("PessoalPage", () => {
 
     expect(screen.getByText("Folha de Pagamento")).toBeInTheDocument();
     expect(
-      screen.getByText("Efetivos no comando das chefias"),
+      screen.getByText("Chefias ocupadas por concursados"),
     ).toBeInTheDocument();
+  });
+
+  it("ano fechado: legenda da soma dos proventos brutos no ano", async () => {
+    loadPessoalDataMock.mockResolvedValue(makeRaw());
+    render(await PessoalPage(props));
+    expect(screen.getByTestId("pessoal-destaque")).toHaveTextContent(
+      "Soma dos proventos brutos da folha de pagamento da Prefeitura no ano.",
+    );
+  });
+
+  it("ano parcial: legenda inclui o período", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+      }),
+    );
+    render(await PessoalPage(props));
+    expect(screen.getByTestId("pessoal-destaque")).toHaveTextContent(
+      /Soma dos proventos brutos da folha de pagamento da Prefeitura no período \(.+\)/,
+    );
   });
 
   it("exibe o card de 13º salário quando decimo13 está disponível", async () => {
@@ -109,6 +147,106 @@ describe("PessoalPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("promove o gasto com pessoal (LRF) ao lado do total pago, com barra do teto e do limite prudencial", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1000,
+            totalPago: 900,
+            receitaCorrenteLiquida: 2000,
+            percentualFolha: 40,
+            rgf: rgfDe(47.16, "normal"),
+            rgfAnoAnteriorMesmoPeriodo: null,
+            limitesLrf: { maximo: 54, prudencial: 51.3, alerta: 48.6 },
+          },
+        ],
+      }),
+    );
+    render(await PessoalPage(props));
+
+    const destaque = screen.getByTestId("pessoal-lrf-destaque");
+    expect(destaque).toHaveTextContent("Gasto com Pessoal (LRF)");
+    expect(destaque.querySelector(".stat-value-lg")?.textContent).toBe(
+      "47,16%",
+    );
+    expect(destaque).toHaveTextContent("Teto: 54%");
+    expect(destaque).toHaveTextContent("Limite prudencial: 51,3%");
+    expect(destaque).toHaveTextContent("3º quadrimestre de 2024");
+    expect(destaque).toHaveTextContent("Dentro dos limites da lei.");
+    expect(screen.getByTestId("pessoal-lrf-detalhes")).toHaveTextContent(
+      "Ver detalhes",
+    );
+    const barra = screen.getByRole("meter", {
+      name: "Gasto com pessoal sobre a receita",
+    });
+    expect(barra.getAttribute("aria-valuenow")).toBe("47.16");
+  });
+
+  it("sem RGF publicado mostra estimativa rotulada, sem barra de limites e sem veredito", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1000,
+            totalPago: 900,
+            receitaCorrenteLiquida: 2000,
+            percentualFolha: 52,
+            rgf: null,
+            rgfAnoAnteriorMesmoPeriodo: null,
+            limitesLrf: { maximo: 54, prudencial: 51.3, alerta: 48.6 },
+          },
+        ],
+      }),
+    );
+    render(await PessoalPage(props));
+
+    const destaque = screen.getByTestId("pessoal-lrf-destaque");
+    expect(destaque).toHaveTextContent("Gasto com Pessoal (estimativa)");
+    expect(destaque).toHaveTextContent("Estimativa do portal");
+    expect(destaque).not.toHaveTextContent("Teto:");
+    expect(destaque).not.toHaveTextContent("Acima do");
+    expect(destaque).not.toHaveTextContent("Dentro dos limites");
+    expect(screen.queryByRole("meter")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("pessoal-lrf-detalhes"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("com órgão filtrado não desenha a barra de limites", async () => {
+    loadPessoalDataMock.mockResolvedValue(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: false,
+          entidadesIds: ["1"],
+        },
+        folhaData: [
+          {
+            ano: 2024,
+            totalFolha: 1000,
+            totalPago: 900,
+            receitaCorrenteLiquida: 2000,
+            percentualFolha: 20,
+            rgf: rgfDe(50, "normal"),
+            limitesLrf: { maximo: 54, prudencial: 51.3, alerta: 48.6 },
+          },
+        ],
+      }),
+    );
+    render(await PessoalPage(props));
+
+    expect(screen.getByTestId("pessoal-lrf-destaque")).toBeInTheDocument();
+    expect(screen.queryByRole("meter")).not.toBeInTheDocument();
+  });
+
   it("renderiza indicadores de tendência YoY nos KPICards quando há histórico do ano anterior", async () => {
     loadPessoalDataMock.mockResolvedValue(
       makeRaw({
@@ -118,14 +256,16 @@ describe("PessoalPage", () => {
             ano: 2024,
             totalFolha: 1100,
             totalPago: 1000,
-            rclProxy: 2000,
+            receitaCorrenteLiquida: 2000,
             percentualFolha: 55,
+            rgf: rgfDe(55, "excedido"),
+            rgfAnoAnteriorMesmoPeriodo: rgfDe(50, "alerta"),
           },
           {
             ano: 2023,
             totalFolha: 1000,
             totalPago: 900,
-            rclProxy: 2000,
+            receitaCorrenteLiquida: 2000,
             percentualFolha: 50,
           },
         ],
@@ -137,7 +277,9 @@ describe("PessoalPage", () => {
     const element = await PessoalPage(props);
     render(element);
 
-    expect(screen.getByText("+5 p.p. vs 2023")).toBeInTheDocument();
+    expect(
+      screen.getByText("+5 p.p. vs 3º quadrimestre de 2023"),
+    ).toBeInTheDocument();
     expect(screen.getByText("+10 p.p. vs 2023")).toBeInTheDocument();
     expect(screen.getByText("+10% vs 2023")).toBeInTheDocument();
   });

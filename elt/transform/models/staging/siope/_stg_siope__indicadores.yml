@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: stg_siope__indicadores
+    description: "Indicadores do SIOPE de todos os portais, no grão portal + ano + período + indicador — casts e limpeza de texto"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, ano, periodo, codigo_indicador]
+    columns:
+      - name: portal_slug
+        data_type: text
+        tests:
+          - not_null
+      - name: ano
+        data_type: integer
+        tests:
+          - not_null
+      - name: periodo
+        data_type: integer
+        tests:
+          - not_null
+      - name: tipo_periodo
+        data_type: text
+      - name: codigo_indicador
+        data_type: text
+        tests:
+          - not_null
+      - name: unidade
+        data_type: text
+      - name: valor
+        data_type: numeric
+      - name: coletado_em
+        data_type: timestamp with time zone

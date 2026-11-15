@@ -1,9 +1,20 @@
-import { fmtCompact, fmtPercent, KPICard } from "@transparencia/ui";
+import {
+  fmtCompact,
+  fmtPercent,
+  Indicator,
+  IndicatorPanel,
+  SectionHeader,
+} from "@transparencia/ui";
+import { ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
-import { KPIGrid } from "@/components/kpi-grid";
+import { DespesasAreasSection } from "@/components/despesas-areas-section";
+import { DespesasFornecedoresSection } from "@/components/despesas-fornecedores-section";
+import { PageEyebrow } from "@/components/page-eyebrow";
 import { RadarGastosSensiveis } from "@/components/radar-gastos-sensiveis";
 import { RestosAPagarVendorsChart } from "@/components/restos-a-pagar-vendors-chart";
-import { SectionHeader } from "@/components/section-header";
+import { RestosHistoricoLista } from "@/components/restos-historico-lista";
+import { SeloFonte } from "@/components/selo-fonte";
+import { ShowYourWorkButton } from "@/components/show-your-work-button";
 import { TermometroOpacidadeFiscal } from "@/components/termometro-opacidade-fiscal";
 import { createPortalMetadata } from "@/lib/metadata";
 import { loadDespesasData } from "./loader";
@@ -50,62 +61,125 @@ export default async function DespesasPage({
     isCurrentYear,
     partialPeriod,
     metricasGerais,
+    areasPorEtapa,
+    fornecedoresLinhas,
     radarGastosSensiveis,
     restosResumo,
+    restosHistorico,
+    restosPagosNoAno,
     opacidadeContabil,
+    seloFonte,
   } = viewModel;
 
   return (
     <div className="space-y-10">
       {/* Header Principal */}
-      <div>
-        <span className="inline-block font-semibold text-accent text-xs uppercase tracking-wider">
-          FISCALIZAÇÃO CIDADÃ · EXERCÍCIO {selectedYear}
-          {isCurrentYear && partialPeriod ? ` (PARCIAL, ${partialPeriod})` : ""}
-        </span>
-        <h1 className="font-bold font-serif text-3xl text-ink">
-          Despesas & Controle de Gastos
-        </h1>
-        <p className="mt-1 max-w-3xl text-sm text-subtleText leading-relaxed">
-          Onde o dinheiro municipal foi aplicado: termômetro de desembolso real,
-          radar de contas sensíveis com comparativo interanual e auditoria de
-          passivos herdados.
+      <div className="space-y-2">
+        <PageEyebrow>
+          Administrativo · Exercício {selectedYear}
+          {isCurrentYear && partialPeriod ? ` (parcial, ${partialPeriod})` : ""}
+        </PageEyebrow>
+        <h1>Despesas & Controle de Gastos</h1>
+        <p className="text-mute2 text-sm leading-relaxed">
+          Para onde foi o dinheiro da prefeitura em {selectedYear}, quanto já
+          saiu de verdade do caixa e quem recebeu.
         </p>
       </div>
 
-      {/* Ato 1: Termômetro Macro do Exercício (4 KPIs) */}
-      <KPIGrid columns={4}>
-        <KPICard
-          title="Total empenhado"
-          value={fmtCompact(metricasGerais.empenhado)}
-          subtext={`no exercício ${selectedYear}`}
-        />
-        <KPICard
-          title="Total liquidado"
-          value={fmtCompact(metricasGerais.liquidado)}
-          subtext="serviços e bens atestados"
-        />
-        <KPICard
-          title="Total pago"
-          value={fmtCompact(metricasGerais.pago)}
-          subtext="desembolso efetivo de caixa"
-        />
-        <KPICard
-          title="Taxa de quitação"
-          value={fmtPercent(metricasGerais.taxaPagamento)}
-          subtext={`${fmtPercent(metricasGerais.taxaLiquidacao)} liquidado`}
-        />
-      </KPIGrid>
+      {/* 1. Resumo: reservado, entregue, pago */}
+      <section className="space-y-6" data-testid="despesas-resumo">
+        <div className="space-y-2" data-testid="despesas-resumo-destaque">
+          <p className="eyebrow">Dinheiro que saiu (pago) em {selectedYear}</p>
+          <p className="stat-value-lg text-brand-text">
+            {fmtCompact(metricasGerais.pago)}
+          </p>
+          <p className="caption">
+            Valor que já saiu do caixa e foi pago a quem prestou o serviço ou
+            vendeu o produto.
+            {metricasGerais.empenhado > 0 && (
+              <>
+                {" "}
+                Isso é{" "}
+                <strong>{fmtPercent(metricasGerais.taxaPagamento)}</strong> do
+                que estava reservado ({fmtCompact(metricasGerais.empenhado)}). O
+                restante não é, necessariamente, dívida: pode ser serviço em
+                andamento ou pagamento previsto para os próximos meses.
+              </>
+            )}
+          </p>
+        </div>
 
-      {/* Ato 2: Radar de Gastos Sensíveis & Controle Fiscal */}
+        <IndicatorPanel>
+          <Indicator
+            label="Reservado (empenhado)"
+            value={fmtCompact(metricasGerais.empenhado)}
+            note="Valor que a prefeitura separou no orçamento para pagar contratos e compras."
+          />
+          <Indicator
+            label="Serviço entregue (liquidado)"
+            value={fmtCompact(metricasGerais.liquidado)}
+            note="Parte do reservado em que o serviço ou produto já foi recebido e conferido, mesmo que ainda não tenha sido pago."
+          />
+        </IndicatorPanel>
+
+        <details className="group">
+          <summary className="text-ink flex cursor-pointer items-center justify-between gap-2 text-sm font-semibold select-none">
+            <span>
+              Como ler estes números: reservado, entregue e pago não se somam
+            </span>
+            <ChevronDown className="text-mute2 h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="text-ink mt-4 space-y-2.5 text-sm leading-relaxed">
+            <p>
+              Uma compra pública tem três passos: a prefeitura{" "}
+              <strong>reserva</strong> o valor (empenho),{" "}
+              <strong>confere</strong> que recebeu o que pediu (liquidação) e
+              então <strong>paga</strong>.
+            </p>
+            <p>
+              Por isso, dentro do mesmo ano, o valor pago é igual ou menor que o
+              entregue, que é igual ou menor que o reservado. A diferença
+              costuma ser serviço ainda em andamento ou pagamento previsto para
+              os próximos meses.
+            </p>
+          </div>
+        </details>
+        <SeloFonte selo={seloFonte} />
+      </section>
+
+      {/* 2. Para quais áreas o dinheiro foi */}
+      {areasPorEtapa.pago.length > 0 && (
+        <section className="space-y-6">
+          <SectionHeader
+            title="Para quais áreas o dinheiro foi"
+            description="Saúde, educação, obras e outras áreas, da maior para a menor. Toque numa área para ver os detalhes."
+          />
+          <DespesasAreasSection areasPorEtapa={areasPorEtapa} />
+          <SeloFonte selo={seloFonte} showWarning={false} />
+        </section>
+      )}
+
+      {/* 3. Quem mais recebeu */}
+      {fornecedoresLinhas.length > 0 && (
+        <section className="space-y-6">
+          <SectionHeader
+            title="Quem mais recebeu"
+            description={`As empresas e pessoas que mais receberam em ${selectedYear}, com a parte de cada uma no total pago. A folha de pagamento dos servidores não entra nesta lista.`}
+          />
+          <DespesasFornecedoresSection
+            fornecedores={fornecedoresLinhas}
+            portalSlug={portalSlug}
+            ano={selectedYear}
+          />
+          <SeloFonte selo={seloFonte} showWarning={false} />
+        </section>
+      )}
+
+      {/* 4. Gastos que merecem acompanhamento */}
       <section className="space-y-6">
         <SectionHeader
-          title="Radar de Gastos Sensíveis & Controle Fiscal"
-          description={
-            isCurrentYear
-              ? `Acompanhamento das contas mais vigiadas pelo munícipe e peso relativo no orçamento pago de ${selectedYear}.`
-              : `Acompanhamento das contas mais vigiadas pelo munícipe e variação do desembolso em relação a ${radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}.`
-          }
+          title="Gastos que merecem acompanhamento"
+          description={`Contas que a população mais acompanha: quanto cada categoria pesa no total pago em ${selectedYear} e como o valor pago mudou em relação a ${radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}.`}
         />
 
         <RadarGastosSensiveis
@@ -114,7 +188,6 @@ export default async function DespesasPage({
           anoAnterior={radarGastosSensiveis?.anoAnterior ?? selectedYear - 1}
           portalSlug={portalSlug}
           entidades={resolvedSearchParams.entidades}
-          isCurrentYear={isCurrentYear}
           totalDespesasPagas={metricasGerais.pago}
         />
 
@@ -126,69 +199,148 @@ export default async function DespesasPage({
             entidades={resolvedSearchParams.entidades}
           />
         )}
+        <SeloFonte selo={seloFonte} showWarning={false} />
       </section>
 
-      {/* Ato 4: Restos a Pagar & Dívidas Herdadas */}
+      {/* 5. Dívidas de anos anteriores */}
       <section className="space-y-6">
         <SectionHeader
-          title="Restos a Pagar (Dívidas de Anos Anteriores)"
-          description="Despesas contratadas em exercícios passados ainda não quitadas pela prefeitura."
+          title="Dívidas de anos anteriores"
+          description={`Compras feitas em anos passados que ainda não foram pagas e foram levadas para ${selectedYear}.`}
         />
 
-        {/* Banner Informativo Visível */}
-        <div className="space-y-2.5 rounded-xl border-[#2B5278] border-l-4 bg-[#F0F6FD] p-4 text-[#1B3A5A] text-sm leading-relaxed">
-          <p>
-            São despesas empenhadas em anos anteriores ainda não pagas —
-            compromissos legais que continuam válidos até serem quitados ou
-            cancelados.
-          </p>
-          <div className="border-[#d0e2f7] border-t pt-2.5 text-[#20456c] text-xs">
-            <strong className="mb-1 block font-semibold text-[#132c46]">
-              Categorização Contábil (Norma STN/MCASP):
-            </strong>
-            <ul className="space-y-1">
-              <li>
-                • <strong>Restos Processados:</strong> Dívidas de serviços já
-                prestados ou bens entregues e liquidados (com direito adquirido
-                do credor).
-              </li>
-              <li>
-                • <strong>Restos Não Processados:</strong> Obras ou contratos em
-                andamento pendentes de medição e liquidação.
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* 3 KPI Grid */}
-        <KPIGrid columns={3}>
-          <KPICard
-            title="Total pendente"
-            value={
-              <span className="font-bold text-amber-900">
-                {fmtCompact(restosResumo.totalPendente)}
-              </span>
-            }
-            subtext={
+        <IndicatorPanel tone="warn">
+          <Indicator
+            label="Total pendente"
+            value={fmtCompact(restosResumo.totalPendente)}
+            tone="warn"
+            note={
               restosResumo.totalLiquidadoPendente > 0
                 ? `${fmtCompact(restosResumo.totalLiquidadoPendente)} liquidados`
                 : `pendentes a ${restosResumo.fornecedoresAguardando} fornecedores`
             }
           />
-          <KPICard
-            title="Fornecedores aguardando"
+          <Indicator
+            label="Fornecedores aguardando"
             value={restosResumo.fornecedoresAguardando}
+            note="Empresas e pessoas com valores em aberto."
           />
-          <KPICard
-            title="Pendência mais antiga desde"
+          <Indicator
+            label="Pendência mais antiga desde"
             value={restosResumo.dividaMaisAntigaAno}
+            note="Ano estimado: o portal não informa em que ano a conta surgiu. Quanto mais antiga, mais atenção merece."
           />
-        </KPIGrid>
+          <Indicator
+            label={`Já pago em ${selectedYear}`}
+            value={fmtCompact(restosPagosNoAno)}
+            note={
+              isCurrentYear
+                ? "Pago até agora neste ano por contas de anos anteriores."
+                : "Pago no ano por contas de anos anteriores."
+            }
+          />
+        </IndicatorPanel>
+
+        {restosHistorico.length > 0 && (
+          <div className="space-y-3" data-testid="restos-historico">
+            <h3>
+              A Prefeitura está pagando as contas de anos anteriores? (
+              {restosHistorico[0].ano}–
+              {restosHistorico[restosHistorico.length - 1].ano})
+            </h3>
+            <RestosHistoricoLista linhas={restosHistorico} />
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th scope="col">Ano</th>
+                    <th scope="col" className="numeric">
+                      Contas levadas para o ano
+                    </th>
+                    <th scope="col" className="numeric">
+                      Pago no ano
+                    </th>
+                    <th scope="col" className="numeric">
+                      Ainda a pagar
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {restosHistorico.map((linha) => (
+                    <tr key={linha.ano}>
+                      <td>{linha.ano}</td>
+                      <td className="numeric">
+                        {fmtCompact(linha.restosInscritos)}
+                      </td>
+                      <td className="numeric">
+                        {fmtCompact(linha.restosPagos)}
+                      </td>
+                      <td className="numeric">
+                        {fmtCompact(linha.saldoRestos)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="caption">
+              Cada linha mostra a situação daquele ano. O que não é pago passa
+              para o ano seguinte, então a mesma conta aparece em mais de um
+              ano: somar as linhas contaria a mesma conta várias vezes. Só "Pago
+              no ano" pode ser somado.
+            </p>
+          </div>
+        )}
+
+        <ShowYourWorkButton
+          portalSlug={portalSlug}
+          tipo="restos_a_pagar"
+          ano={selectedYear}
+          entidades={resolvedSearchParams.entidades}
+          variante="link"
+          rotulo={`Baixar os restos a pagar de ${selectedYear} (planilha CSV)`}
+          legenda="Traz cada conta de anos anteriores com fornecedor, valor reservado, entregue, pago e o que ainda falta pagar, na situação do ano escolhido."
+        />
 
         {/* Top 5 Credores com Maior Saldo Pendente */}
         {restosResumo.topFornecedores.length > 0 && (
-          <RestosAPagarVendorsChart items={restosResumo.topFornecedores} />
+          <RestosAPagarVendorsChart
+            items={restosResumo.topFornecedores}
+            portalSlug={portalSlug}
+            ano={selectedYear}
+          />
         )}
+
+        <details className="group">
+          <summary className="text-ink flex cursor-pointer items-center justify-between gap-2 text-sm font-semibold select-none">
+            <span>O que são restos a pagar?</span>
+            <ChevronDown className="text-mute2 h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="text-ink mt-4 space-y-2.5 text-sm leading-relaxed">
+            <p>
+              É a conta que sobra de um ano para o outro. Isso é comum:
+              contratos assinados no fim do ano podem ser pagos no começo do
+              seguinte.
+            </p>
+            <p>Há dois tipos:</p>
+            <ul className="space-y-1.5">
+              <li>
+                • <strong>Já entregues e conferidos</strong> (restos
+                processados): o serviço ou o bem já foi recebido e falta só
+                pagar.
+              </li>
+              <li>
+                • <strong>Ainda em andamento</strong> (restos não processados):
+                dependem de conferência antes do pagamento.
+              </li>
+            </ul>
+            <p className="text-mute2">
+              Ter resto a pagar não indica erro. Boa parte é prazo normal de
+              execução. Para entender cada caso, vale consultar o processo.
+            </p>
+          </div>
+        </details>
+        <SeloFonte selo={seloFonte} showWarning={false} />
       </section>
     </div>
   );

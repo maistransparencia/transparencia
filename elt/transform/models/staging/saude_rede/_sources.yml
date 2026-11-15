@@ -1,0 +1,60 @@
+version: 2
+
+sources:
+  - name: raw_saude_rede
+    schema: raw_saude_rede
+    description: "Rede de saúde (CNES leitos e profissionais) e população residente, agregadas na extração a partir da API de dados abertos do Ministério da Saúde. Não há nome de pessoa física."
+    tables:
+      - name: leitos_competencia
+        description: "Leitos por tipo de leito em uma competência (AAAAMM) por ano; ano sem resposta do CNES não tem linha"
+        meta:
+          primary_key: [portal_slug, competencia, tipo_leito]
+        columns:
+          - name: portal_slug
+          - name: competencia
+          - name: tipo_leito
+          - name: total_leitos_existentes
+          - name: total_leitos_sus
+          - name: data_coleta
+
+      - name: profissionais_competencia
+        description: "Vínculos e pessoas distintas de profissionais de saúde em uma competência (AAAAMM) por ano"
+        meta:
+          primary_key: [portal_slug, competencia]
+        columns:
+          - name: portal_slug
+          - name: competencia
+          - name: total_vinculos
+          - name: total_profissionais
+          - name: total_profissionais_sus
+          - name: data_coleta
+
+      - name: populacao_residente
+        description: "População residente do ano (soma de todas as idades e sexos)"
+        meta:
+          primary_key: [portal_slug, ano]
+        columns:
+          - name: portal_slug
+          - name: ano
+          - name: total_populacao
+          - name: data_coleta
+
+      - name: sia_competencia
+        description: "Procedimentos ambulatoriais pagos pelo SUS (SIA) por competência (AAAAMM), somados na extração; competência sem resposta não tem linha"
+        meta:
+          primary_key: [portal_slug, competencia]
+        columns:
+          - name: portal_slug
+          - name: competencia
+          - name: total_procedimentos_ambulatoriais
+          - name: data_coleta
+
+      - name: sih_competencia
+        description: "Internações (AIH) pagas pelo SUS (SIH) por competência (AAAAMM), somadas na extração; competência sem resposta não tem linha"
+        meta:
+          primary_key: [portal_slug, competencia]
+        columns:
+          - name: portal_slug
+          - name: competencia
+          - name: total_internacoes
+          - name: data_coleta

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 
 export interface ShareButtonProps {
-  variant?: "sidebar" | "compact";
+  variant?: "sidebar" | "compact" | "inline";
   className?: string;
   onShare?: (payload: { method: "native" | "clipboard"; url: string }) => void;
   title?: string;
@@ -110,6 +110,33 @@ export function ShareButton({
     }
   };
 
+  if (variant === "inline") {
+    return (
+      <button
+        type="button"
+        onClick={handleShare}
+        className={cn(
+          "text-mute hover:text-ink inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-sm font-semibold",
+          copied && "text-ok-text hover:text-ok-text",
+          className,
+        )}
+      >
+        {copied ? (
+          <Check className="h-4 w-4" aria-hidden="true" />
+        ) : (
+          <Share2 className="h-4 w-4" aria-hidden="true" />
+        )}
+        {copied ? (
+          <span role="status" aria-live="polite">
+            Link copiado!
+          </span>
+        ) : (
+          "Compartilhar"
+        )}
+      </button>
+    );
+  }
+
   if (variant === "compact") {
     return (
       <div className="relative inline-flex items-center">
@@ -117,8 +144,8 @@ export function ShareButton({
           type="button"
           onClick={handleShare}
           className={cn(
-            "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-borderLine bg-white text-mutedText shadow-xs transition-colors hover:bg-gray-50 hover:text-ink active:scale-95",
-            copied && "border-emerald-300 bg-emerald-50 text-emerald-600",
+            "border-line bg-page text-mute2 hover:text-ink relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition-colors active:scale-95",
+            copied && "border-ok-text text-ok-text",
             className,
           )}
           aria-label={
@@ -129,7 +156,7 @@ export function ShareButton({
           title={copied ? "Link copiado!" : "Compartilhar página"}
         >
           {copied ? (
-            <Check className="h-3.5 w-3.5 text-emerald-600" />
+            <Check className="text-ok-text h-3.5 w-3.5" />
           ) : (
             <Share2 className="h-3.5 w-3.5" />
           )}
@@ -137,7 +164,7 @@ export function ShareButton({
         {copied && (
           <span
             role="status"
-            className="fade-in zoom-in-95 pointer-events-none absolute right-0 bottom-full z-50 mb-1.5 animate-in whitespace-nowrap rounded-md bg-ink px-2 py-0.5 font-medium text-[10px] text-white shadow-md"
+            className="fade-in zoom-in-95 animate-in bg-ink text-onink pointer-events-none absolute right-0 bottom-full z-50 mb-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium whitespace-nowrap shadow-md"
           >
             Link copiado!
           </span>
@@ -151,9 +178,8 @@ export function ShareButton({
       type="button"
       onClick={handleShare}
       className={cn(
-        "flex w-full items-center justify-center gap-2 rounded-lg border border-borderLine bg-white px-3 py-2.5 font-medium text-ink text-xs shadow-2xs transition-colors hover:bg-gray-50 hover:text-[#1d64d8] active:scale-[0.99]",
-        copied &&
-          "border-emerald-300 bg-emerald-50/60 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800",
+        "border-line bg-page text-ink hover:border-mute3 flex w-full items-center justify-center gap-2 rounded-md border px-3 py-2.5 text-xs font-medium transition-colors active:scale-[0.99]",
+        copied && "border-ok-text text-ok-text hover:text-ok-text",
         className,
       )}
       aria-label={
@@ -165,18 +191,18 @@ export function ShareButton({
     >
       {copied ? (
         <>
-          <Check className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+          <Check className="text-ok-text h-3.5 w-3.5 shrink-0" />
           <span
             role="status"
             aria-live="polite"
-            className="font-semibold text-emerald-700"
+            className="text-ok-text font-semibold"
           >
             Link copiado!
           </span>
         </>
       ) : (
         <>
-          <Share2 className="h-3.5 w-3.5 shrink-0 text-mutedText" />
+          <Share2 className="text-mute2 h-3.5 w-3.5 shrink-0" />
           <span>Compartilhar página</span>
         </>
       )}

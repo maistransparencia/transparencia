@@ -150,7 +150,7 @@ describe("CityInterestBlock", () => {
       expect(props).toEqual({ fields: ["uf", "consentimento"] });
     });
 
-    it("registra submitted com uf e nunca envia e-mail ou cidade", async () => {
+    it("registra submitted com uf e cidade e nunca envia e-mail", async () => {
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({ success: true }),
@@ -166,7 +166,10 @@ describe("CityInterestBlock", () => {
       await waitFor(() =>
         expect(calls("city_interest_submitted")).toHaveLength(1),
       );
-      expect(calls("city_interest_submitted")[0][1]).toEqual({ uf: "MG" });
+      expect(calls("city_interest_submitted")[0][1]).toEqual({
+        uf: "MG",
+        cidade: "cidade exemplo",
+      });
       fireEvent.click(
         screen.getByRole("button", { name: "Voltar para a lista de cidades" }),
       );

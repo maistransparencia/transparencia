@@ -8,22 +8,21 @@ import {
   resolvePortalSlug,
   Sidebar,
 } from "@transparencia/ui";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import posthog from "posthog-js";
+import { useEffect, useTransition } from "react";
 import { EntidadeSelectCompact } from "@/components/entidade-select-compact";
 import { useMobileNav } from "@/components/mobile-nav-context";
-import { PushNotificationSettings } from "@/components/push-notification-settings";
-import { PwaInstallButton } from "@/components/pwa-installer";
+import { env } from "@/env";
 
 interface SidebarWrapperProps {
   portalName?: string;
-  stateUF?: string;
   portalTitle?: string;
   anoInicial?: number;
   lastExtractionDate?: string;
   officialPortalUrl?: string;
-  brasaoAsset?: string;
   entidades?: MultiSelectOption[];
   portais?: PortalOption[];
   portalSlug?: string;
@@ -36,12 +35,10 @@ interface SidebarWrapperProps {
 
 export function SidebarWrapper({
   portalName,
-  stateUF,
   portalTitle,
   anoInicial,
   lastExtractionDate: _lastExtractionDate,
   officialPortalUrl: _officialPortalUrl,
-  brasaoAsset,
   entidades,
   portalSlug,
   portais,
@@ -57,14 +54,31 @@ export function SidebarWrapper({
   const isRootPage = !pathname || pathname === "/";
   const searchParams = useSearchParams();
   const currentYear = String(new Date().getFullYear());
+  // O nuqs atualiza a URL na hora e só depois o servidor devolve a página;
+  // a transição fica pendente até o novo conteúdo chegar, e a barra acompanha.
+  const [isReloadingFilters, startFiltersTransition] = useTransition();
   const [ano, setAno] = useQueryState(
     "ano",
-    parseAsString.withDefault(currentYear).withOptions({ shallow: false }),
+    parseAsString.withDefault(currentYear).withOptions({
+      shallow: false,
+      startTransition: startFiltersTransition,
+    }),
   );
   const [entidadesParam, setEntidadesParam] = useQueryState(
     "entidades",
-    parseAsString.withOptions({ shallow: false }),
+    parseAsString.withOptions({
+      shallow: false,
+      startTransition: startFiltersTransition,
+    }),
   );
+
+  useEffect(() => {
+    if (!isReloadingFilters) return;
+    BProgress.start();
+    return () => {
+      BProgress.done();
+    };
+  }, [isReloadingFilters]);
 
   const selectedEntidades = entidadesParam
     ? entidadesParam.split(",").filter(Boolean)
@@ -86,9 +100,7 @@ export function SidebarWrapper({
 
   const activePortal = portais?.find((p) => p.portalSlug === activePortalSlug);
   const effectivePortalName = activePortal?.displayName || portalName;
-  const effectiveStateUF = activePortal?.uf || stateUF;
   const effectiveAnoInicial = activePortal?.anoInicial ?? anoInicial;
-  const effectiveBrasaoAsset = activePortal?.brasaoAsset || brasaoAsset;
   const effectivePrevidencia = activePortal?.previdencia ?? previdencia;
   const effectivePortalTitle = effectivePortalName
     ? `Contas da ${effectivePortalName}`
@@ -213,11 +225,12 @@ export function SidebarWrapper({
 
   return (
     <Sidebar
+      linkComponent={Link}
+      currentPathname={pathname}
+      brandName={env.NEXT_PUBLIC_PROJECT_NAME}
       portalName={effectivePortalName}
-      stateUF={effectiveStateUF}
       portalTitle={effectivePortalTitle}
       anoInicial={effectiveAnoInicial}
-      brasaoAsset={effectiveBrasaoAsset}
       entidades={effectiveEntidades}
       portalSlug={activePortalSlug}
       portais={portais}
@@ -226,10 +239,6 @@ export function SidebarWrapper({
       onExerciceChange={handleExerciceChange}
       selectedEntidades={selectedEntidades}
       onEntidadesChange={handleEntidadesChange}
-      pushNotificationSlot={
-        <PushNotificationSettings portalSlug={activePortalSlug} />
-      }
-      pwaInstallSlot={<PwaInstallButton variant="sidebar" />}
       mobileHeaderRightSlot={
         effectiveEntidades && effectiveEntidades.length > 0 ? (
           <EntidadeSelectCompact

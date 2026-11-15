@@ -1,7 +1,7 @@
 "use client";
 
 import type { SituacaoObraFiltro } from "@transparencia/db";
-import { fmtCompact } from "@transparencia/ui";
+import { fmtCompact, SectionHeader } from "@transparencia/ui";
 import { ExternalLink, MapPinOff, X } from "lucide-react";
 import nextDynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -18,6 +18,7 @@ import type {
   ObraMarkerItem,
   ObrasViewModel,
 } from "@/app/[portalSlug]/obras/view-model";
+import { urlObraCipi } from "@/lib/constants/fontes-oficiais";
 import { ObrasDetalheModal } from "./obras-detalhe-modal";
 
 function normalizeText(text: string): string {
@@ -74,8 +75,8 @@ const ObrasMapaInterativo = nextDynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full min-h-[580px] w-full animate-pulse items-center justify-center bg-slate-50">
-        <span className="font-medium text-slate-400 text-sm">
+      <div className="bg-line2 flex h-full min-h-[580px] w-full animate-pulse items-center justify-center">
+        <span className="text-mute2 text-sm font-medium">
           Carregando mapa interativo...
         </span>
       </div>
@@ -99,31 +100,31 @@ const STATUS_FILTROS: {
   {
     id: "em_execucao",
     label: "Em execução",
-    dotColor: "bg-blue-600",
+    dotColor: "bg-brand-fill",
     countKey: "emExecucao",
   },
   {
     id: "paralisada",
     label: "Paralisada",
-    dotColor: "bg-rose-500",
+    dotColor: "bg-danger-fill",
     countKey: "paralisadas",
   },
   {
     id: "concluida",
     label: "Concluída",
-    dotColor: "bg-emerald-600",
+    dotColor: "bg-ok-fill",
     countKey: "concluidas",
   },
   {
     id: "cadastrada",
     label: "Cadastrada",
-    dotColor: "bg-slate-400",
+    dotColor: "bg-mute3",
     countKey: "cadastradas",
   },
   {
     id: "cancelada",
     label: "Cancelada",
-    dotColor: "bg-zinc-400",
+    dotColor: "bg-mute3",
     countKey: "canceladas",
   },
 ];
@@ -139,6 +140,12 @@ export function ObrasInteractiveSection({
   const [_isPending, startTransition] = useTransition();
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardListRef = useRef<HTMLDivElement | null>(null);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    };
+  }, []);
 
   const [selectedStatus, setSelectedStatus] = useState<SituacaoObraFiltro>(
     viewModel.filtros.status,
@@ -146,6 +153,25 @@ export function ObrasInteractiveSection({
   const [buscaText, setBuscaText] = useState<string>(
     viewModel.filtros.busca ?? "",
   );
+  // Filtros que este componente já enviou à URL e cujo eco do servidor ainda não chegou
+  const pendingFiltrosRef = useRef<{ status: string; busca: string }[]>([]);
+  useEffect(() => {
+    const status = viewModel.filtros.status;
+    const busca = viewModel.filtros.busca ?? "";
+    const pending = pendingFiltrosRef.current;
+    const echoIndex = pending.findIndex(
+      (f) => f.status === status && f.busca === busca,
+    );
+    if (echoIndex >= 0) {
+      // Eco de uma mudança feita aqui: descarta até ela e não sobrescreve o estado local
+      pendingFiltrosRef.current = pending.slice(echoIndex + 1);
+      return;
+    }
+    // Navegação externa (ex.: link "Ver no mapa" do hero): alinha status e busca com a URL
+    pendingFiltrosRef.current = [];
+    setSelectedStatus(status);
+    setBuscaText(busca);
+  }, [viewModel.filtros.status, viewModel.filtros.busca]);
   const [internalSelectedObraId, setInternalSelectedObraId] = useState<
     string | null
   >(null);
@@ -195,7 +221,7 @@ export function ObrasInteractiveSection({
         nomeObra: o.nomeObra,
         situacao: o.situacao,
         situacaoLabel: o.situacaoLabel,
-        situacaoColorHex: o.situacaoColorHex,
+        situacaoCorPreenchimento: o.situacaoCorPreenchimento,
         latitude: o.latitude as number,
         longitude: o.longitude as number,
         isUrbana: o.isUrbana,
@@ -225,6 +251,13 @@ export function ObrasInteractiveSection({
       params.delete("busca");
     }
 
+    pendingFiltrosRef.current = [
+      ...pendingFiltrosRef.current,
+      {
+        status: novoStatus,
+        busca: novoTexto.trim().length >= 2 ? novoTexto.trim() : "",
+      },
+    ];
     startTransition(() => {
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
@@ -270,7 +303,8 @@ export function ObrasInteractiveSection({
       if (!nextId) return;
 
       // Scroll suave do item na lista ou carrossel se selecionado pelo mapa
-      setTimeout(() => {
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => {
         const el = document.getElementById(`obra-item-${idProjeto}`);
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -356,39 +390,6 @@ export function ObrasInteractiveSection({
     };
   }, [viewModel.obras, handleSelectObra]);
 
-  // Escuta evento para abrir modal a partir de outros componentes (ex: ObrasParalisadasSection)
-  useEffect(() => {
-    const handleCustomDetalhes = (e: Event) => {
-      const customEvent = e as CustomEvent<{ idProjeto: string }>;
-      if (customEvent.detail?.idProjeto) {
-        const found = viewModel.obras.find(
-          (o) => o.idProjeto === customEvent.detail.idProjeto,
-        );
-        if (found) {
-          handleOpenDetalheModal(found);
-        }
-      }
-    };
-    window.addEventListener("obra:abrir-detalhes", handleCustomDetalhes);
-    return () => {
-      window.removeEventListener("obra:abrir-detalhes", handleCustomDetalhes);
-    };
-  }, [viewModel.obras, handleOpenDetalheModal]);
-
-  // Permite que seções externas (como ObrasParalisadasSection) acionem a seleção de obra no mapa
-  useEffect(() => {
-    const handleCustomSelect = (e: Event) => {
-      const customEvent = e as CustomEvent<{ idProjeto: string }>;
-      if (customEvent.detail?.idProjeto) {
-        handleSelectObra(customEvent.detail.idProjeto);
-      }
-    };
-    window.addEventListener("obra-selecionada", handleCustomSelect);
-    return () => {
-      window.removeEventListener("obra-selecionada", handleCustomSelect);
-    };
-  }, [handleSelectObra]);
-
   const subtextoTerritorio = (() => {
     if (viewMode === "territorio") {
       return "Exibe todas as intervenções mapeadas no território municipal e em rodovias.";
@@ -406,32 +407,18 @@ export function ObrasInteractiveSection({
   return (
     <section
       id="secao-mapa-obras"
-      className="space-y-4 border-ink border-t-2 pt-8"
+      className="scroll-mt-20 space-y-4 lg:scroll-mt-4"
     >
-      {/* Cabeçalho Externo: Título + Subtexto/Fonte à Esquerda | Seletor de Território à Direita */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-bold font-serif text-2xl text-slate-900">
-              Onde estão as obras
-            </h2>
-            <a
-              href="https://dd-publico.serpro.gov.br/extensions/painel/ObrasgovbrIntervencao.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-medium text-[11px] text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
-            >
-              <span>Fonte: ObrasGov.br</span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
-          <p className="mt-1 text-slate-600 text-sm">{subtextoTerritorio}</p>
-        </div>
-
+      <SectionHeader
+        title="Onde estão as obras"
+        description={subtextoTerritorio}
+        className="pb-1"
+      />
+      <div className="lg:hidden">
         {/* Controles à Direita: Mobile Toggle [Mapa | Lista] ou Desktop Selector [Área urbana | Todo o território] */}
-        <div className="flex items-center gap-2">
+        <div>
           {/* Mobile Toggle: [Mapa | Lista] (apenas em telas < lg) */}
-          <div className="flex items-center rounded-lg border border-slate-200 bg-slate-100 p-1 lg:hidden">
+          <div className="border-line bg-line2 grid grid-cols-2 gap-1 rounded-md border p-1 lg:hidden">
             <button
               type="button"
               onClick={() => {
@@ -440,10 +427,10 @@ export function ObrasInteractiveSection({
                   window.dispatchEvent(new Event("resize"));
                 }, 50);
               }}
-              className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                 mobileTab === "mapa"
-                  ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
+                  ? "border-line bg-page text-ink border"
+                  : "text-mute hover:bg-track hover:text-ink"
               }`}
             >
               Mapa
@@ -451,53 +438,27 @@ export function ObrasInteractiveSection({
             <button
               type="button"
               onClick={() => setMobileTab("lista")}
-              className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                 mobileTab === "lista"
-                  ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
+                  ? "border-line bg-page text-ink border"
+                  : "text-mute hover:bg-track hover:text-ink"
               }`}
             >
               Lista
-            </button>
-          </div>
-
-          {/* Desktop Selector: Área Urbana / Todo o Território (apenas em telas lg+) */}
-          <div className="hidden shrink-0 items-center space-x-1 rounded-lg border border-slate-200 bg-slate-100 p-1 lg:flex">
-            <button
-              type="button"
-              onClick={() => setViewMode("urbana")}
-              className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
-                viewMode === "urbana"
-                  ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
-              }`}
-            >
-              Área urbana
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("territorio")}
-              className={`rounded-md px-3.5 py-1.5 font-semibold text-xs transition-colors ${
-                viewMode === "territorio"
-                  ? "border border-slate-200/80 bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
-              }`}
-            >
-              Todo o território
             </button>
           </div>
         </div>
       </div>
 
       {/* CARD INTEGRADO ÚNICO: Filtros no Topo, Lista à Esquerda e Mapa à Direita */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-        {/* Barra Superior de Filtros e Busca (Integrada ao Card) */}
-        <div className="flex flex-col gap-4 border-slate-200 border-b p-4 md:flex-row md:items-center md:justify-between">
+      <div className="space-y-4">
+        {/* Barra de filtros, sem moldura */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           {/* Pílulas de Status */}
           <div
             role="tablist"
             aria-label="Filtro por situação da obra"
-            className="flex flex-wrap items-center gap-1.5"
+            className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:items-center"
           >
             {STATUS_FILTROS.map((f) => {
               const isSelected = selectedStatus === f.id;
@@ -515,10 +476,10 @@ export function ObrasInteractiveSection({
                   aria-selected={isSelected}
                   type="button"
                   onClick={() => handleStatusChange(f.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium text-xs transition-colors ${
+                  className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:justify-start ${
                     isSelected
-                      ? "bg-slate-900 text-white shadow-xs"
-                      : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      ? "border-ink bg-ink text-onink border"
+                      : "border-line bg-page text-mute hover:bg-line2 border"
                   }`}
                 >
                   {f.dotColor && !isSelected && (
@@ -533,42 +494,68 @@ export function ObrasInteractiveSection({
             })}
           </div>
 
-          {/* Campo de Busca */}
-          <div className="relative w-full md:w-64">
-            <input
-              type="text"
-              value={buscaText}
-              onChange={handleBuscaChange}
-              placeholder="Buscar obra ou órgão"
-              aria-label="Buscar obras públicas"
-              className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pr-8 pl-3 text-slate-900 text-xs placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
-            />
-            {buscaText.length > 0 && (
-              <button
-                type="button"
-                onClick={handleClearBusca}
-                aria-label="Limpar busca"
-                className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-700"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
+          {/* Desktop Selector: Área Urbana / Todo o Território (apenas em telas lg+) */}
+          <div className="border-line bg-line2 hidden shrink-0 items-center space-x-1 rounded-md border p-1 lg:flex">
+            <button
+              type="button"
+              onClick={() => setViewMode("urbana")}
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                viewMode === "urbana"
+                  ? "border-line bg-page text-ink border"
+                  : "text-mute hover:bg-track hover:text-ink"
+              }`}
+            >
+              Área urbana
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("territorio")}
+              className={`cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                viewMode === "territorio"
+                  ? "border-line bg-page text-ink border"
+                  : "text-mute hover:bg-track hover:text-ink"
+              }`}
+            >
+              Todo o território
+            </button>
           </div>
         </div>
 
         {/* Área Principal Integrada: Lista na Esquerda | Mapa na Direita */}
-        <div className="grid min-h-[580px] grid-cols-1 lg:grid-cols-12">
+        <div className="border-line bg-page grid min-h-[580px] grid-cols-1 overflow-hidden rounded-md border lg:grid-cols-12">
           {/* Coluna de Lista:
               - No desktop (lg+): sempre visível ocupando 5 colunas com borda à direita
               - No mobile (< lg): visível apenas se mobileTab === "lista", ocupando largura total (100%)
           */}
           <div
-            className={`flex-col border-slate-200 lg:col-span-5 lg:flex lg:border-r ${
+            className={`border-line flex-col lg:col-span-5 lg:flex lg:border-r ${
               mobileTab === "lista" ? "flex w-full" : "hidden"
             }`}
           >
+            {/* Campo de Busca */}
+            <div className="border-line relative w-full border-b">
+              <input
+                type="text"
+                value={buscaText}
+                onChange={handleBuscaChange}
+                placeholder="Buscar obra ou órgão"
+                aria-label="Buscar obras públicas"
+                className="bg-page text-ink placeholder:text-mute2 focus-visible:outline-brand-fill w-full py-3 pr-10 pl-4 text-xs focus-visible:outline-2 focus-visible:-outline-offset-2"
+              />
+              {buscaText.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearBusca}
+                  aria-label="Limpar busca"
+                  className="text-mute2 hover:text-mute absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded p-0.5"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
             {/* Sub-cabeçalho da Lista */}
-            <div className="flex items-center justify-between border-slate-100 border-b px-4 py-2.5 text-slate-500 text-xs">
+            <div className="border-line text-mute2 flex items-center justify-between border-b px-4 py-2.5 text-xs">
               <span className="font-medium tabular-nums">
                 {filteredObras.length} de {viewModel.obras.length} obras
               </span>
@@ -578,15 +565,15 @@ export function ObrasInteractiveSection({
             {/* Lista Scrollável de Obras */}
             <div
               ref={cardListRef}
-              className="max-h-[580px] flex-1 divide-y divide-slate-100 overflow-y-auto"
+              className="divide-line max-h-[580px] flex-1 divide-y overflow-y-auto"
             >
               {filteredObras.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <MapPinOff className="mb-2 h-7 w-7 text-slate-400" />
-                  <p className="font-medium text-slate-700 text-xs">
+                  <MapPinOff className="text-mute2 mb-2 h-7 w-7" />
+                  <p className="text-mute text-xs font-medium">
                     Nenhuma obra encontrada
                   </p>
-                  <p className="mt-0.5 text-[11px] text-slate-500">
+                  <p className="text-mute2 mt-0.5 text-xs">
                     Tente alterar os filtros de situação ou o termo de busca.
                   </p>
                 </div>
@@ -600,33 +587,35 @@ export function ObrasInteractiveSection({
                       key={obra.idProjeto}
                       id={`obra-item-${obra.idProjeto}`}
                       className={`w-full p-4 text-left transition-colors ${
-                        isSelected ? "bg-slate-50/90" : "hover:bg-slate-50/60"
+                        isSelected ? "bg-line2" : "hover:bg-line2"
                       }`}
                     >
                       <button
                         type="button"
                         onClick={() => handleSelectObra(obra.idProjeto)}
-                        className="w-full text-left"
+                        className="w-full cursor-pointer text-left"
                       >
                         {/* Linha 1: Dot de Status + Título à Esquerda | Valor Compacto à Direita */}
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-2">
                             <span
                               className="mt-1 h-2 w-2 shrink-0 rounded-full"
-                              style={{ backgroundColor: obra.situacaoColorHex }}
+                              style={{
+                                backgroundColor: obra.situacaoCorPreenchimento,
+                              }}
                             />
-                            <div className="line-clamp-2 font-bold text-slate-900 text-xs leading-snug sm:text-sm">
+                            <div className="text-ink line-clamp-2 text-xs leading-snug font-bold sm:text-sm">
                               {obra.nomeObra}
                             </div>
                           </div>
 
-                          <span className="shrink-0 font-bold text-slate-900 text-xs tabular-nums sm:text-sm">
+                          <span className="text-ink shrink-0 text-xs font-bold tabular-nums sm:text-sm">
                             {fmtCompact(obra.valorInvestimentoPrevisto)}
                           </span>
                         </div>
 
                         {/* Linha 2: Situação · Órgão Executor à Esquerda | Percentual à Direita */}
-                        <div className="mt-1 flex items-center justify-between pl-4 text-slate-500 text-xs">
+                        <div className="text-mute2 mt-1 flex items-center justify-between pl-4 text-xs">
                           <span className="truncate">
                             {obra.situacaoLabel} ·{" "}
                             {obra.executorNome || obra.orgaoResponsavel}
@@ -640,11 +629,11 @@ export function ObrasInteractiveSection({
 
                         {/* Linha 3: Barra de Progresso Físico */}
                         <div className="mt-2 pl-4">
-                          <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div className="bg-line2 h-1 w-full overflow-hidden">
                             <div
                               style={{
                                 width: `${Math.min(100, Math.max(0, pct))}%`,
-                                backgroundColor: obra.situacaoColorHex,
+                                backgroundColor: obra.situacaoCorPreenchimento,
                               }}
                               className="h-full transition-all duration-300"
                             />
@@ -654,7 +643,7 @@ export function ObrasInteractiveSection({
 
                       {/* BOX EXPANDIDO DE DETALHES (quando selecionado) */}
                       {isSelected && (
-                        <div className="relative mt-3 ml-4 space-y-2.5 rounded-lg border border-slate-200 bg-white p-3.5 pr-8 text-xs shadow-2xs">
+                        <div className="border-line bg-page relative mt-3 ml-4 space-y-2.5 border p-3.5 pr-8 text-xs">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -662,26 +651,26 @@ export function ObrasInteractiveSection({
                               handleSelectObra(obra.idProjeto);
                             }}
                             aria-label="Fechar detalhes da obra"
-                            className="absolute top-2.5 right-2.5 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                            className="text-mute2 hover:bg-line2 hover:text-mute absolute top-2.5 right-2.5 cursor-pointer rounded p-1"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
 
                           <div>
-                            <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
+                            <span className="text-mute2 block text-xs font-semibold tracking-wider uppercase">
                               Órgão Executor
                             </span>
-                            <span className="font-medium text-slate-900 text-xs">
+                            <span className="text-ink text-xs font-medium">
                               {obra.executorNome || obra.orgaoResponsavel}
                             </span>
                           </div>
 
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
+                              <span className="text-mute2 block text-xs font-semibold tracking-wider uppercase">
                                 Previsão
                               </span>
-                              <span className="font-medium text-slate-900 text-xs">
+                              <span className="text-ink text-xs font-medium">
                                 {formatarPrevisao(
                                   obra.dataInicioPrevista,
                                   obra.dataFimPrevista,
@@ -689,31 +678,31 @@ export function ObrasInteractiveSection({
                               </span>
                             </div>
                             <div>
-                              <span className="block font-semibold text-[10px] text-slate-500 uppercase tracking-wider">
+                              <span className="text-mute2 block text-xs font-semibold tracking-wider uppercase">
                                 Última Medição
                               </span>
-                              <span className="font-medium text-slate-900 text-xs">
+                              <span className="text-ink text-xs font-medium">
                                 {obra.dataUltimaMedicaoFormatada || "N/D"}
                               </span>
                             </div>
                           </div>
 
                           {/* Ações: Detalhes da Obra + Link Oficial ObrasGov */}
-                          <div className="flex flex-wrap items-center justify-between gap-2 border-slate-100 border-t pt-2.5">
+                          <div className="border-line flex flex-wrap items-center justify-between gap-2 border-t pt-2.5">
                             <button
                               type="button"
                               onClick={() => handleOpenDetalheModal(obra)}
-                              className="inline-flex items-center gap-1 font-semibold text-blue-600 text-xs hover:text-blue-800 hover:underline"
+                              className="text-brand-text inline-flex cursor-pointer items-center gap-1 text-xs font-semibold hover:underline"
                             >
                               <span>Ver detalhes</span>
                               <span aria-hidden="true">&rarr;</span>
                             </button>
 
                             <a
-                              href={`https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${encodeURIComponent(obra.idProjeto)}`}
+                              href={urlObraCipi(obra.idProjeto)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 font-medium text-slate-500 text-xs hover:text-slate-800 hover:underline"
+                              className="text-mute2 hover:text-ink inline-flex items-center gap-1 text-xs font-medium hover:underline"
                             >
                               <span>Ver no Cadastro de Obras</span>
                               <ExternalLink className="h-3 w-3" />
@@ -738,7 +727,7 @@ export function ObrasInteractiveSection({
             }`}
           >
             {/* Container do Mapa Leaflet */}
-            <div className="relative h-[380px] w-full sm:h-[450px] lg:h-full lg:min-h-[580px]">
+            <div className="relative h-[65svh] min-h-[380px] w-full sm:h-[450px] lg:h-full lg:min-h-[580px]">
               {/* Botão flutuante toggle no mapa (visível no mobile para alternar área urbana / território) */}
               <div className="absolute top-3 left-15 z-10 lg:hidden">
                 <button
@@ -748,7 +737,7 @@ export function ObrasInteractiveSection({
                       prev === "urbana" ? "territorio" : "urbana",
                     )
                   }
-                  className="rounded-lg border border-slate-200/90 bg-white/95 px-3 py-1.5 font-semibold text-slate-800 text-xs shadow-sm backdrop-blur-xs transition-colors hover:bg-white hover:text-slate-950"
+                  className="border-line bg-page/95 text-ink cursor-pointer rounded-md border px-3 py-1.5 text-xs font-semibold backdrop-blur-xs"
                 >
                   {viewMode === "urbana"
                     ? "Ver todo o território"
@@ -768,14 +757,14 @@ export function ObrasInteractiveSection({
             </div>
 
             {/* Carrossel Horizontal Mobile de Cards (apenas no mobile quando o mapa está ativo) */}
-            <div className="border-slate-200 border-t bg-slate-50/60 p-4 lg:hidden">
+            <div className="border-line bg-line2 border-t p-4 lg:hidden">
               <div
                 ref={mobileCarouselRef}
-                className="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2"
+                className="flex snap-x snap-mandatory scrollbar-none gap-3 overflow-x-auto pb-2"
               >
                 {filteredObras.length === 0 ? (
-                  <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 text-center">
-                    <p className="font-medium text-slate-700 text-xs">
+                  <div className="border-line bg-page w-full border p-6 text-center">
+                    <p className="text-mute text-xs font-medium">
                       Nenhuma obra encontrada
                     </p>
                   </div>
@@ -788,57 +777,59 @@ export function ObrasInteractiveSection({
                       <div
                         key={obra.idProjeto}
                         id={`mobile-card-${obra.idProjeto}`}
-                        className={`w-[85%] max-w-[320px] shrink-0 snap-center rounded-2xl border bg-white p-4 shadow-xs transition-all ${
+                        className={`bg-page w-[85%] max-w-[320px] shrink-0 snap-center border p-4 transition-all ${
                           isSelected
-                            ? "border-blue-500 ring-2 ring-blue-500/20"
-                            : "border-slate-200"
+                            ? "border-brand-fill ring-brand-fill ring-2"
+                            : "border-line"
                         }`}
                       >
                         <button
                           type="button"
                           onClick={() => handleSelectObra(obra.idProjeto)}
-                          className="w-full text-left"
+                          className="w-full cursor-pointer text-left"
                         >
                           {/* Topo do Card: Dot + Status | Contador X/Total */}
                           <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                            <div className="text-mute flex items-center gap-1.5 font-medium">
                               <span
                                 className="h-2 w-2 rounded-full"
                                 style={{
-                                  backgroundColor: obra.situacaoColorHex,
+                                  backgroundColor:
+                                    obra.situacaoCorPreenchimento,
                                 }}
                               />
                               <span>{obra.situacaoLabel}</span>
                             </div>
-                            <span className="text-slate-400 tabular-nums">
+                            <span className="text-mute2 tabular-nums">
                               {idx + 1}/{filteredObras.length}
                             </span>
                           </div>
 
                           {/* Título da Obra (2 linhas) */}
-                          <h3 className="mt-2.5 line-clamp-2 min-h-[2.5rem] font-bold font-serif text-slate-900 text-sm leading-snug">
+                          <h3 className="mt-2.5 line-clamp-2 min-h-[2.5rem]">
                             {obra.nomeObra}
                           </h3>
 
                           {/* Órgão Executor */}
-                          <p className="mt-1 truncate text-slate-500 text-xs">
+                          <p className="text-mute2 mt-1 truncate text-xs">
                             {obra.executorNome || obra.orgaoResponsavel}
                           </p>
 
                           {/* Barra de Progresso Físico */}
                           <div className="mt-3">
-                            <div className="mb-1 flex items-center justify-end text-[11px] text-slate-500">
+                            <div className="text-mute2 mb-1 flex items-center justify-end text-xs">
                               <span>
                                 {obra.percentualExecucaoFisica !== null
                                   ? `${Math.round(pct)}% físico`
                                   : "Sem medição"}
                               </span>
                             </div>
-                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                            <div className="bg-line2 h-1.5 w-full overflow-hidden">
                               <div
                                 style={{
                                   width: `${Math.min(100, Math.max(0, pct))}%`,
-                                  backgroundColor: obra.situacaoColorHex,
+                                  backgroundColor:
+                                    obra.situacaoCorPreenchimento,
                                 }}
                                 className="h-full transition-all duration-300"
                               />
@@ -847,8 +838,8 @@ export function ObrasInteractiveSection({
                         </button>
 
                         {/* Rodapé: Valor à esquerda + Link Detalhes à direita */}
-                        <div className="mt-3.5 flex items-center justify-between border-slate-100 border-t pt-3">
-                          <span className="font-bold text-slate-900 text-sm tabular-nums">
+                        <div className="border-line mt-3.5 flex items-center justify-between border-t pt-3">
+                          <span className="text-ink text-sm font-bold tabular-nums">
                             {fmtCompact(obra.valorInvestimentoPrevisto)}
                           </span>
                           <button
@@ -857,7 +848,7 @@ export function ObrasInteractiveSection({
                               e.stopPropagation();
                               handleOpenDetalheModal(obra);
                             }}
-                            className="inline-flex items-center gap-1 font-semibold text-blue-600 text-xs hover:text-blue-700"
+                            className="text-brand-text inline-flex cursor-pointer items-center gap-1 text-xs font-semibold"
                           >
                             <span>Ver detalhes</span>
                             <span aria-hidden="true">&rarr;</span>
@@ -870,7 +861,7 @@ export function ObrasInteractiveSection({
               </div>
 
               {/* Legenda de apoio */}
-              <p className="mt-2 text-center text-slate-500 text-xs">
+              <p className="text-mute2 mt-2 text-center text-xs">
                 Deslize os cards ou toque num ponto do mapa
               </p>
             </div>

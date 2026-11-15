@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: stg_fiorilli__emendas_cad
+    description: "Emendas parlamentares de todos os portais Fiorilli — casts e renomeação de colunas"
+    columns:
+      - name: portal_slug
+        data_type: text
+        tests:
+          - not_null
+      - name: ano
+        data_type: integer
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 2015
+                max_value: 2035
+      - name: empresa_id
+        data_type: text
+        tests:
+          - not_null
+      - name: numero_emenda
+        data_type: text
+      - name: resumo
+        data_type: text
+      - name: objeto_emenda
+        data_type: text
+      - name: valor_total
+        data_type: numeric
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                row_condition: "valor_total is not null"
+      - name: empenhado
+        data_type: numeric
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                row_condition: "empenhado is not null"
+      - name: autor
+        data_type: text
+      - name: tipo_emenda
+        data_type: text
+      - name: esfera_origem
+        data_type: text
+      - name: ato_normativo
+        data_type: text
+      - name: destinacao
+        data_type: text

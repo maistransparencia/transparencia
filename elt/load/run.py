@@ -1,10 +1,14 @@
 """CLI: load raw JSON files from a run directory into the raw_<slug> PostgreSQL schema."""
 
 import argparse
+import csv
 import importlib
 import json
 import logging
 import re
+import sys
+import time
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import cast
@@ -13,9 +17,18 @@ from dotenv import load_dotenv
 from sqlalchemy import MetaData, Table, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from elt.core.config import PortalConfig
+from elt.core.config import PortalConfig, resolve_key_cols, resolve_raw_schema, tag_rows_with_portal
 from elt.core.db import get_engine
 from elt.extract.base import EndpointConfig
+from elt.extract.errors import SUSPICIOUS_EMPTY, UNEXPECTED_ERROR
+from elt.load.coletas import (
+    MUNICIPAL_PORTAL_SOURCE,
+    empty_response_is_suspicious,
+    last_successful_total_rows,
+    record_collections,
+    record_failures,
+)
+from elt.load.scale_monitor import log_scale_report
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -135,6 +148,75 @@ def _upsert_raw(engine, schema: str, table: str, rows: list[dict], key_cols: lis
     return len(deduped)
 
 
+def _farmacia_collection_succeeded(directory: Path) -> bool:
+    """Coleta com falha da Farmácia SUS também gera arquivos; só a com sucesso conta como coleta da fonte."""
+    coletas_file = directory / "coletas.json"
+    if not coletas_file.exists():
+        return False
+    rows = json.loads(coletas_file.read_text(encoding="utf-8"))
+    return any(row.get("status_coleta") == "sucesso" for row in rows)
+
+
+# Pasta de cada fonte fora do portal municipal -> código do catálogo (seed_fontes_coleta).
+_SOURCE_BY_TABLE = {
+    "siconfi_msc_patrimonial": "siconfi_msc",
+    "siconfi_rgf": "siconfi_rgf",
+    "siope_indicadores": "siope",
+    "siops_indicadores": "siops",
+    "pncp": "pncp",
+    "obrasgov": "obrasgov",
+    "farmacia_sus": "farmacia_sus",
+}
+_FARMACIA_HISTORY_FILE = "coletas.json"
+
+
+def _source_of(table: str) -> str:
+    return _SOURCE_BY_TABLE.get(table, MUNICIPAL_PORTAL_SOURCE)
+
+
+def _read_failures(run_dir: Path) -> dict[str, str]:
+    """Falhas registradas pelo extrator: fonte -> primeiro `erro_codigo`. Sem o arquivo, não houve falha."""
+    failed_file = run_dir / "failed_requests.csv"
+    if not failed_file.exists():
+        return {}
+    with failed_file.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    return {
+        fonte: erro_codigo
+        for fonte, erro_codigo in reversed(
+            [
+                (
+                    row.get("fonte") or _source_of(row.get("listagem") or ""),
+                    row.get("erro_codigo") or UNEXPECTED_ERROR,
+                )
+                for row in rows
+            ]
+        )
+    }
+
+
+def _count_rows(json_files: list[Path]) -> int:
+    return sum(
+        len(data)
+        for data in (json.loads(file.read_text(encoding="utf-8")) for file in json_files)
+        if isinstance(data, list)
+    )
+
+
+def _suspicious_empty_sources(engine, portal_slug: str, files_by_source: dict[str, list[Path]]) -> dict[str, str]:
+    """Fontes marcadas no catálogo que vieram sem nenhuma linha depois de uma coleta boa com linhas."""
+    candidates = {
+        fonte: [file for file in files if not (fonte == "farmacia_sus" and file.name == _FARMACIA_HISTORY_FILE)]
+        for fonte, files in files_by_source.items()
+        if empty_response_is_suspicious(fonte)
+    }
+    return {
+        fonte: SUSPICIOUS_EMPTY
+        for fonte, files in candidates.items()
+        if _count_rows(files) == 0 and (last_successful_total_rows(engine, portal_slug, fonte) or 0) > 0
+    }
+
+
 def main() -> None:
     load_dotenv()
 
@@ -143,10 +225,11 @@ def main() -> None:
     parser.add_argument("--dir", help="Raw run directory path (default: latest under data/raw_runs/)")
     args = parser.parse_args()
 
+    started_at = time.monotonic()
     portal = PortalConfig.load(args.portal)
     mod = importlib.import_module(f"elt.extract.{portal.provider}.{portal.slug}.api_endpoints")
     endpoint_configs = cast(list[EndpointConfig], mod.ENDPOINT_CONFIGS)
-    schema = portal.raw_schema
+    schema = resolve_raw_schema(portal)
 
     run_dir_path = args.dir
     if not run_dir_path:
@@ -163,26 +246,86 @@ def main() -> None:
         extraction_dt = datetime.strptime(run_dir.name, "%Y%m%d_%H%M%S")
         extraction_date = extraction_dt.isoformat(sep=" ")
     except ValueError:
+        extraction_dt = None
         extraction_date = None
 
     engine = get_engine()
 
-    for json_file in sorted(run_dir.rglob("*.json")):
+    json_files = sorted(run_dir.rglob("*.json"))
+    files_by_source: dict[str, list[Path]] = {}
+    for file in json_files:
+        files_by_source.setdefault(_source_of(file.parent.name), []).append(file)
+    extractor_failures = _read_failures(run_dir)
+    # Decidido antes de carregar: depois seria tarde para fontes que substituem a tabela (replace=True).
+    failures = {
+        **_suspicious_empty_sources(
+            engine, portal.slug, {k: v for k, v in files_by_source.items() if k not in extractor_failures}
+        ),
+        **extractor_failures,
+    }
+    for fonte, erro_codigo in sorted(failures.items()):
+        logger.error("Fonte %s ignorada nesta carga (%s): dado anterior preservado", fonte, erro_codigo)
+
+    farmacia_dirs_carregados: set[Path] = set()
+    rows_loaded: Counter[str] = Counter()
+    for json_file in json_files:
         table = json_file.parent.name
+        file_source = _source_of(table)
+        if file_source in failures:
+            # Só o histórico de coletas da farmácia segue (falha do extrator): estoque e CNES não são tocados.
+            if (
+                file_source == "farmacia_sus"
+                and json_file.name == _FARMACIA_HISTORY_FILE
+                and file_source in extractor_failures
+            ):
+                from elt.load.farmacia_sus import load_farmacia_sus_coletas
+
+                load_farmacia_sus_coletas(engine, json.loads(json_file.read_text(encoding="utf-8")), portal.slug)
+            continue
         config = next((c for c in endpoint_configs if c.table == table), None)
         if not config:
             if table == "siconfi_msc_patrimonial":
+                from elt.load.siconfi import SCHEMA as SICONFI_SCHEMA
                 from elt.load.siconfi import ensure_siconfi_table, load_siconfi_msc
 
-                ensure_siconfi_table(engine, schema)
+                ensure_siconfi_table(engine)
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                count = load_siconfi_msc(engine, rows, schema=schema)
+                count = load_siconfi_msc(engine, rows, portal.slug)
                 logger.info(
                     "Loaded siconfi_msc_patrimonial (%s) → %d rows into %s.siconfi_msc_patrimonial",
                     json_file.name,
                     count,
-                    schema,
+                    SICONFI_SCHEMA,
                 )
+                rows_loaded["siconfi_msc"] += count
+                continue
+            if table == "siconfi_rgf":
+                from elt.load.siconfi import SCHEMA as SICONFI_SCHEMA
+                from elt.load.siconfi import ensure_siconfi_rgf_table, load_siconfi_rgf
+
+                ensure_siconfi_rgf_table(engine)
+                rows = json.loads(json_file.read_text(encoding="utf-8"))
+                count = load_siconfi_rgf(engine, rows, portal.slug)
+                logger.info(
+                    "Loaded siconfi_rgf (%s) → %d rows into %s.siconfi_rgf", json_file.name, count, SICONFI_SCHEMA
+                )
+                rows_loaded["siconfi_rgf"] += count
+                continue
+            if table in ("siope_indicadores", "siops_indicadores"):
+                source = table.removesuffix("_indicadores")
+                if source == "siope":
+                    from elt.load.siope import SCHEMA, ensure_siope_table, load_siope_indicadores
+
+                    ensure_loader, row_loader = ensure_siope_table, load_siope_indicadores
+                else:
+                    from elt.load.siops import SCHEMA, ensure_siops_table, load_siops_indicadores
+
+                    ensure_loader, row_loader = ensure_siops_table, load_siops_indicadores
+                ensure_loader(engine, SCHEMA)
+                rows = json.loads(json_file.read_text(encoding="utf-8"))
+                count = row_loader(engine, rows, schema=SCHEMA)
+                logger.info("Loaded %s (%s) → %d rows into %s.%s", table, json_file.name, count, SCHEMA, table)
+                rows_loaded[source] += count
                 continue
             if table == "pncp":
                 from elt.load.pncp import (
@@ -194,6 +337,8 @@ def main() -> None:
 
                 ensure_pncp_tables(engine)
                 raw_data = json.loads(json_file.read_text(encoding="utf-8"))
+                count = 0
+                is_known_file = json_file.name in {"compras.json", "itens.json", "itens_resultados.json"}
                 if json_file.name == "compras.json":
                     count = load_pncp_compras(engine, raw_data)
                     logger.info("Loaded pncp/compras.json → %d rows into raw_pncp.compras", count)
@@ -203,6 +348,8 @@ def main() -> None:
                 elif json_file.name == "itens_resultados.json":
                     count = load_pncp_itens_resultados(engine, raw_data)
                     logger.info("Loaded pncp/itens_resultados.json → %d rows into raw_pncp.itens_resultados", count)
+                if is_known_file:
+                    rows_loaded["pncp"] += count
                 continue
             if table == "obrasgov":
                 from elt.load.obrasgov import (
@@ -216,6 +363,14 @@ def main() -> None:
 
                 ensure_obrasgov_tables(engine, schema="raw_obrasgov")
                 raw_data = json.loads(json_file.read_text(encoding="utf-8"))
+                count = 0
+                is_known_file = json_file.name in {
+                    "projetos.json",
+                    "geometrias.json",
+                    "execucoes_fisicas.json",
+                    "historico_paralisacoes.json",
+                    "empenhos.json",
+                }
                 if json_file.name == "projetos.json":
                     count = load_obrasgov_projetos(engine, raw_data, schema="raw_obrasgov")
                     logger.info("Loaded obrasgov/projetos.json → %d rows into raw_obrasgov.projetos", count)
@@ -239,6 +394,18 @@ def main() -> None:
                         "Loaded obrasgov/empenhos.json → %d rows into raw_obrasgov.empenhos",
                         count,
                     )
+                if is_known_file:
+                    rows_loaded["obrasgov"] += count
+                continue
+            if table == "farmacia_sus":
+                if json_file.parent not in farmacia_dirs_carregados:
+                    from elt.load.farmacia_sus import load_farmacia_sus_dir
+
+                    farmacia_dirs_carregados.add(json_file.parent)
+                    count = load_farmacia_sus_dir(engine, json_file.parent, portal.slug)
+                    logger.info("Loaded farmacia_sus (%s) → %d rows into raw_farmacia_sus", json_file.parent, count)
+                    if _farmacia_collection_succeeded(json_file.parent):
+                        rows_loaded["farmacia_sus"] += count
                 continue
             logger.warning("No endpoint config for table: %s", table)
             continue
@@ -253,20 +420,43 @@ def main() -> None:
 
         rows = json.loads(json_file.read_text(encoding="utf-8"))
         normalised = _normalize(rows, year, empresa_id, config.post_process)
-        count = _upsert_raw(engine, schema, target_table, normalised, key_cols)
-        logger.info("Loaded %s / %s / %d → %d rows into %s.%s", table, empresa_id, year, count, schema, target_table)
+        target_schema = resolve_raw_schema(portal)
+        count = _upsert_raw(
+            engine,
+            target_schema,
+            target_table,
+            tag_rows_with_portal(portal, normalised),
+            resolve_key_cols(key_cols),
+        )
+        logger.info(
+            "Loaded %s / %s / %d → %d rows into %s.%s", table, empresa_id, year, count, target_schema, target_table
+        )
+        rows_loaded[MUNICIPAL_PORTAL_SOURCE] += count
 
     if extraction_date:
         _upsert_raw(
             engine,
-            schema,
+            resolve_raw_schema(portal),
             "metadata",
             [{"portal_slug": portal.slug, "key": "last_extracted_at", "value": extraction_date}],
             ["portal_slug", "key"],
         )
         logger.info("Set extraction date: %s", extraction_date)
 
+    if extraction_dt:
+        collected_at = extraction_dt.astimezone()
+        count = record_collections(engine, portal.slug, rows_loaded, collected_at)
+        logger.info("Recorded %d collection(s) in raw_coletas.registro_coletas: %s", count, sorted(rows_loaded))
+        failed_count = record_failures(engine, portal.slug, failures, collected_at)
+        logger.info("Recorded %d failure(s) in raw_coletas.registro_coletas: %s", failed_count, sorted(failures))
+    else:
+        logger.warning("Run directory %s has no timestamp; collections not recorded", run_dir.name)
+
+    log_scale_report(engine, f"raw_{portal.provider}", time.monotonic() - started_at)
     logger.info("Load complete → schema: %s", schema)
+    if failures:
+        logger.error("Load finished with failed source(s): %s", sorted(failures))
+        sys.exit(1)
 
 
 if __name__ == "__main__":

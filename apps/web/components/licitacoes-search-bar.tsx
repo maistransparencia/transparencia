@@ -8,15 +8,19 @@ import { LicitacoesSpotlightModal } from "./licitacoes-spotlight-modal";
 export interface LicitacoesSearchBarProps {
   portalSlug: string;
   ano?: number;
+  /** Abre a busca já preenchida (parâmetro `q` da URL). */
+  termoInicial?: string;
   className?: string;
 }
 
 export function LicitacoesSearchBar({
   portalSlug,
   ano,
+  termoInicial,
   className,
 }: LicitacoesSearchBarProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(Boolean(termoInicial));
+  const [termoAplicado, setTermoAplicado] = useState(termoInicial);
   const [isMac, setIsMac] = useState(false);
   const [isScrolledPast, setIsScrolledPast] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,18 +70,18 @@ export function LicitacoesSearchBar({
           type="button"
           onClick={() => setIsModalOpen(true)}
           aria-label="Abrir busca global de licitações e contratos (Atalho: Command K)"
-          className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white px-4 py-3 text-left shadow-xs transition-all hover:border-accent/40 hover:shadow-md sm:px-5 sm:py-3.5"
+          className="group border-line bg-page hover:border-mute3 flex w-full items-center justify-between gap-3 rounded-md border px-4 py-3 text-left transition-all sm:px-5 sm:py-3.5"
         >
-          <div className="flex items-center gap-3 text-slate-400 group-hover:text-slate-600">
-            <Search className="h-5 w-5 shrink-0 text-slate-400 transition-colors group-hover:text-accent" />
-            <span className="text-slate-500 text-xs sm:text-sm">
+          <div className="text-mute3 group-hover:text-mute2 flex items-center gap-3">
+            <Search className="text-mute3 group-hover:text-ink h-5 w-5 shrink-0 transition-colors" />
+            <span className="text-mute2 text-xs sm:text-sm">
               Buscar por objeto, número do processo (ex: 0043/24) ou
               fornecedor...
             </span>
           </div>
 
           <div className="hidden items-center gap-1 sm:flex">
-            <kbd className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-[11px] text-slate-500 shadow-2xs group-hover:border-slate-300">
+            <kbd className="border-line bg-line2 text-mute2 inline-flex items-center rounded-md border px-2 py-1 text-[11px] font-medium">
               {isMac ? "⌘K" : "Ctrl+K"}
             </kbd>
           </div>
@@ -99,13 +103,13 @@ export function LicitacoesSearchBar({
           tabIndex={showFloatingPill ? 0 : -1}
           onClick={() => setIsModalOpen(true)}
           aria-label="Abrir busca rápida de licitações e contratos"
-          className="flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-lg shadow-slate-900/10 backdrop-blur-md transition-transform active:scale-95"
+          className="border-line bg-page/95 flex items-center gap-2 rounded-full border px-4 py-2.5 shadow-lg backdrop-blur-md transition-transform active:scale-95"
         >
-          <Search className="h-4 w-4 shrink-0 text-accent" />
-          <span className="whitespace-nowrap font-medium text-slate-700 text-xs">
+          <Search className="text-brand h-4 w-4 shrink-0" />
+          <span className="text-ink text-xs font-medium whitespace-nowrap">
             Buscar licitações e contratos
           </span>
-          <span className="rounded-full bg-accent/10 px-2 py-0.5 font-semibold text-[10px] text-accent">
+          <span className="bg-line2 text-brand rounded-full px-2 py-0.5 text-[10px] font-semibold">
             Buscar
           </span>
         </button>
@@ -114,9 +118,18 @@ export function LicitacoesSearchBar({
       {isModalOpen && (
         <LicitacoesSpotlightModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setTermoAplicado(undefined);
+            const url = new URL(window.location.href);
+            if (url.searchParams.has("q")) {
+              url.searchParams.delete("q");
+              window.history.replaceState(null, "", url);
+            }
+          }}
           portalSlug={portalSlug}
           ano={ano}
+          termoInicial={termoAplicado}
         />
       )}
     </>

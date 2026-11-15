@@ -20,10 +20,8 @@ const mockSendNotification = vi.fn();
 const mockSetVapidDetails = vi.fn();
 
 vi.mock("web-push", () => ({
-  default: {
-    sendNotification: (...args: unknown[]) => mockSendNotification(...args),
-    setVapidDetails: (...args: unknown[]) => mockSetVapidDetails(...args),
-  },
+  sendNotification: (...args: unknown[]) => mockSendNotification(...args),
+  setVapidDetails: (...args: unknown[]) => mockSetVapidDetails(...args),
 }));
 
 let mockEnv: {

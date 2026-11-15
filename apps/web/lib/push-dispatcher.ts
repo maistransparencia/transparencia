@@ -4,7 +4,7 @@ import {
   recordPushNotificationFailure,
   recordPushNotificationSuccess,
 } from "@transparencia/db";
-import webpush from "web-push";
+import * as webpush from "web-push";
 import { env } from "@/env";
 
 export interface DispatchPushNotificationOptions {

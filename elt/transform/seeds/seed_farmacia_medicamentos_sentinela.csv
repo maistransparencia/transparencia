@@ -1,0 +1,36 @@
+codigo_principio_ativo,nome_principio_ativo,prefixo_nome_normalizado,grupo_terapeutico,ordem_exibicao,destaque_card_inicial,tipo_correspondencia
+losartana,Losartana,losartana,cardiovascular,1,true,principal
+captopril,Captopril,captopril,cardiovascular,2,false,principal
+hidroclorotiazida,Hidroclorotiazida,hidroclorotiazida,cardiovascular,3,false,principal
+enalapril,Enalapril,enalapril,cardiovascular,4,false,principal
+anlodipino,Anlodipino,anlodipino,cardiovascular,5,false,principal
+atenolol,Atenolol,atenolol,cardiovascular,6,false,principal
+furosemida,Furosemida,furosemida,cardiovascular,7,false,principal
+sinvastatina,Sinvastatina,sinvastatina,cardiovascular,8,false,principal
+acido_acetilsalicilico,Ácido acetilsalicílico,acido acetilsalicilico,cardiovascular,9,false,principal
+metformina,Metformina,metformina,diabetes,10,true,principal
+glibenclamida,Glibenclamida,glibenclamida,diabetes,11,false,principal
+insulina,Insulina,insulina,diabetes,12,false,principal
+insulina_nph,Insulina NPH,insulina humana nph,diabetes,13,false,principal
+insulina_regular,Insulina Regular,insulina humana regular,diabetes,14,false,principal
+dipirona,Dipirona,dipirona,dor_febre,15,true,principal
+paracetamol,Paracetamol,paracetamol,dor_febre,16,true,principal
+ibuprofeno,Ibuprofeno,ibuprofeno,dor_febre,17,false,principal
+amoxicilina,Amoxicilina,amoxicilina,antibiotico,18,true,principal
+omeprazol,Omeprazol,omeprazol,gastrointestinal,19,true,principal
+salbutamol,Salbutamol,salbutamol,respiratorio,20,false,principal
+levotiroxina,Levotiroxina,levotiroxina,endocrino,21,false,principal
+fluoxetina,Fluoxetina,fluoxetina,saude_mental,22,false,principal
+amitriptilina,Amitriptilina,amitriptilina,saude_mental,23,false,principal
+insulina_nph,Insulina NPH,insulina glargina,diabetes,13,false,relacionado
+insulina_nph,Insulina NPH,insulina lispro,diabetes,13,false,relacionado
+insulina_nph,Insulina NPH,insulina asparte,diabetes,13,false,relacionado
+insulina_nph,Insulina NPH,insulina glulisina,diabetes,13,false,relacionado
+insulina_nph,Insulina NPH,insulina degludeca,diabetes,13,false,relacionado
+insulina_regular,Insulina Regular,insulina glargina,diabetes,14,false,relacionado
+insulina_regular,Insulina Regular,insulina lispro,diabetes,14,false,relacionado
+insulina_regular,Insulina Regular,insulina asparte,diabetes,14,false,relacionado
+insulina_regular,Insulina Regular,insulina glulisina,diabetes,14,false,relacionado
+insulina_regular,Insulina Regular,insulina degludeca,diabetes,14,false,relacionado
+anlodipino,Anlodipino,levanlodipino,cardiovascular,5,false,relacionado
+omeprazol,Omeprazol,esomeprazol,gastrointestinal,19,false,relacionado

@@ -1,0 +1,85 @@
+version: 2
+
+models:
+  - name: fct_saude_producao_sus_metricas
+    description: "Procedimentos ambulatoriais (SIA) e internações (SIH) pagos pelo SUS na cidade, por ano e por mil moradores. Produção registrada e paga pelo SUS, não todo o atendimento. Sem régua numérica."
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, ano]
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "Slug identificador do portal municipal"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        description: "Ano de referência"
+        tests:
+          - not_null
+      - name: competencias_ambulatoriais
+        data_type: integer
+        description: "Quantas competências (meses) de SIA entraram no ano; nulo quando o SIA não trouxe nada no ano"
+      - name: competencias_internacoes
+        data_type: integer
+        description: "Quantas competências (meses) de SIH entraram no ano; nulo quando o SIH não trouxe nada no ano (estado sem dado nesta fonte)"
+      - name: primeira_competencia_ambulatorial
+        data_type: integer
+        description: "Competência (AAAAMM) mais antiga de SIA carregada no ano; com competencias_* mostra se os meses são seguidos"
+      - name: ultima_competencia_ambulatorial
+        data_type: integer
+        description: "Competência (AAAAMM) mais recente de SIA carregada no ano"
+      - name: primeira_competencia_internacoes
+        data_type: integer
+        description: "Competência (AAAAMM) mais antiga de SIH carregada no ano; com competencias_* mostra se os meses são seguidos"
+      - name: ultima_competencia_internacoes
+        data_type: integer
+        description: "Competência (AAAAMM) mais recente de SIH carregada no ano"
+      - name: total_procedimentos_ambulatoriais
+        data_type: bigint
+        description: "Procedimentos ambulatoriais pagos pelo SUS no ano (soma das competências carregadas); nulo é sem dado, não zero"
+      - name: total_internacoes
+        data_type: bigint
+        description: "Internações (AIH) pagas pelo SUS no ano (soma das competências carregadas); nulo é sem dado, não zero"
+      - name: ano_completo_ambulatorial
+        data_type: boolean
+        constraints:
+          - type: not_null
+        description: "Verdadeiro quando as 12 competências de SIA do ano entraram"
+      - name: ano_completo_internacoes
+        data_type: boolean
+        constraints:
+          - type: not_null
+        description: "Verdadeiro quando as 12 competências de SIH do ano entraram"
+      - name: populacao_residente
+        data_type: integer
+        description: "População usada na divisão (do ano ou do último ano anterior com dado)"
+      - name: ano_populacao_referencia
+        data_type: integer
+        description: "Ano da população usada"
+      - name: populacao_estimada
+        data_type: boolean
+        constraints:
+          - type: not_null
+        description: "Verdadeiro quando a população do ano ainda não existe na fonte e foi usada a do último ano disponível"
+      - name: procedimentos_ambulatoriais_por_mil_moradores
+        data_type: numeric(12,2)
+        description: "Dado derivado: procedimentos ambulatoriais pagos pelo SUS por mil moradores"
+      - name: internacoes_por_mil_moradores
+        data_type: numeric(12,2)
+        description: "Dado derivado: internações pagas pelo SUS por mil moradores"
+      - name: data_coleta
+        data_type: date
+        description: "Data da coleta na API do Ministério da Saúde"

@@ -2,12 +2,18 @@ import {
   act,
   fireEvent,
   render,
+  renderHook,
   screen,
   waitFor,
 } from "@testing-library/react";
 import posthog from "posthog-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PwaInstallButton, PwaInstaller } from "./pwa-installer";
+import { env } from "@/env";
+import {
+  PwaInstallButton,
+  PwaInstaller,
+  usePwaInstallAvailability,
+} from "./pwa-installer";
 
 vi.mock("posthog-js", () => ({
   default: {
@@ -293,6 +299,38 @@ describe("PwaInstaller Component", () => {
     });
   });
 
+  it("renders PwaInstallButton with variant='footer' como botão secundário de largura total e registra source", async () => {
+    const promptMock = vi.fn();
+    render(<PwaInstallButton variant="footer" />);
+
+    const beforeInstallEvent = new Event("beforeinstallprompt");
+    Object.assign(beforeInstallEvent, {
+      prompt: promptMock,
+      userChoice: Promise.resolve({ outcome: "accepted" }),
+    });
+
+    act(() => {
+      window.dispatchEvent(beforeInstallEvent);
+    });
+
+    const button = await screen.findByRole("button", {
+      name: /Instalar Aplicativo/i,
+    });
+    expect(button).toHaveClass(
+      "w-full",
+      "rounded-md",
+      "border-line",
+      "bg-page",
+      "min-h-11",
+    );
+
+    fireEvent.click(button);
+    expect(promptMock).toHaveBeenCalled();
+    expect(posthog.capture).toHaveBeenCalledWith("pwa_install_clicked", {
+      source: "footer",
+    });
+  });
+
   it("renders mobile banner when minPageViews is reached and suppresses when push prompt is open", async () => {
     sessionStorage.setItem("session_page_views", "2");
 
@@ -317,7 +355,10 @@ describe("PwaInstaller Component", () => {
         name: "Instalação do aplicativo",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Instale o MaisTransparência")).toBeInTheDocument();
+    expect(
+      screen.getByText(`Instale o ${env.NEXT_PUBLIC_PROJECT_NAME}`),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/🚀|📲|✕/)).not.toBeInTheDocument();
 
     // Se o evento push-prompt:state indicar que o prompt de push abriu, deve ocultar o banner de PWA
     act(() => {
@@ -363,5 +404,68 @@ describe("PwaInstaller Component", () => {
         name: "Instalação do aplicativo",
       }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("usePwaInstallAvailability", () => {
+  const mockMatchMedia = (standalone: boolean) => {
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: standalone && query === "(display-mode: standalone)",
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+  };
+
+  beforeEach(() => {
+    localStorage.clear();
+    mockMatchMedia(false);
+  });
+
+  it("fica true após beforeinstallprompt", () => {
+    const { result } = renderHook(() => usePwaInstallAvailability());
+    expect(result.current).toBe(false);
+    act(() => {
+      window.dispatchEvent(new Event("beforeinstallprompt"));
+    });
+    expect(result.current).toBe(true);
+  });
+
+  it("fica false em modo standalone mesmo com beforeinstallprompt", () => {
+    mockMatchMedia(true);
+    const { result } = renderHook(() => usePwaInstallAvailability());
+    act(() => {
+      window.dispatchEvent(new Event("beforeinstallprompt"));
+    });
+    expect(result.current).toBe(false);
+  });
+
+  it("volta a false após appinstalled", () => {
+    const { result } = renderHook(() => usePwaInstallAvailability());
+    act(() => {
+      window.dispatchEvent(new Event("beforeinstallprompt"));
+    });
+    expect(result.current).toBe(true);
+    act(() => {
+      window.dispatchEvent(new Event("appinstalled"));
+    });
+    expect(result.current).toBe(false);
+  });
+
+  it("fica true em iOS sem prompt nativo", () => {
+    const original = navigator.userAgent;
+    Object.defineProperty(navigator, "userAgent", {
+      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+      configurable: true,
+    });
+    try {
+      const { result } = renderHook(() => usePwaInstallAvailability());
+      expect(result.current).toBe(true);
+    } finally {
+      Object.defineProperty(navigator, "userAgent", {
+        value: original,
+        configurable: true,
+      });
+    }
   });
 });

@@ -1,4 +1,4 @@
-"""Carrega arquivos CSV de receitas de Porciúncula no schema raw_porciuncula_prefeitura."""
+"""Carrega arquivos CSV de receitas de Porciúncula no schema raw_fiorilli."""
 
 from elt.load.fiorilli.receitas_loader import run_load_receitas_csv
 

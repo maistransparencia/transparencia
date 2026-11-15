@@ -121,6 +121,35 @@ unit_tests:
         - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_contratacao: "gap_licitacao", numero: "C-COMPRA-2026-ABAXO", valor_contrato: 50000.00, limite_dispensa: 65492.11, acima_limite: false }
         - { portal_slug: "porciuncula_prefeitura", ano: 2026, tipo_contratacao: "gap_licitacao", numero: "C-COMPRA-2026-ACIMA", valor_contrato: 70000.00, limite_dispensa: 65492.11, acima_limite: true }
 
+  - name: test_licitacoes_metricas_limite_veiculos_somente_manutencao
+    description: "Valida que o limite de manutenção de veículos (Lei 14.133/2021, art. 75, § 7º) vale apenas para manutenção, conserto, reparo, peças e revisão avulsa; compras de veículo e frota sem manutenção usam o limite de compras e serviços"
+    model: fct_licitacoes_metricas
+    given:
+      - input: ref('fct_licitacoes')
+        rows: []
+      - input: ref('fct_despesas')
+        rows: []
+      - input: ref('seed_constantes_fiscais')
+        rows:
+          - { dominio: "licitacoes", chave: "limite_dispensa_compras_servicos", ano_inicio: 2024, ano_fim: 2024, valor_num: 59906.02 }
+          - { dominio: "licitacoes", chave: "limite_dispensa_veiculos", ano_inicio: 2024, ano_fim: 2024, valor_num: 9584.96 }
+      - input: ref('fct_contratos')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, empresa_id: "1", contrato_numero: "C-MANUT", licitacao_numero: null, fornecedor_nome: "OFICINA A", objeto: "Manutenção preventiva e corretiva de veículos", valor_contrato: 12000.00, empenhado: 12000.00, mes: "1", modalidade: "Dispensa", fundlegal: "Art. 75 § 7º", numero_obra: null, tipo_obra: null }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, empresa_id: "1", contrato_numero: "C-PECAS", licitacao_numero: null, fornecedor_nome: "AUTOPECAS B", objeto: "Aquisição de peças para caminhão", valor_contrato: 9000.00, empenhado: 9000.00, mes: "2", modalidade: "Dispensa", fundlegal: "Art. 75 § 7º", numero_obra: null, tipo_obra: null }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, empresa_id: "1", contrato_numero: "C-REVISAO", licitacao_numero: null, fornecedor_nome: "OFICINA C", objeto: "Revisão da frota municipal", valor_contrato: 12000.00, empenhado: 12000.00, mes: "3", modalidade: "Dispensa", fundlegal: "Art. 75 § 7º", numero_obra: null, tipo_obra: null }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, empresa_id: "1", contrato_numero: "C-COMPRA", licitacao_numero: null, fornecedor_nome: "CONCESSIONARIA D", objeto: "Aquisição de ônibus escolar", valor_contrato: 50000.00, empenhado: 50000.00, mes: "4", modalidade: "Dispensa", fundlegal: "Art. 75 II", numero_obra: null, tipo_obra: null }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, empresa_id: "1", contrato_numero: "C-COMPRA-REVISAO", licitacao_numero: null, fornecedor_nome: "CONCESSIONARIA E", objeto: "Aquisição de automóvel zero quilômetro com revisões de garantia", valor_contrato: 50000.00, empenhado: 50000.00, mes: "5", modalidade: "Dispensa", fundlegal: "Art. 75 II", numero_obra: null, tipo_obra: null }
+          - { portal_slug: "porciuncula_prefeitura", ano: 2024, empresa_id: "1", contrato_numero: "C-FROTA", licitacao_numero: null, fornecedor_nome: "POSTO F", objeto: "Fornecimento de combustível para a frota", valor_contrato: 30000.00, empenhado: 30000.00, mes: "6", modalidade: "Dispensa", fundlegal: "Art. 75 II", numero_obra: null, tipo_obra: null }
+    expect:
+      rows:
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_contratacao: "gap_licitacao", numero: "C-MANUT", valor_contrato: 12000.00, limite_dispensa: 9584.96, acima_limite: true }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_contratacao: "gap_licitacao", numero: "C-PECAS", valor_contrato: 9000.00, limite_dispensa: 9584.96, acima_limite: false }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_contratacao: "gap_licitacao", numero: "C-REVISAO", valor_contrato: 12000.00, limite_dispensa: 9584.96, acima_limite: true }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_contratacao: "gap_licitacao", numero: "C-COMPRA", valor_contrato: 50000.00, limite_dispensa: 59906.02, acima_limite: false }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_contratacao: "gap_licitacao", numero: "C-COMPRA-REVISAO", valor_contrato: 50000.00, limite_dispensa: 59906.02, acima_limite: false }
+        - { portal_slug: "porciuncula_prefeitura", ano: 2024, tipo_contratacao: "gap_licitacao", numero: "C-FROTA", valor_contrato: 30000.00, limite_dispensa: 59906.02, acima_limite: false }
+
   - name: test_licitacoes_metricas_isencao_legal_consorcio_e_rateio
     description: "Valida que transferências de consórcio público, contratos de programa/rateio e inexigibilidade são isentos legalmente e não ativam flag de acima_limite"
     model: fct_licitacoes_metricas

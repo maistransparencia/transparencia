@@ -396,7 +396,24 @@ describe("radar-civico-narrative", () => {
       );
     });
 
-    it("formats despesa_pessoal_limite_lrf with legal basis citation to Art. 20 of LRF", () => {
+    it("formats despesa_pessoal_limite_lrf without teto when valorEsperado is missing", () => {
+      const narrative = formatFactualNarrative(
+        {
+          tipoAnomalia: "despesa_pessoal_limite_lrf",
+          ano: 2024,
+          valorObservado: 56.58,
+          valorEsperado: null,
+          desvioPercentual: 2.58,
+          dimensaoReferencia: "limite_maximo_executivo",
+        },
+        2024,
+      );
+      expect(narrative).toBe(
+        "Em 2024, o gasto com pessoal ficou em 56.6% da receita corrente líquida (o que a prefeitura pode usar nas suas despesas). Indício de que o limite da Lei de Responsabilidade Fiscal (LRF) pode ter sido ultrapassado; vale conferir os números oficiais.",
+      );
+    });
+
+    it("formats despesa_pessoal_limite_lrf in plain language with indício wording", () => {
       const narrative = formatFactualNarrative(
         {
           tipoAnomalia: "despesa_pessoal_limite_lrf",
@@ -409,7 +426,7 @@ describe("radar-civico-narrative", () => {
         2024,
       );
       expect(narrative).toBe(
-        "Em 2024, as despesas com pessoal comprometeram 56.6% da Receita Corrente Líquida, superando o teto legal de 54% em +2.6 p.p. nos termos do Art. 20 da LRF.",
+        "Em 2024, o gasto com pessoal ficou em 56.6% da receita corrente líquida (o que a prefeitura pode usar nas suas despesas), 2.6 pontos percentuais acima do limite de 54% da Lei de Responsabilidade Fiscal (LRF). Indício de que o limite pode ter sido ultrapassado; vale conferir os números oficiais.",
       );
     });
 

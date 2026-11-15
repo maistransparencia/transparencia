@@ -1,15 +1,177 @@
 @import "tailwindcss";
-@config "../tailwind.config.ts";
+@source "../../../packages/ui/src";
 
+/*
+ * Fonte única dos tokens de cor. Tema claro em :root, escuro opcional em .dark
+ * (classe aplicada pelo script anti-flash de layout.tsx). Valores validados por
+ * styles/tokens-contraste.spec.ts: não clarear texto sem rodar o teste.
+ *
+ * mute2 e mute3 ficaram praticamente iguais para atender AA (4,5:1 sobre page,
+ * banbg e track); mute3 deixou de significar "mais claro que mute2". A fusão
+ * dos dois fica para a story 20.9.
+ *
+ * faint, pill, line, line2 e track são decorativos: nunca em text-*. Limite de
+ * controle (input, select, botão secundário) usa mute3.
+ */
 :root {
+  color-scheme: light;
   --font-ibm-plex: "IBM Plex Sans", sans-serif;
   --font-source-serif: "Source Serif 4", serif;
+  --font-ibm-plex-mono: "IBM Plex Mono", monospace;
+
+  /* Formato do panel: trocar aqui muda todos os painéis (DESIGN.md > panel). */
+  --panel-border-width: 0 0 0 3px;
+  --panel-radius: 0;
+  --panel-shadow: none;
+  --panel-padding: 0.25rem 0 0.25rem 1rem;
+
+  --page: #ffffff;
+  --ink: #1a1d21;
+  --onink: #ffffff;
+  --line: #e2e5ea;
+  --line2: #f0f1f4;
+  --track: #eceef2;
+  --mute: #4b5563;
+  --mute2: #666c7a;
+  --mute3: #676c73;
+  --faint: #c3c8d0;
+  --pill: #d5d9df;
+  --banbg: #eef4fd;
+  --banfg: #3a5a86;
+  --brand: oklch(0.5 0.11 250);
+  --brand-fill: var(--brand);
+  --brand-text: var(--brand);
+  --focus-ring: var(--brand-fill);
+  --danger: var(--danger-text);
+  --danger-fill: oklch(0.63 0.2 27);
+  --danger-text: oklch(0.55 0.17 25);
+  --ok: var(--ok-text);
+  --ok-fill: oklch(0.68 0.16 155);
+  --ok-text: oklch(0.5 0.1 155);
+  --warn: var(--warn-text);
+  --warn-fill: oklch(0.77 0.16 70);
+  --warn-text: oklch(0.53 0.14 55);
+  /* Rodapé invertido: fundo escuro no tema claro (20.10). Textos semânticos
+     usam o tom claro porque o fundo é escuro. */
+  --footer-bg: oklch(0.27 0.07 250);
+  --footer-ink: oklch(0.97 0.01 250);
+  --footer-mute: oklch(0.84 0.03 250);
+  --footer-line: oklch(0.42 0.06 250);
+  --footer-logo-tile: oklch(1 0 0 / 0.16);
+  --footer-logo-glyph: oklch(1 0 0);
+  --footer-brand-text: oklch(0.82 0.09 250);
+  --footer-ok-text: oklch(0.75 0.12 155);
+  --footer-warn-text: oklch(0.83 0.15 80);
+  --footer-danger-text: oklch(0.7 0.16 25);
+}
+
+.dark {
+  color-scheme: dark;
+  --page: #14171b;
+  --ink: #e8eaed;
+  --onink: #14171b;
+  --line: #2c3138;
+  --line2: #23282e;
+  --track: #2a2f36;
+  --mute: #a8b0bb;
+  --mute2: #8d96a2;
+  --mute3: #8f969f;
+  --faint: #4a515b;
+  --pill: #3a4049;
+  --banbg: #182233;
+  --banfg: #9bbbe6;
+  --brand: oklch(0.75 0.11 250);
+  --brand-fill: oklch(0.6 0.15 255);
+  --brand-text: var(--brand);
+  --focus-ring: var(--brand-fill);
+  --danger: var(--danger-text);
+  --danger-fill: oklch(0.63 0.2 27);
+  --danger-text: oklch(0.7 0.16 25);
+  --ok: var(--ok-text);
+  --ok-fill: oklch(0.68 0.16 155);
+  --ok-text: oklch(0.75 0.12 155);
+  --warn: var(--warn-text);
+  --warn-fill: oklch(0.77 0.16 70);
+  --warn-text: oklch(0.83 0.15 80);
+  /* Rodapé invertido: fundo claro no tema escuro. */
+  --footer-bg: #e8eaed;
+  --footer-ink: #1a1d21;
+  --footer-mute: #4b5563;
+  --footer-line: #c3c8d0;
+  --footer-logo-tile: #5a72a8;
+  --footer-logo-glyph: #ffffff;
+  --footer-brand-text: oklch(0.5 0.11 250);
+  --footer-ok-text: oklch(0.45 0.1 155);
+  --footer-warn-text: oklch(0.48 0.14 55);
+  --footer-danger-text: oklch(0.5 0.17 25);
+}
+
+/* Superfície do rodapé: reatribui os tokens base para que botões e
+   controles filhos herdem o contraste invertido sem variantes dark:. */
+.footer-surface {
+  --page: var(--footer-bg);
+  --ink: var(--footer-ink);
+  --onink: var(--footer-bg);
+  --line: var(--footer-line);
+  --line2: var(--footer-line);
+  --mute: var(--footer-mute);
+  --mute2: var(--footer-mute);
+  --brand: var(--footer-brand-text);
+  --brand-text: var(--footer-brand-text);
+  --ok-text: var(--footer-ok-text);
+  --warn-text: var(--footer-warn-text);
+  --danger-text: var(--footer-danger-text);
+  background-color: var(--footer-bg);
+  color: var(--footer-ink);
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-ink: var(--ink);
+  --color-onink: var(--onink);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-track: var(--track);
+  --color-mute: var(--mute);
+  --color-mute2: var(--mute2);
+  --color-mute3: var(--mute3);
+  --color-faint: var(--faint);
+  --color-pill: var(--pill);
+  --color-footer-bg: var(--footer-bg);
+  --color-footer-ink: var(--footer-ink);
+  --color-footer-mute: var(--footer-mute);
+  --color-footer-line: var(--footer-line);
+  --color-footer-logo-tile: var(--footer-logo-tile);
+  --color-footer-logo-glyph: var(--footer-logo-glyph);
+  --color-footer-brand-text: var(--footer-brand-text);
+  --color-footer-ok-text: var(--footer-ok-text);
+  --color-footer-warn-text: var(--footer-warn-text);
+  --color-footer-danger-text: var(--footer-danger-text);
+  --color-banbg: var(--banbg);
+  --color-banfg: var(--banfg);
+  --color-brand: var(--brand);
+  --color-brand-fill: var(--brand-fill);
+  --color-brand-text: var(--brand-text);
+  --color-focus-ring: var(--focus-ring);
+  --color-danger: var(--danger);
+  --color-danger-fill: var(--danger-fill);
+  --color-danger-text: var(--danger-text);
+  --color-ok: var(--ok);
+  --color-ok-fill: var(--ok-fill);
+  --color-ok-text: var(--ok-text);
+  --color-warn: var(--warn);
+  --color-warn-fill: var(--warn-fill);
+  --color-warn-text: var(--warn-text);
+
+  --font-sans: var(--font-ibm-plex), "IBM Plex Sans", sans-serif;
+  --font-serif: var(--font-source-serif), "Source Serif 4", Georgia, serif;
+  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
 }
 
 body {
   font-family: var(--font-ibm-plex);
-  background-color: #f4f5f7;
-  color: #1a1d21;
+  background-color: var(--page);
+  color: var(--ink);
   margin: 0;
   padding: 0;
 }
@@ -19,4 +181,359 @@ h2,
 h3,
 .serif {
   font-family: var(--font-source-serif);
+}
+
+/*
+ * Elementos base (DESIGN.md): nascem estilizados, sem margem própria.
+ * Espaço é do contêiner. Utilities do Tailwind sobrescrevem estas regras.
+ */
+@layer base {
+  /* Tailwind v4 tirou o cursor-pointer padrão de botões; todo controle clicável volta a ter. */
+  select:not(:disabled),
+  button:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+  select:disabled,
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    font-family: var(--font-source-serif);
+    color: var(--ink);
+  }
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  /* O corpo (14px, 16px em md) é do body: p herda, então text-xs/text-sm do contêiner continuam valendo. */
+  body {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  p {
+    margin: 0;
+  }
+  @media (min-width: 48rem) {
+    h1 {
+      font-size: 1.875rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+    }
+    h3 {
+      font-size: 1.25rem;
+    }
+    h4 {
+      font-size: 1.125rem;
+    }
+    body {
+      font-size: 1rem;
+    }
+  }
+  dl,
+  dt,
+  dd {
+    margin: 0;
+  }
+  dt {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+  ul,
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li + li {
+    margin-top: 0;
+  }
+  /* Só link dentro de texto corrido; navegação, pílulas, cartões e tabelas são componentes. */
+  :is(p, li, dd) a:not([class]) {
+    color: var(--brand-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  table {
+    border-collapse: collapse;
+  }
+  th {
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mute);
+    border-bottom: 1px solid var(--line);
+  }
+  td {
+    padding: 0.625rem 0.75rem;
+    color: var(--ink);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--line2);
+  }
+  tbody tr:hover {
+    background-color: var(--line2);
+  }
+  tfoot td {
+    font-weight: 600;
+    border-top: 1px solid var(--line);
+  }
+}
+
+@utility eyebrow {
+  font-family: var(--font-ibm-plex);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+@utility caption {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--mute);
+}
+
+@utility lead {
+  max-width: 65ch;
+  color: var(--mute);
+}
+
+@utility display {
+  font-family: var(--font-source-serif);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  @media (min-width: 48rem) {
+    font-size: 3rem;
+  }
+}
+
+@utility numeric {
+  font-family: var(--font-ibm-plex-mono);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility stat-value {
+  font-family: var(--font-source-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  @media (min-width: 48rem) {
+    font-size: 1.875rem;
+  }
+}
+
+@utility stat-value-sm {
+  font-family: var(--font-source-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  @media (min-width: 48rem) {
+    font-size: 1.5rem;
+  }
+}
+
+@utility stat-value-lg {
+  font-family: var(--font-source-serif);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  @media (min-width: 48rem) {
+    font-size: 3.75rem;
+  }
+}
+
+@utility panel {
+  border-style: solid;
+  border-color: var(--panel-border-color, var(--line));
+  border-width: var(--panel-border-width);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+  padding: var(--panel-padding);
+}
+
+/* Formato alternativo do panel: borda só no topo (DESIGN.md > panel). */
+@utility panel-top {
+  --panel-border-width: 3px 0 0 0;
+  --panel-padding: 1rem 0 0.25rem;
+}
+
+/* panel inteiro clicável: a borda escurece no hover e no foco (DESIGN.md > panel). */
+@utility panel-interactive {
+  cursor: pointer;
+  transition: border-color 150ms ease;
+  &:hover,
+  &:focus-visible {
+    --panel-border-color: var(--brand-fill);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  &[aria-disabled="true"] {
+    cursor: default;
+    &:hover,
+    &:focus-visible {
+      --panel-border-color: var(--line);
+    }
+  }
+}
+
+@utility panel-brand {
+  --panel-border-color: var(--brand-fill);
+}
+
+@utility panel-ok {
+  --panel-border-color: var(--ok-fill);
+}
+
+@utility panel-warn {
+  --panel-border-color: var(--warn-fill);
+}
+
+@utility panel-danger {
+  --panel-border-color: var(--danger-fill);
+}
+
+@utility section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  & > :is(h1, h2, h3, h4) {
+    margin-bottom: -0.75rem;
+  }
+}
+
+@utility list-text {
+  list-style: disc;
+  padding-left: 1.25rem;
+  & > li + li {
+    margin-top: 0.25rem;
+  }
+}
+
+/*
+ * Mapa da Farmácia SUS: controles Leaflet nos tokens do tema e tiles escuros.
+ * Decisão do spike: filtro CSS sobre os tiles Esri claros (sem domínio nem dependência nova).
+ */
+.farmacia-mapa .leaflet-bar {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: none;
+  overflow: hidden;
+}
+.farmacia-mapa .leaflet-bar a {
+  background-color: var(--page);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+}
+.farmacia-mapa .leaflet-bar a:hover {
+  background-color: var(--line2);
+}
+.farmacia-mapa .leaflet-bar a:first-child,
+.farmacia-mapa .leaflet-bar a:last-child {
+  border-radius: 0;
+}
+.farmacia-mapa .leaflet-control-attribution {
+  background: var(--page);
+  color: var(--mute2);
+}
+.farmacia-mapa .leaflet-control-attribution a {
+  color: var(--mute);
+}
+.dark .farmacia-mapa.leaflet-container {
+  background: var(--line2);
+}
+.dark .farmacia-mapa .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}
+
+/*
+ * Mapas de obras: mesma decisão do mapa da Farmácia SUS (filtro CSS sobre os tiles claros no
+ * tema escuro). Controles e balão do Leaflet usam os tokens do tema.
+ */
+.mapa-tema .leaflet-bar {
+  border: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+.mapa-tema .leaflet-bar a {
+  background-color: var(--page);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+  border-radius: 0;
+}
+.mapa-tema .leaflet-bar a:hover {
+  background-color: var(--line2);
+}
+.mapa-tema .leaflet-control-attribution {
+  background: var(--page);
+  color: var(--mute2);
+}
+.mapa-tema .leaflet-control-attribution a {
+  color: var(--mute);
+}
+.mapa-tema .leaflet-popup-content-wrapper,
+.mapa-tema .leaflet-popup-tip {
+  background: var(--page);
+  color: var(--ink);
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid var(--line);
+}
+.dark .mapa-tema.leaflet-container,
+.dark .mapa-tema .leaflet-container {
+  background: var(--line2);
+}
+.dark .mapa-tema .leaflet-tile-pane,
+.dark .mapa-tema-imagem {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
 }

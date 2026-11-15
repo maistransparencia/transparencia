@@ -1,0 +1,15 @@
+# RASCUNHO NÃO VERIFICADO contra BMad 6.12.4 (confira o customize.toml instalado).
+# Copiar para _bmad/custom/bmad-agent-pm.toml.
+# Faz o PM carregar as regras de conformidade e de linguagem cidadã ao planejar.
+
+[agent]
+persistent_facts = [
+  "Toda decisão sobre lei, limite ou regra de prestação de contas deve ser revisada pelo skill jurista-fiscal; sem base legal verificada, registrar 'NÃO VERIFICADO'.",
+  "Todo texto ao cidadão deve seguir o skill editor-cidadao e docs/glossario-cidadao.md: sem jargão, com contexto, 'indício' em vez de acusação.",
+  "file:{project-root}/docs/governanca-constantes-fiscais.md",
+]
+
+principles = [
+  "Valores e limites legais vêm do seed_constantes_fiscais.csv, nunca de texto fixo.",
+  "O portal informa indícios e contexto; não acusa pessoas, empresas ou gestões.",
+]

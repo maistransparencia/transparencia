@@ -22,7 +22,9 @@ export interface ExecucaoOrcamentariaMetricsDTO {
   totalPago: number;
   saldoOrcamentario: number;
   taxaExecucao: number;
-  alertaExecucao: "normal" | "N/D" | "excesso" | "baixa";
+  /** Pago sobre a dotação atualizada, em escala 0–100. */
+  percentualPago: number;
+  alertaExecucao: "normal" | "N/D" | "excesso";
 }
 
 /**
@@ -78,14 +80,16 @@ export async function getExecucaoOrcamentariaMetrics(
     const saldoOrcamentario = totalDotacaoAtualizada - totalEmpenhado;
     const taxaExecucao =
       totalDotacaoAtualizada > 0 ? totalEmpenhado / totalDotacaoAtualizada : 0;
+    const percentualPago =
+      totalDotacaoAtualizada > 0
+        ? (totalPago / totalDotacaoAtualizada) * 100
+        : 0;
 
-    let alertaExecucao: "normal" | "N/D" | "excesso" | "baixa" = "normal";
+    let alertaExecucao: "normal" | "N/D" | "excesso" = "normal";
     if (totalEmpenhado === 0 && totalDotacaoAtualizada === 0) {
       alertaExecucao = "N/D";
     } else if (totalDotacaoAtualizada === 0 && totalEmpenhado > 0) {
       alertaExecucao = "excesso";
-    } else if (taxaExecucao < 0.3) {
-      alertaExecucao = "baixa";
     } else if (taxaExecucao > 1.0) {
       alertaExecucao = "excesso";
     }
@@ -104,7 +108,50 @@ export async function getExecucaoOrcamentariaMetrics(
       totalPago,
       saldoOrcamentario,
       taxaExecucao,
+      percentualPago,
       alertaExecucao,
     } satisfies ExecucaoOrcamentariaMetricsDTO;
   });
+}
+
+/**
+ * Como o ano anterior terminou: pago sobre a dotação atualizada ao fim do ano,
+ * ou `null` quando não há dotação para comparar.
+ */
+export interface ExecucaoAnoAnteriorDTO {
+  anoAnterior: number;
+  percentualPago: number | null;
+}
+
+export async function getExecucaoAnoAnterior(
+  portalSlug: string,
+  ano: number,
+  empresaIds: string[],
+): Promise<ExecucaoAnoAnteriorDTO> {
+  const anoAnterior = ano - 1;
+
+  if (empresaIds.length === 0) {
+    return { anoAnterior, percentualPago: null };
+  }
+
+  const totais = await db
+    .selectFrom("fct_execucao_orcamentaria_metricas")
+    .select((eb) => [
+      eb.fn
+        .sum<string>("total_dotacao_atualizada")
+        .as("total_dotacao_atualizada"),
+      eb.fn.sum<string>("total_pago").as("total_pago"),
+    ])
+    .where("portal_slug", "=", portalSlug)
+    .where("ano", "=", anoAnterior)
+    .where("empresa_id", "in", empresaIds)
+    .executeTakeFirst();
+
+  const totalDotacao = Number(totais?.total_dotacao_atualizada ?? 0);
+  const totalPago = Number(totais?.total_pago ?? 0);
+
+  return {
+    anoAnterior,
+    percentualPago: totalDotacao > 0 ? (totalPago / totalDotacao) * 100 : null,
+  };
 }

@@ -10,6 +10,12 @@ export function buildSaudeViewModel(raw: SaudeRawData) {
     partialPeriod: getPartialYearPeriod(
       raw.portalConfig?.dataExtracaoDate ?? raw.portalConfig?.dataExtracao,
     ),
+    minimoSaude: raw.minimoSaude,
+    redePorMilMoradores: raw.redePorMilMoradores,
+    producaoSus: raw.producaoSus,
+    farmaciaResumo: raw.farmaciaResumo,
+    portalUrl: raw.portalConfig?.portalUrl ?? "",
+    dataColeta: raw.portalConfig?.dataExtracao ?? "",
     saude: raw.saude,
   };
 }

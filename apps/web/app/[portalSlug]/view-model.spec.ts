@@ -278,6 +278,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardComiss.tipoMetodologia).toBe("estoque");
     expect(cardComiss.grauSeveridade).toBe("critico");
     expect(cardComiss.badgeSeveridade?.label).toBe("Atenção Especial");
+    expect(cardComiss.badgeSeveridade?.badgeVariant).toBe("danger");
     expect(cardComiss.textoFactual).toContain(
       "165 cargos comissionados ativos",
     );
@@ -307,6 +308,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardSaude.titulo).toBe("Aporte Expressivo em Saúde");
     expect(cardSaude.metodologiaBadge).toBe("Histórico Jan a Ago");
     expect(cardSaude.badgeSeveridade?.label).toBe("Aporte Relevante");
+    expect(cardSaude.badgeSeveridade?.badgeVariant).toBe("accent");
     expect(cardSaude.tipoMetodologia).toBe("homologa");
     expect(cardSaude.textoFactual).toContain(
       "área de Saúde totalizaram R$ 15,2 mi",
@@ -321,6 +323,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
     expect(cardDispensa.titulo).toBe("Compras sem Licitação");
     expect(cardDispensa.metodologiaBadge).toBe("Histórico Jan a Ago");
     expect(cardDispensa.badgeSeveridade?.label).toBe("Acompanhamento");
+    expect(cardDispensa.badgeSeveridade?.badgeVariant).toBe("default");
     expect(cardDispensa.tipoMetodologia).toBe("homologa");
     expect(cardDispensa.textoFactual).toContain(
       "48.5% dos processos de contratação foram realizados por dispensa",
@@ -735,7 +738,7 @@ describe("buildVisaoGeralViewModel - radarCivicoFeedData", () => {
       url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm#art20",
     });
     expect(card.textoFactual).toContain(
-      "comprometeram 56.6% da Receita Corrente Líquida, superando o teto legal de 54% em +2.6 p.p. nos termos do Art. 20 da LRF",
+      "o gasto com pessoal ficou em 56.6% da receita corrente líquida (o que a prefeitura pode usar nas suas despesas), 2.6 pontos percentuais acima do limite de 54% da Lei de Responsabilidade Fiscal (LRF)",
     );
   });
 
@@ -792,112 +795,44 @@ describe("buildVisaoGeralViewModel - resumoObras", () => {
     expect(vm.obrasDetailUrl).toBe("/porciuncula/obras?ano=2024");
     expect(vm.obrasDetailUrl).not.toContain("entidades");
   });
+});
 
-  it("filtra marcadores válidos e calcula o centro mediano a partir de obrasPreview", () => {
-    const raw = makeRawVisaoGeral({
-      obrasPreview: [
-        {
-          idProjeto: "1",
-          numeroControleObrasgov: "101",
-          ano: 2024,
-          titulo: "Construção de Escola",
-          situacao: "em_execucao",
-          valorTotalInvestimento: 1000000,
-          latitude: -20.963,
-          longitude: -42.04,
-        },
-        {
-          idProjeto: "2",
-          numeroControleObrasgov: "102",
-          ano: 2024,
-          titulo: "Reforma de Posto",
-          situacao: "concluida",
-          valorTotalInvestimento: 500000,
-          latitude: -20.961,
-          longitude: -42.042,
-        },
-        {
-          idProjeto: "3",
-          numeroControleObrasgov: "103",
-          ano: 2024,
-          titulo: "Pavimentação",
-          situacao: "paralisada",
-          valorTotalInvestimento: 200000,
-          latitude: -20.965,
-          longitude: -42.038,
-        },
-        // Obras inválidas que devem ser descartadas
-        {
-          idProjeto: "4",
-          numeroControleObrasgov: "104",
-          ano: 2024,
-          titulo: "Sem Coordenada",
-          situacao: "cadastrada",
-          valorTotalInvestimento: 100000,
-          latitude: null,
-          longitude: -42.04,
-        },
-        {
-          idProjeto: "5",
-          numeroControleObrasgov: "105",
-          ano: 2024,
-          titulo: "Coordenada Zero",
-          situacao: "cadastrada",
-          valorTotalInvestimento: 100000,
-          latitude: 0,
-          longitude: 0,
-        },
-        {
-          idProjeto: "6",
-          numeroControleObrasgov: "106",
-          ano: 2024,
-          titulo: "Coordenada NaN",
-          situacao: "cadastrada",
-          valorTotalInvestimento: 100000,
-          latitude: Number.NaN,
-          longitude: -42.04,
-        },
-      ] as never,
-    });
+describe("buildVisaoGeralViewModel - centro do mapa de obras", () => {
+  const obra = (
+    idProjeto: string,
+    situacao: string,
+    [latitude, longitude]: [number, number],
+  ) => ({ idProjeto, situacao, latitude, longitude });
 
-    const vm = buildVisaoGeralViewModel(raw);
-
-    expect(vm.obrasMiniMapMarkers).toHaveLength(3);
-    expect(vm.obrasMiniMapMarkers).toEqual([
-      {
-        id: "1",
-        situacao: "em_execucao",
-        latitude: -20.963,
-        longitude: -42.04,
-      },
-      {
-        id: "2",
-        situacao: "concluida",
-        latitude: -20.961,
-        longitude: -42.042,
-      },
-      {
-        id: "3",
-        situacao: "paralisada",
-        latitude: -20.965,
-        longitude: -42.038,
-      },
-    ]);
-
-    // Ordenados: lats [-20.965, -20.963, -20.961] -> median = -20.963
-    // lngs [-42.042, -42.040, -42.038] -> median = -42.040
-    expect(vm.obrasMapCenter).toEqual([-20.963, -42.04]);
+  it("centraliza no grupo com mais obras em andamento, não na mediana de todas", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        obrasPreview: [
+          obra("a", "em_execucao", [-21.0, -42.0]),
+          obra("b", "em_execucao", [-21.002, -42.002]),
+          obra("c", "em_execucao", [-21.004, -42.004]),
+          obra("d", "em_execucao", [-21.3, -42.3]),
+          obra("e", "concluida", [-21.3, -42.3]),
+          obra("f", "concluida", [-21.3, -42.3]),
+          obra("g", "cadastrada", [-21.3, -42.3]),
+        ],
+      }),
+    );
+    expect(vm.obrasMapCenter?.[0]).toBeCloseTo(-21.002, 3);
+    expect(vm.obrasMapCenter?.[1]).toBeCloseTo(-42.002, 3);
   });
 
-  it("retorna fallback padrão para obrasMapCenter quando obrasPreview não possuir coordenadas válidas", () => {
-    const raw = makeRawVisaoGeral({
-      obrasPreview: [],
-    });
-
-    const vm = buildVisaoGeralViewModel(raw);
-
-    expect(vm.obrasMiniMapMarkers).toEqual([]);
-    expect(vm.obrasMapCenter).toEqual([-20.9634, -42.0408]);
+  it("sem obra em andamento, usa a mediana de todas as obras", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        obrasPreview: [
+          obra("a", "concluida", [-21.0, -42.0]),
+          obra("b", "concluida", [-21.1, -42.1]),
+          obra("c", "cadastrada", [-21.2, -42.2]),
+        ],
+      }),
+    );
+    expect(vm.obrasMapCenter).toEqual([-21.1, -42.1]);
   });
 });
 
@@ -936,6 +871,7 @@ describe("buildVisaoGeralViewModel - educacaoResumo", () => {
       enfaseTitulo: "Destaque: evolução de +1,4 ponto no IDEB",
       evolucaoTexto: "+1,4 ponto",
       notaAnteriorTexto: "Ciclo anterior: 4,5",
+      notaAnteriorValorTexto: "4,5",
       metaTexto: null,
       rankingTexto: null,
     });
@@ -1017,5 +953,234 @@ describe("buildVisaoGeralViewModel - educacaoResumo", () => {
       makeRawVisaoGeral({ resumoEducacao: null }),
     );
     expect(vm.educacaoResumo).toBeNull();
+  });
+});
+
+describe("buildVisaoGeralViewModel - farmacia", () => {
+  const resumo = (status: string) => ({
+    status,
+    dataPosicaoMaisRecente: "2026-01-10",
+    diasDesdePosicaoMaisRecente: 20,
+  });
+
+  it("apagao: monta requerimento e texto do WhatsApp com o nome do portal", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoFarmacia: resumo("apagao") }),
+    );
+    expect(vm.farmaciaRequerimento).toContain("Porciúncula");
+    expect(vm.farmaciaRequerimento).toContain("Art. 6º-A");
+    expect(vm.farmaciaTextoWhatsApp).toContain("Porciúncula");
+  });
+
+  it.each(["conforme", "indisponivel"])("%s: nao monta textos", (status) => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({ resumoFarmacia: resumo(status) }),
+    );
+    expect(vm.farmaciaRequerimento).toBeUndefined();
+    expect(vm.farmaciaTextoWhatsApp).toBeUndefined();
+  });
+
+  it("apagao sem nome de portal: nao monta textos", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        resumoFarmacia: resumo("apagao"),
+        portalConfig: undefined,
+      }),
+    );
+    expect(vm.farmaciaRequerimento).toBeUndefined();
+  });
+
+  describe("farmaciaExemplos", () => {
+    const sentinela = (
+      codigo: string,
+      ordem: number,
+      extra: Record<string, unknown> = {},
+    ) => ({
+      codigoPrincipioAtivo: codigo,
+      nomePrincipioAtivo: codigo.toUpperCase(),
+      grupoTerapeutico: "dor_febre",
+      ordemExibicao: ordem,
+      destaqueCardInicial: true,
+      unidadesComRegistro: 1,
+      unidadesSomenteCombinacao: 0,
+      ...extra,
+    });
+    const raw = (status: string, sentinelas: unknown[]) =>
+      makeRawVisaoGeral({
+        resumoFarmacia: resumo(status),
+        sentinelasFarmacia: { totalUnidadesAtivas: 2, sentinelas },
+      });
+
+    it("conforme: filtra destaque com estoque, ordena e limita a 6", () => {
+      const sentinelas = [
+        ...[9, 8, 7, 6, 5, 4, 3].map((n) => sentinela(`med${n}`, n)),
+        sentinela("fora", 1, { destaqueCardInicial: false }),
+        sentinela("semestoque", 2, { unidadesComRegistro: 0 }),
+      ];
+      const vm = buildVisaoGeralViewModel(raw("conforme", sentinelas));
+      expect(vm.farmaciaExemplos.map((e) => e.codigoPrincipioAtivo)).toEqual([
+        "med3",
+        "med4",
+        "med5",
+        "med6",
+        "med7",
+        "med8",
+      ]);
+      expect(vm.farmaciaExemplos[0].href).toBe(
+        `${vm.farmaciaDetailUrl}?q=MED3#resultados`,
+      );
+    });
+
+    it.each(["apagao", "indisponivel"])("%s: sem exemplos", (status) => {
+      const vm = buildVisaoGeralViewModel(
+        raw(status, [sentinela("dipirona", 1)]),
+      );
+      expect(vm.farmaciaExemplos).toEqual([]);
+    });
+  });
+});
+
+describe("buildVisaoGeralViewModel - arrecadado e previsão de receita", () => {
+  it("compara o arrecadado com a previsão de receita, não com a dotação de despesa", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        fonte: { totalArrecadado: 1309, totalPrevisto: 1562 },
+        execSummary: { totalDotacao: 2061 },
+      }),
+    );
+    expect(vm.totalArrecadado).toBe(1309);
+    expect(vm.previstoTotal).toBe(1562);
+    expect(vm.realizationPercent).toBe(84);
+  });
+
+  it("sem previsão de receita o percentual fica zerado", () => {
+    const vm = buildVisaoGeralViewModel(makeRawVisaoGeral({ fonte: null }));
+    expect(vm.previstoTotal).toBe(0);
+    expect(vm.realizationPercent).toBe(0);
+  });
+
+  it("calcula o pago sobre o orçamento autorizado e a régua do ano anterior", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        execSummary: { totalPago: 1186, totalDotacao: 2061 },
+        execucaoAnoAnterior: { anoAnterior: 2023, percentualPago: 90.6 },
+      }),
+    );
+    expect(vm.execucaoPaga.percentualPago).toBe(58);
+    expect(vm.execucaoPaga.percentualPagoAnoAnterior).toBe(91);
+  });
+
+  it("sem orçamento autorizado o percentual pago fica zerado e sem régua", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        execSummary: { totalPago: 0, totalDotacao: 0 },
+        execucaoAnoAnterior: { anoAnterior: 2023, percentualPago: null },
+      }),
+    );
+    expect(vm.execucaoPaga.percentualPago).toBe(0);
+    expect(vm.execucaoPaga.percentualPagoAnoAnterior).toBeNull();
+  });
+
+  it("aponta o detalhe da arrecadação para /receitas", () => {
+    const vm = buildVisaoGeralViewModel(makeRawVisaoGeral());
+    expect(vm.receitasDetailUrl).toContain("/receitas");
+  });
+});
+
+describe("buildVisaoGeralViewModel - cores das barras", () => {
+  it("não define cor própria por item nas etapas", () => {
+    const vm = buildVisaoGeralViewModel(makeRawVisaoGeral());
+    expect(vm.pipelineStages.every((etapa) => !("corToken" in etapa))).toBe(
+      true,
+    );
+  });
+});
+
+describe("buildVisaoGeralViewModel - contrato de situação da home", () => {
+  it("propaga mínimos e situação por área vindos do loader, sem recalcular", () => {
+    const raw = makeRawVisaoGeral({
+      minimoSaude: {
+        limite: 15,
+        percentualAplicado: 12,
+        resultado: "abaixo",
+        comparavel: true,
+        mesesCobertos: null,
+        baseLegal: "LC 141/2012",
+        urlBaseLegal: "https://example.test/lc141",
+      },
+      minimoEducacao: null,
+      situacaoHome: {
+        saude: { estado: "abaixo", emAtencao: true, motivo: "abaixo_minimo" },
+        obras: {
+          estado: "normal",
+          emAtencao: true,
+          motivo: "obra_paralisada",
+        },
+        educacao: { estado: "indisponivel", emAtencao: false, motivo: null },
+      },
+    });
+
+    const vm = buildVisaoGeralViewModel(raw);
+
+    expect(vm.minimoSaude).toBe(raw.minimoSaude);
+    expect(vm.minimoEducacao).toBeNull();
+    expect(vm.situacaoHome).toBe(raw.situacaoHome);
+  });
+});
+
+describe("buildVisaoGeralViewModel - detailShortcuts", () => {
+  const generico = [
+    "Em que a Prefeitura gastou",
+    "Compras e contratações",
+    "Servidores e folha de pagamento",
+  ];
+
+  it("resume cada atalho com número e ano quando há dado", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        totalContratacoes: 12,
+        totalProfissionais: 340,
+        mesReferenciaPessoal: 6,
+      }),
+    );
+    const [despesas, licitacoes, pessoal] = vm.detailShortcuts;
+    expect(despesas?.title).toContain("pagos em 2024");
+    expect(despesas?.title).not.toContain("até agora");
+    expect(licitacoes?.title).toBe("12 contratações em 2024");
+    expect(pessoal?.title).toBe("340 servidores na folha de Jun/2024");
+  });
+
+  it("marca o valor como parcial no ano em andamento", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        totalContratacoes: 1,
+      }),
+    );
+    expect(vm.detailShortcuts[0]?.title).toContain("até agora");
+    expect(vm.detailShortcuts[1]?.title).toBe(
+      "1 contratação em 2024 até agora",
+    );
+  });
+
+  it("sem dado volta à descrição genérica, nunca zero", () => {
+    const vm = buildVisaoGeralViewModel(
+      makeRawVisaoGeral({
+        execSummary: {
+          totalDotacao: 0,
+          totalEmpenhado: 0,
+          totalLiquidado: 0,
+          totalPago: 0,
+        },
+        totalContratacoes: 0,
+        totalProfissionais: 0,
+        mesReferenciaPessoal: 0,
+      }),
+    );
+    expect(vm.detailShortcuts.map((atalho) => atalho.title)).toEqual(generico);
   });
 });

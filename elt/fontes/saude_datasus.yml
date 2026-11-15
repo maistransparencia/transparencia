@@ -1,0 +1,62 @@
+# Arquivos mensais por Estado do DATASUS (FTP anônimo, `.dbc` = DBF comprimido) para a rede e a produção de saúde.
+# Uma entrada por UF; o extrator, o mart e a tela não mudam ao incluir um Estado, só esta configuração.
+#
+# GATILHO: toda UF de `elt/transform/seeds/seed_portais.csv` precisa estar em `fontes` ou em `ufs_sem_fonte`
+# (decisão explícita, com motivo). Cadastrar uma cidade de UF nova sem isso quebra
+# `elt/tests/test_cobertura_fontes_saude_datasus.py`. Antes de copiar a entrada de outro Estado, baixar o arquivo real
+# e conferir cabeçalho e codificação (Regra 28).
+#
+# `padrao_arquivo` é uma expressão regular (sem diferenciar caixa) casada contra a listagem da pasta; `{uf}` e `{aamm}`
+# (ano com 2 dígitos + mês) são substituídos. O SIA do mês vem em partes (`a`, `b`, `c`...), por isso o sufixo opcional.
+# `campos` mapeia o modelo comum (chave) para a coluna do arquivo (valor).
+ufs_sem_fonte: []
+# exemplo: - uf: XX
+#            motivo: Estado não publica o arquivo mensal (verificado em AAAA-MM-DD)
+
+# Tabela nacional do CNES (campo TP_LEITO): o código do arquivo vira o mesmo texto que a API de dados abertos
+# entregava, para o raw continuar igual. Código fora da tabela é gravado como veio.
+tipos_leito:
+  "1": "1 - ESPEC - CIRURGICO"
+  "2": "2 - ESPEC - CLINICO"
+  "3": "3 - COMPLEMENTAR"
+  "4": "4 - OBSTETRICO"
+  "5": "5 - PEDIATRICO"
+  "6": "6 - OUTRAS ESPECIALIDADES"
+  "7": "7 - HOSPITAL DIA"
+
+fontes:
+  - uf: RJ
+    host: ftp.datasus.gov.br
+    codificacao: latin-1
+    leitos:
+      pasta: /dissemin/publicos/CNES/200508_/Dados/LT/
+      padrao_arquivo: 'LT{uf}{aamm}\.dbc'
+      campos:
+        municipio: CODUFMUN
+        competencia: COMPETEN
+        tipo_leito: TP_LEITO
+        leitos_existentes: QT_EXIST
+        leitos_sus: QT_SUS
+    profissionais:
+      pasta: /dissemin/publicos/CNES/200508_/Dados/PF/
+      padrao_arquivo: 'PF{uf}{aamm}\.dbc'
+      campos:
+        municipio: CODUFMUN
+        competencia: COMPETEN
+        pessoa: CNS_PROF
+        atende_sus: PROF_SUS
+      valor_atende_sus: "1"
+    sia:
+      pasta: /dissemin/publicos/SIASUS/200801_/Dados/
+      padrao_arquivo: 'PA{uf}{aamm}[a-z]?\.dbc'
+      campos:
+        municipio: PA_UFMUN
+        competencia: PA_CMP
+        quantidade: PA_QTDAPR
+    sih:
+      pasta: /dissemin/publicos/SIHSUS/200801_/Dados/
+      padrao_arquivo: 'RD{uf}{aamm}[a-z]?\.dbc'
+      campos:
+        municipio: MUNIC_MOV
+        ano: ANO_CMPT
+        mes: MES_CMPT

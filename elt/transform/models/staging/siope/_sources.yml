@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: raw_siope
+    schema: raw_siope
+    description: "Dados brutos do Relatório Gerencial do SIOPE (FNDE), de todos os portais, com portal_slug na chave"
+    tables:
+      - name: siope_indicadores
+        description: Indicadores do Relatório Gerencial do SIOPE (FNDE), declarados pelo município. Um registro por portal, ano, período e indicador
+        meta:
+          primary_key:
+          - portal_slug
+          - ano
+          - periodo
+          - codigo_indicador
+        columns:
+        - name: portal_slug
+        - name: ano
+        - name: periodo
+          data_type: integer
+        - name: tipo_periodo
+        - name: codigo_indicador
+        - name: codigo_interno_indicador
+          data_type: integer
+        - name: unidade
+        - name: nomes_oficiais_indicador
+        - name: codigo_siope
+        - name: valor
+          data_type: numeric
+        - name: coletado_em
+          data_type: timestamptz

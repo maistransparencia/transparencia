@@ -1,0 +1,29 @@
+version: 2
+
+sources:
+  - name: raw_siops
+    schema: raw_siops
+    description: "Dados brutos dos indicadores de saúde do SIOPS (Ministério da Saúde), de todos os portais, com portal_slug na chave"
+    tables:
+      - name: siops_indicadores
+        description: Indicadores do SIOPS declarados pelo município. Um registro por portal, ano, período, via de coleta e indicador. Valor nulo é sem dado (não houve transmissão), nunca zero
+        meta:
+          primary_key:
+          - portal_slug
+          - ano
+          - periodo
+          - via
+          - codigo_indicador
+        columns:
+        - name: portal_slug
+        - name: ano
+        - name: periodo
+          data_type: integer
+        - name: tipo_periodo
+        - name: via
+        - name: codigo_indicador
+        - name: unidade
+        - name: valor
+          data_type: numeric
+        - name: coletado_em
+          data_type: timestamptz

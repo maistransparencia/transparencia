@@ -6,6 +6,16 @@ type RawData = Awaited<ReturnType<typeof loadDespesasData>>;
 
 function makeRaw(overrides: Record<string, unknown> = {}): RawData {
   return {
+    portalSlug: "portal_x",
+    frescorFontes: [
+      {
+        fonte: "portal_municipal",
+        descricaoDados: "sistema contábil da Prefeitura",
+        frequenciaEsperada: "diaria",
+        ultimaColetaEm: "2026-11-12T08:00:00.000Z",
+        situacao: "coleta_em_dia",
+      },
+    ],
     context: {
       selectedYear: 2024,
       isCurrentYear: false,
@@ -28,6 +38,7 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       totalLiquidadoPendente: 50,
       fornecedoresAguardando: 5,
       dividaMaisAntigaAno: 2021,
+      restosPagos: 80,
       topFornecedores: [],
     },
     opacidadeContabil: {
@@ -66,5 +77,134 @@ describe("buildDespesasViewModel", () => {
     expect(vm.radarGastosSensiveis).toEqual(raw.radarGastosSensiveis);
     expect(vm.restosResumo).toEqual(raw.restosResumo);
     expect(vm.opacidadeContabil).toEqual(raw.opacidadeContabil);
+  });
+
+  it("repassa o histórico de restos a pagar por ano e destaca o pago do ano selecionado", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        restosHistorico: [
+          { ano: 2021, restosInscritos: 50, restosPagos: 50, saldoRestos: 0 },
+          { ano: 2024, restosInscritos: 120, restosPagos: 45, saldoRestos: 75 },
+        ],
+      }),
+    );
+
+    expect(vm.restosHistorico.map((linha) => linha.ano)).toEqual([2021, 2024]);
+    expect(vm.restosPagosNoAno).toBe(45);
+  });
+
+  it("usa zero como pago do ano quando o ano selecionado não está no histórico", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        restosHistorico: [
+          { ano: 2021, restosInscritos: 50, restosPagos: 50, saldoRestos: 0 },
+        ],
+      }),
+    );
+
+    expect(vm.restosPagosNoAno).toBe(0);
+  });
+
+  it("ordena as áreas por etapa e calcula percentual sobre a soma da mesma etapa", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        areasPorFuncao: [
+          {
+            funcaoCodigo: "10",
+            funcaoNome: "Saúde",
+            totalEmpenhado: 100,
+            totalLiquidado: 90,
+            totalPago: 10,
+          },
+          {
+            funcaoCodigo: "12",
+            funcaoNome: "Educação",
+            totalEmpenhado: 300,
+            totalLiquidado: 60,
+            totalPago: 30,
+          },
+        ],
+      }),
+    );
+    expect(vm.areasPorEtapa.pago.map((a) => a.nome)).toEqual([
+      "Educação",
+      "Saúde",
+    ]);
+    expect(vm.areasPorEtapa.liquidado.map((a) => a.nome)).toEqual([
+      "Saúde",
+      "Educação",
+    ]);
+    expect(vm.areasPorEtapa.pago[0]?.percentualEtapa).toBe(75);
+    expect(vm.areasPorEtapa.pago[0]?.larguraBarra).toBe(100);
+    expect(vm.areasPorEtapa.pago[1]?.larguraBarra).toBeCloseTo(33.33, 1);
+    // etapas nunca são somadas: cada linha mantém os três valores separados
+    expect(vm.areasPorEtapa.empenhado[0]).toMatchObject({
+      empenhado: 300,
+      liquidado: 60,
+      pago: 30,
+      valor: 300,
+    });
+  });
+
+  it("áreas e fornecedores vazios geram listas vazias", () => {
+    const vm = buildDespesasViewModel(makeRaw());
+    expect(vm.areasPorEtapa.pago).toEqual([]);
+    expect(vm.fornecedoresLinhas).toEqual([]);
+  });
+
+  it("percentual de fornecedor usa o total pago geral, não o do DTO", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        topFornecedores: [
+          {
+            fornecedorNome: "Empresa A",
+            fornecedorCpfCnpj: "00.000.000/0001-00",
+            totalPago: 70,
+            totalEmpenhado: 80,
+            percentualPago: 100,
+          },
+        ],
+      }),
+    );
+    expect(vm.fornecedoresLinhas[0]).toMatchObject({
+      nome: "Empresa A",
+      documento: "00.000.000/0001-00",
+      valorPago: 70,
+      percentualTotalPago: 10,
+    });
+  });
+
+  it("total pago zero não divide por zero", () => {
+    const vm = buildDespesasViewModel(
+      makeRaw({
+        metricasGerais: {
+          empenhado: 0,
+          liquidado: 0,
+          pago: 0,
+          taxaLiquidacao: 0,
+          taxaPagamento: 0,
+        },
+        topFornecedores: [
+          {
+            fornecedorNome: "Empresa A",
+            fornecedorCpfCnpj: null,
+            totalPago: 0,
+            totalEmpenhado: 0,
+            percentualPago: 0,
+          },
+        ],
+      }),
+    );
+    expect(vm.fornecedoresLinhas[0]?.percentualTotalPago).toBe(0);
+  });
+
+  it("monta o selo da fonte portal_municipal e some sem linha da fonte", () => {
+    expect(buildDespesasViewModel(makeRaw()).seloFonte).toMatchObject({
+      dataVerificacao: "12/11/2026",
+      href: "/portal_x/como-atualizamos",
+    });
+    expect(
+      buildDespesasViewModel(makeRaw({ frescorFontes: [] })).seloFonte,
+    ).toBeNull();
   });
 });

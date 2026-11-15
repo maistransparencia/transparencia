@@ -8,4 +8,4 @@ select
     liquidado,
     pago,
     dotacao_atualizada
-from {{ ref('int_despesas_unidade_consolidadas') }}
+from {{ ref('stg_fiorilli__despesas_por_unidade') }}

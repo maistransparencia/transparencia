@@ -288,7 +288,7 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
         {/* Metrics Cards */}
         <div style={metricsGridStyle}>
           {metrics.map((metric) => {
-            const cardBg = "#ffffff";
+            const fundoCartao = "#ffffff";
             const valueColor = getVariantColor(metric.variant);
 
             return (
@@ -298,7 +298,7 @@ export const OGCardTemplate: FC<OGCardTemplateProps> = ({
                   flex: 1,
                   display: "flex",
                   flexDirection: "column",
-                  backgroundColor: cardBg,
+                  backgroundColor: fundoCartao,
                   border: "1px solid #e2e8f0",
                   borderRadius: "16px",
                   padding: "18px 22px",

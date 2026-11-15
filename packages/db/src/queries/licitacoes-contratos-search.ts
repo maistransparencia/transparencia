@@ -1,5 +1,6 @@
 import { sql } from "kysely";
 import { db } from "../client";
+import type { LicitacaoSituacaoCodigo } from "./licitacoes-metrics";
 
 export interface SearchResultItem {
   id: string;
@@ -9,6 +10,7 @@ export interface SearchResultItem {
   fornecedorNome: string | null;
   valor: number;
   status: string | null;
+  statusCodigo?: LicitacaoSituacaoCodigo | null;
   modalidade: string | null;
   ano: number;
   portalSlug: string;
@@ -104,6 +106,7 @@ export async function searchLicitacoesEContratos(
         itens.fornecedor_nome AS fornecedor_nome,
         coalesce(l.valor_homologado, l.valor_estimado, l.valor, 0) AS valor,
         l.situacao AS status,
+        l.situacao_codigo AS status_codigo,
         l.modalidade,
         l.ano,
         l.portal_slug,
@@ -269,6 +272,9 @@ export async function searchLicitacoesEContratos(
         fornecedorNome: r.fornecedor_nome ? String(r.fornecedor_nome) : null,
         valor: Number(r.valor) || 0,
         status: r.status ? String(r.status) : null,
+        statusCodigo: r.status_codigo
+          ? (r.status_codigo as LicitacaoSituacaoCodigo)
+          : null,
         modalidade: r.modalidade ? String(r.modalidade) : null,
         ano,
         portalSlug: slug,
@@ -443,6 +449,7 @@ export async function searchLicitacoesEContratos(
         fornecedorNome: r.fornecedor_nome ? String(r.fornecedor_nome) : null,
         valor: Number(r.valor) || 0,
         status: r.status ? String(r.status) : null,
+        statusCodigo: null,
         modalidade: r.modalidade ? String(r.modalidade) : null,
         ano,
         anoCelebracao: ano > 0 ? ano : undefined,

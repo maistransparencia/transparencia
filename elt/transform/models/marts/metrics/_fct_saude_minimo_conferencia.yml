@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: fct_saude_minimo_conferencia
+    description: "Conferência do mínimo de saúde: cálculo próprio do portal (receita arrecadada e despesa liquidada) contra os valores absolutos do SIOPS, com a diferença exposta por ponta. Não é fonte da tela. Diferença positiva = cálculo próprio acima do SIOPS"
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, ano]
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: receita_base_calculo_proprio
+        data_type: numeric
+        description: "Receita arrecadada dos códigos da base legal (seed_saude_minimo_base_calculo), só a linha principal de cada código"
+      - name: despesa_recursos_proprios_calculo_proprio
+        data_type: numeric
+        description: "Despesa liquidada da função saúde cuja fonte de recurso indica impostos e transferências de impostos"
+      - name: percentual_aplicado_saude_calculo_proprio
+        data_type: numeric
+        description: "Despesa própria sobre receita base, em pontos percentuais"
+      - name: percentual_aplicado_saude_siops
+        data_type: numeric
+        description: "Indicador 3.2 do SIOPS do ano fechado; nulo quando o ano não está encerrado"
+      - name: receita_base_siops
+        data_type: numeric
+        description: "Base de receita declarada ao SIOPS"
+      - name: despesa_recursos_proprios_siops
+        data_type: numeric
+        description: "Despesa com recursos próprios declarada ao SIOPS"
+      - name: diferenca_receita_base
+        data_type: numeric
+        description: "receita_base_calculo_proprio menos receita_base_siops, em reais"
+      - name: diferenca_despesa_recursos_proprios
+        data_type: numeric
+        description: "despesa_recursos_proprios_calculo_proprio menos despesa_recursos_proprios_siops, em reais"
+      - name: diferenca_percentual_pontos
+        data_type: numeric
+        description: "percentual_aplicado_saude_calculo_proprio menos percentual_aplicado_saude_siops, em pontos percentuais"

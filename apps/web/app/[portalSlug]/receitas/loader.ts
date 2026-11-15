@@ -3,8 +3,10 @@ import {
   getFontesReceitaMetrics,
   getPortalConfig,
   getRadarCivicoAlertas,
+  getReceitaExtraOrcamentariaOrigem,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
+import { loadSourceFreshnessOrEmpty } from "@/lib/frescor-fontes";
 
 export interface ReceitasSearchParams {
   ano?: string;
@@ -130,13 +132,25 @@ async function fetchRawReceitasData(
     await resolveEmpresaIds(tenantSlug, entidadesIds),
   );
 
-  const [fonteAtual, fonteAnterior, portalConfig, radarAlertas] =
-    await Promise.all([
-      getFontesReceitaMetrics(tenantSlug, selectedYear, empresaIds),
-      getFontesReceitaMetrics(tenantSlug, selectedYear - 1, empresaIds),
-      getPortalConfig(tenantSlug),
-      getRadarCivicoAlertas(tenantSlug, { ano: selectedYear }),
-    ]);
+  const [
+    fonteAtual,
+    fonteAnterior,
+    portalConfig,
+    radarAlertas,
+    origemExtra,
+    frescorFontes,
+  ] = await Promise.all([
+    getFontesReceitaMetrics(tenantSlug, selectedYear, empresaIds),
+    getFontesReceitaMetrics(tenantSlug, selectedYear - 1, empresaIds),
+    getPortalConfig(tenantSlug),
+    getRadarCivicoAlertas(tenantSlug, { ano: selectedYear }),
+    getReceitaExtraOrcamentariaOrigem(
+      tenantSlug,
+      selectedYear,
+      empresaIds,
+    ).catch(() => []),
+    loadSourceFreshnessOrEmpty(tenantSlug),
+  ]);
 
   const totalPctChange =
     fonteAtual && fonteAnterior && fonteAnterior.totalArrecadado > 0
@@ -153,6 +167,8 @@ async function fetchRawReceitasData(
       ? mapFontesMetricToLegacy(fonteAtual, totalPctChange)
       : undefined,
     radarAlertas,
+    origemExtra,
+    frescorFontes,
   };
 }
 

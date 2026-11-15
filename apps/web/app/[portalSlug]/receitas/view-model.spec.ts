@@ -39,11 +39,33 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       entidadesIds: undefined,
     },
     fonte: makeFonte(),
+    frescorFontes: [
+      {
+        fonte: "portal_municipal",
+        descricaoDados: "sistema contábil da Prefeitura",
+        frequenciaEsperada: "diaria",
+        ultimaColetaEm: "2026-11-12T08:00:00.000Z",
+        situacao: "coleta_em_dia",
+      },
+    ],
     ...overrides,
   } as unknown as RawData;
 }
 
 describe("buildReceitasViewModel", () => {
+  it("repassa a origem das entradas fora do orçamento à linha correspondente", () => {
+    const origem = [
+      {
+        categoria: "imposto_renda_retido",
+        valorArrecadado: 10,
+        percentualDoTotal: 100,
+      },
+    ];
+    const vm = buildReceitasViewModel(makeRaw({ origemExtra: origem }));
+    const linha = vm.origensData.find((item) => item.semPrevisao);
+    expect(linha?.origem).toEqual(origem);
+  });
+
   it("usa valores zerados quando não há fonte de receita disponível", () => {
     const vm = buildReceitasViewModel(makeRaw({ fonte: undefined }));
     expect(vm.totalArr).toBe(0);
@@ -51,27 +73,51 @@ describe("buildReceitasViewModel", () => {
     expect(vm.rec.alertaDependencia).toBe(false);
   });
 
-  it("formata a variação como alta (▲) quando totalPctChange é positivo", () => {
+  it("compara a arrecadação com o ano anterior quando ela subiu", () => {
     const vm = buildReceitasViewModel(
       makeRaw({ fonte: makeFonte({ totalPctChange: 12.3 }) }),
     );
-    expect(vm.variationText).toContain("▲");
-    expect(vm.variationText).toContain("12,3%");
+    expect(vm.comparacaoArrecadacao).toEqual({
+      direcao: "alta",
+      texto:
+        "A Prefeitura arrecadou 12,3% a mais que em 2023, sem descontar a inflação.",
+    });
   });
 
-  it("formata a variação como queda (▼) quando totalPctChange é negativo", () => {
+  it("compara a arrecadação com o ano anterior quando ela caiu", () => {
     const vm = buildReceitasViewModel(
       makeRaw({ fonte: makeFonte({ totalPctChange: -8 }) }),
     );
-    expect(vm.variationText).toContain("▼");
-    expect(vm.variationText).toContain("8,0%");
+    expect(vm.comparacaoArrecadacao).toEqual({
+      direcao: "queda",
+      texto:
+        "A Prefeitura arrecadou 8,0% a menos que em 2023, sem descontar a inflação.",
+    });
   });
 
-  it("mostra 'Orçamento aprovado' quando não há ano anterior para comparar", () => {
+  it("não compara quando não há ano anterior", () => {
     const vm = buildReceitasViewModel(
       makeRaw({ fonte: makeFonte({ totalPctChange: null }) }),
     );
-    expect(vm.variationText).toBe("Orçamento aprovado");
+    expect(vm.comparacaoArrecadacao).toBeNull();
+  });
+
+  it("não compara ano em andamento com ano fechado", () => {
+    const vm = buildReceitasViewModel(
+      makeRaw({
+        context: {
+          selectedYear: 2024,
+          isCurrentYear: true,
+          entidadesIds: undefined,
+        },
+        fonte: makeFonte({ totalPctChange: -14.9 }),
+      }),
+    );
+    expect(vm.comparacaoArrecadacao).toEqual({
+      direcao: null,
+      texto:
+        "Ano em andamento: ainda não dá para comparar com o ano anterior inteiro.",
+    });
   });
 
   it("calcula pctRealizado como 0 quando o previsto é 0 (evita divisão por zero)", () => {
@@ -135,5 +181,20 @@ describe("buildReceitasViewModel", () => {
     );
     expect(vm.cardDependencia?.valorObservadoFormatted).toBe("5%");
     expect(vm.cardDependencia?.valorEsperadoFormatted).toBe("10%");
+  });
+
+  it("monta o selo da fonte portal_municipal com link para a página do portal", () => {
+    const vm = buildReceitasViewModel(makeRaw());
+    expect(vm.seloFonte).toMatchObject({
+      dataVerificacao: "12/11/2026",
+      aviso: null,
+      href: "/porciuncula_prefeitura/como-atualizamos",
+    });
+  });
+
+  it("sem linha da fonte portal_municipal não há selo", () => {
+    expect(
+      buildReceitasViewModel(makeRaw({ frescorFontes: [] })).seloFonte,
+    ).toBeNull();
   });
 });

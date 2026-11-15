@@ -153,6 +153,7 @@ export async function getPrevidenciaNaturezaMetrics(
     }
   } catch {
     // Fallback para fct_despesas caso a tabela fct_previdencia_natureza_metricas ainda não esteja disponível
+    // O fallback soma restos a pagar de propósito: aporte quitado inclui pagamento de anos anteriores.
   }
 
   try {
@@ -329,6 +330,7 @@ export async function getPrevidenciaActuarialTrendMetrics(
     }
   } catch {
     // Fallback para fct_despesas caso a tabela ainda não exista no DB
+    // O fallback soma restos a pagar de propósito: aporte quitado inclui pagamento de anos anteriores.
   }
 
   try {
@@ -494,6 +496,7 @@ export async function getPrevidenciaCadprevMetrics(
     return rows.map(toCadprevDTO);
   } catch {
     // Fallback para fct_despesas caso a tabela fct_previdencia_cadprev_metricas ainda não tenha sido criada via dbt run
+    // O fallback soma restos a pagar de propósito: aporte quitado inclui pagamento de anos anteriores.
   }
 
   try {

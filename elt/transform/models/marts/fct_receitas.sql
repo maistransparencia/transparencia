@@ -12,7 +12,7 @@ with receitas as (
         codigo_fonte_stn,
         previsao_atualizada,
         arrecadado_efetivo
-    from {{ ref('int_receitas_consolidadas') }}
+    from {{ ref('int_receitas') }}
 )
 
 select

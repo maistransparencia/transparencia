@@ -65,6 +65,32 @@ vi.mock("@transparencia/db", () => ({
       categoriaFuncional: "Efetivo",
     },
   ]),
+  getRawRestosAPagarExportRecords: vi.fn(async () => [
+    {
+      ano: 2022,
+      orgaoNome: "Prefeitura Municipal",
+      numeroEmpenho: "123",
+      credorNome: "Fornecedor X",
+      credorCpfCnpj: "00.000.000/0001-00",
+      objetoDescricao: "Obra; com ponto e vírgula",
+      valorEmpenhado: 1000,
+      valorLiquidado: 600,
+      valorPago: 400.5,
+      valorPendente: 599.5,
+    },
+  ]),
+  getFarmaciaEstoqueExportRecords: vi.fn(async () => [
+    {
+      portalSlug: "porciuncula_prefeitura",
+      codigoCnes: "1001",
+      nomeUnidade: "UBS Centro",
+      nomeMedicamento: "Dipirona 500mg",
+      numeroLote: "L1",
+      quantidadeEstoque: 12.5,
+      dataPosicaoEstoque: "2026-10-18",
+      dataValidade: null,
+    },
+  ]),
   CATEGORIAS_GASTOS_SENSIVEIS: [
     "combustivel_frota",
     "locacao_maquinas_veiculos",
@@ -434,5 +460,191 @@ describe("API Route: /api/[portalSlug]/export", () => {
     expect(res.status).toBe(500);
     const body = await res.json();
     expect(body.error).toContain("Erro interno");
+  });
+
+  const contextoPortal = {
+    params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+  };
+  const urlEstoque =
+    "https://example.com/api/porciuncula_prefeitura/export?tipo=estoque_farmacia";
+
+  it("exporta estoque_farmacia sem ano, com cabecalho e nome de arquivo", async () => {
+    const { GET } = await import("./route");
+    const res = await GET(new Request(urlEstoque), contextoPortal);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-disposition")).toContain(
+      'filename="estoque_farmacia_porciuncula_prefeitura.csv"',
+    );
+    const text = await res.text();
+    expect(text).toContain(
+      "portal_slug;codigo_cnes;nome_unidade;nome_medicamento;numero_lote;quantidade_estoque;data_posicao_estoque;data_validade",
+    );
+    expect(text).toContain(
+      "porciuncula_prefeitura;1001;UBS Centro;Dipirona 500mg;L1;12,5;2026-10-18;\r\n",
+    );
+  });
+
+  it("estoque_farmacia aceita delimitador virgula e rejeita outros", async () => {
+    const { GET } = await import("./route");
+    const ok = await GET(
+      new Request(`${urlEstoque}&delimitador=,`),
+      contextoPortal,
+    );
+    expect(await ok.text()).toContain("portal_slug,codigo_cnes,nome_unidade");
+    const ruim = await GET(
+      new Request(`${urlEstoque}&delimitador=|`),
+      contextoPortal,
+    );
+    expect(ruim.status).toBe(400);
+  });
+
+  it("estoque_farmacia protege texto de formula, mantem numero e deixa quantidade ausente vazia", async () => {
+    const { getFarmaciaEstoqueExportRecords } = await import(
+      "@transparencia/db"
+    );
+    const base = {
+      portalSlug: "porciuncula_prefeitura",
+      codigoCnes: "1001",
+      nomeUnidade: "UBS Centro",
+      numeroLote: null,
+      dataPosicaoEstoque: "2026-10-18",
+      dataValidade: null,
+    };
+    vi.mocked(getFarmaciaEstoqueExportRecords).mockResolvedValue([
+      { ...base, nomeMedicamento: "=HYPERLINK(1)", quantidadeEstoque: 12.5 },
+      { ...base, nomeMedicamento: "Sem quantidade", quantidadeEstoque: null },
+      { ...base, nomeMedicamento: "Negativo", quantidadeEstoque: -5 },
+    ]);
+    const { GET } = await import("./route");
+    const virgula = await GET(
+      new Request(`${urlEstoque}&delimitador=,`),
+      contextoPortal,
+    );
+    const linhasVirgula = (await virgula.text()).split("\r\n");
+    expect(linhasVirgula[1]).toContain("'=HYPERLINK(1),,12.5,");
+    expect(linhasVirgula[2]).toContain("Sem quantidade,,,");
+    expect(linhasVirgula[3]).toContain("Negativo,,-5,");
+    const ponto = await GET(new Request(urlEstoque), contextoPortal);
+    expect((await ponto.text()).split("\r\n")[1]).toContain(";12,5;");
+  });
+
+  it("estoque_farmacia sem registros devolve 200 so com cabecalho", async () => {
+    const { getFarmaciaEstoqueExportRecords } = await import(
+      "@transparencia/db"
+    );
+    vi.mocked(getFarmaciaEstoqueExportRecords).mockResolvedValueOnce([]);
+    const { GET } = await import("./route");
+    const res = await GET(new Request(urlEstoque), contextoPortal);
+    expect(res.status).toBe(200);
+    const linhas = (await res.text()).split("\r\n").filter(Boolean);
+    expect(linhas).toHaveLength(1);
+  });
+
+  it("estoque_farmacia devolve 404 para portal inexistente e 500 em erro", async () => {
+    const { GET } = await import("./route");
+    const naoExiste = await GET(
+      new Request("https://example.com/api/outro/export?tipo=estoque_farmacia"),
+      { params: Promise.resolve({ portalSlug: "outro" }) },
+    );
+    expect(naoExiste.status).toBe(404);
+    const { getFarmaciaEstoqueExportRecords } = await import(
+      "@transparencia/db"
+    );
+    vi.mocked(getFarmaciaEstoqueExportRecords).mockRejectedValueOnce(
+      new Error("x"),
+    );
+    const erro = await GET(new Request(urlEstoque), contextoPortal);
+    expect(erro.status).toBe(500);
+  });
+
+  it("estoque_farmacia respeita o rate limit e os demais tipos seguem exigindo ano", async () => {
+    const { GET } = await import("./route");
+    const semAno = await GET(
+      new Request(
+        "https://example.com/api/porciuncula_prefeitura/export?tipo=opacidade_99",
+      ),
+      contextoPortal,
+    );
+    expect(semAno.status).toBe(400);
+    const respostas = await Promise.all(
+      Array.from({ length: 31 }, () =>
+        GET(new Request(urlEstoque), contextoPortal),
+      ),
+    );
+    expect(respostas.some((r) => r.status === 429)).toBe(true);
+  });
+});
+
+describe("GET /api/[portalSlug]/export tipo=restos_a_pagar", () => {
+  const contextoPortal = {
+    params: Promise.resolve({ portalSlug: "porciuncula_prefeitura" }),
+  };
+  const urlRestos =
+    "https://example.com/api/porciuncula_prefeitura/export?tipo=restos_a_pagar&ano=2022";
+
+  beforeEach(() => {
+    clearRateLimits();
+  });
+
+  it("exporta os restos a pagar do ano, com cabeçalho, valores e nome de arquivo", async () => {
+    const { GET } = await import("./route");
+    const res = await GET(new Request(urlRestos), contextoPortal);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-disposition")).toContain(
+      'filename="restos_a_pagar_porciuncula_prefeitura_2022.csv"',
+    );
+    const text = await res.text();
+    expect(text).toContain(
+      "ano;orgao_nome;numero_empenho;credor_nome;credor_cpf_cnpj;objeto_descricao;valor_empenhado;valor_liquidado;valor_pago;valor_pendente",
+    );
+    expect(text).toContain(
+      '2022;Prefeitura Municipal;123;Fornecedor X;00.000.000/0001-00;"Obra; com ponto e vírgula";1000,00;600,00;400,50;599,50\r\n',
+    );
+  });
+
+  it("repassa as entidades selecionadas para a consulta", async () => {
+    const { GET } = await import("./route");
+    const { getRawRestosAPagarExportRecords } = await import(
+      "@transparencia/db"
+    );
+    const res = await GET(
+      new Request(`${urlRestos}&entidades=2,3`),
+      contextoPortal,
+    );
+    expect(res.headers.get("content-disposition")).toContain(
+      'filename="restos_a_pagar_porciuncula_prefeitura_2022_23.csv"',
+    );
+
+    expect(getRawRestosAPagarExportRecords).toHaveBeenLastCalledWith({
+      portalSlug: "porciuncula_prefeitura",
+      ano: 2022,
+      empresaIds: ["2", "3"],
+    });
+  });
+
+  it("exige o ano", async () => {
+    const { GET } = await import("./route");
+    const res = await GET(
+      new Request(
+        "https://example.com/api/porciuncula_prefeitura/export?tipo=restos_a_pagar",
+      ),
+      contextoPortal,
+    );
+
+    expect(res.status).toBe(400);
+  });
+
+  it("devolve 500 quando a consulta falha", async () => {
+    const { GET } = await import("./route");
+    const { getRawRestosAPagarExportRecords } = await import(
+      "@transparencia/db"
+    );
+    vi.mocked(getRawRestosAPagarExportRecords).mockRejectedValueOnce(
+      new Error("falha"),
+    );
+    const res = await GET(new Request(urlRestos), contextoPortal);
+
+    expect(res.status).toBe(500);
   });
 });

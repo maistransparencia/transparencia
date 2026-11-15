@@ -55,6 +55,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     { path: "/saude", priority: 0.8, changeFrequency: "weekly" as const },
     { path: "/educacao", priority: 0.8, changeFrequency: "weekly" as const },
+    {
+      path: "/metodologia",
+      priority: 0.5,
+      changeFrequency: "monthly" as const,
+    },
+    { path: "/sobre", priority: 0.5, changeFrequency: "monthly" as const },
   ];
 
   const dynamicRoutes: MetadataRoute.Sitemap = portalSlugs.flatMap((slug) => {

@@ -1,0 +1,90 @@
+version: 2
+
+models:
+  - name: fct_coletas_por_fonte
+    description: "Última coleta de cada fonte por portal, com a frequência esperada do catálogo seed_fontes_coleta. `situacao_monitoramento`: `monitorado` (há registro de coleta), `sem_registro` (fonte monitorada sem coleta registrada) ou `nao_monitorado` (a carga da fonte ainda não grava registro; frescor nunca presumido)."
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - portal_slug
+              - fonte
+    columns:
+      - name: id_registro
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: fonte
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: frequencia_esperada
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - accepted_values:
+              arguments:
+                values: [diaria, semanal, mensal, anual, sob_demanda]
+      - name: descricao_dados
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "O que a fonte traz, em linguagem cidadã (texto do catálogo)."
+      - name: nome_fonte
+        data_type: text
+        description: "Quem publica o dado (texto do catálogo); nulo nas fontes municipais e estaduais, que variam por portal."
+      - name: url_fonte
+        data_type: text
+        description: "Página pública da fonte; nulo nas fontes municipais e estaduais e quando não há página única."
+      - name: esfera_fonte
+        data_type: text
+        constraints:
+          - type: not_null
+        description: "`nacional`, `estadual` ou `municipal`: define de onde a tela tira o link."
+      - name: tolerancia_dias
+        data_type: integer
+        description: "Dias sem coleta aceitos antes de a coleta ser considerada atrasada. Nulo em fontes sob demanda."
+      - name: situacao_monitoramento
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - accepted_values:
+              arguments:
+                values: [monitorado, sem_registro, nao_monitorado]
+      - name: ultima_coleta_em
+        data_type: timestamp with time zone
+      - name: ultima_coleta_total_linhas
+        data_type: integer
+        description: "Linhas que a última carga trouxe. Zero significa que a fonte respondeu sem registros (não é falha); nulo, que não há coleta registrada."
+      - name: total_coletas
+        data_type: integer
+        constraints:
+          - type: not_null
+      - name: ultima_falha_em
+        data_type: timestamp with time zone
+        description: "Quando a última tentativa de coleta falhou; nulo se nunca falhou. Não altera `ultima_coleta_em`, que é só a última coleta com sucesso."
+      - name: ultimo_erro_codigo
+        data_type: text
+        description: "Motivo da última falha: fonte_fora_do_ar, formato_mudou, resposta_vazia_suspeita ou erro_inesperado."
+      - name: periodo_mais_recente_fim
+        data_type: date
+        description: "Fim do período mais recente que a fonte publicou (último dia do mês, quadrimestre ou semestre; a própria data na farmácia). Nulo nas fontes sem período e quando o portal não tem dados."
+      - name: granularidade_periodo
+        data_type: text
+        description: "Tamanho do período mais recente: dia, mes, quadrimestre ou semestre. Nulo junto com `periodo_mais_recente_fim`."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [dia, mes, quadrimestre, semestre]
+      - name: defasagem_publicacao_dias
+        data_type: integer
+        description: "Dias entre o fim do período e a publicação que o portal considera normais. Estimativa do catálogo (NÃO VERIFICADO); nulo nas fontes sem período."

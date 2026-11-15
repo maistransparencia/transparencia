@@ -66,8 +66,6 @@ select
         then 'N/D'
         when total_dotacao_atualizada = 0 and total_empenhado > 0
         then 'excesso'
-        when taxa_execucao < 0.30
-        then 'baixa'
         when taxa_execucao > 1.00
         then 'excesso'
         else 'normal'

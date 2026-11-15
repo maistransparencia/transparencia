@@ -120,29 +120,37 @@ export function FeedbackModal({
     setErrorMessage("");
 
     try {
-      const phWithRecording = posthog as unknown as {
-        sessionRecording?: { isRecording?: () => boolean };
-      };
-      const hasSessionRecording = Boolean(
-        phWithRecording.sessionRecording?.isRecording?.() ?? false,
-      );
-
-      posthog.capture("feedback_submitted", {
-        type,
-        message: trimmedMessage,
-        email: trimmedEmail || null,
-        portal_slug: portalSlug ?? null,
-        url: typeof window !== "undefined" ? window.location.href : "",
-        pathname: typeof window !== "undefined" ? window.location.pathname : "",
-        has_session_recording: hasSessionRecording,
-        timestamp: new Date().toISOString(),
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipoRelato: type,
+          mensagem: trimmedMessage,
+          emailRetorno: trimmedEmail,
+          rotaPagina: window.location.pathname,
+          portalSlug: portalSlug ?? null,
+        }),
       });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        setStatus("error");
+        setErrorMessage(
+          response.status === 429
+            ? "Recebemos muitos envios deste endereço. Aguarde alguns minutos e tente de novo; seu texto foi mantido."
+            : (payload?.error ??
+                "Não foi possível enviar o relato no momento. Seu texto foi mantido; tente novamente."),
+        );
+        return;
+      }
 
       setStatus("success");
     } catch {
       setStatus("error");
       setErrorMessage(
-        "Não foi possível enviar o relato no momento. Por favor, tente novamente mais tarde.",
+        "Não foi possível enviar o relato no momento. Seu texto foi mantido; tente novamente.",
       );
     }
   };
@@ -151,7 +159,7 @@ export function FeedbackModal({
     <ModalDialog
       isOpen={isOpen}
       onClose={handleClose}
-      title="Reportar inconsistência ou erro"
+      title="Sugestão ou erro"
       subtitle={
         municipioNome
           ? `Ajude a aprimorar a transparência em ${municipioNome}`
@@ -163,21 +171,20 @@ export function FeedbackModal({
     >
       {status === "success" ? (
         <div className="py-4 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+          <div className="bg-ok-fill/10 text-ok-text mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
             <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h3 className="font-semibold text-gray-900 text-lg">
-            Relato enviado com sucesso!
-          </h3>
-          <p className="mt-2 text-gray-600 text-sm leading-relaxed">
-            Agradecemos sua colaboração cidadã. Seu relato foi registrado junto
-            aos dados técnicos da página e será analisado pela nossa equipe.
+          <h3>Relato enviado com sucesso!</h3>
+          <p className="text-mute mt-2 text-sm leading-relaxed">
+            Seu relato foi guardado junto com o endereço da página em que você
+            estava. A equipe do portal lê os relatos para corrigir falhas e
+            melhorar as informações; não há prazo fixo de resposta.
           </p>
           <div className="mt-6">
             <button
               type="button"
               onClick={handleClose}
-              className="w-full rounded-lg bg-slate-800 px-4 py-2.5 font-medium text-sm text-white transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              className="bg-ink text-onink hover:bg-ink/90 focus-visible:ring-mute3 w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
               Fechar
             </button>
@@ -201,7 +208,7 @@ export function FeedbackModal({
           <div>
             <span
               id="feedback-type-label"
-              className="block font-medium text-slate-800 text-xs uppercase tracking-wide"
+              className="text-ink block text-xs font-medium tracking-wide uppercase"
             >
               Tipo de relato
             </span>
@@ -215,10 +222,10 @@ export function FeedbackModal({
                 return (
                   <label
                     key={option.id}
-                    className={`flex cursor-pointer flex-col rounded-lg border p-2.5 text-left transition-all focus-within:ring-2 focus-within:ring-blue-500/40 ${
+                    className={`focus-within:ring-focus-ring/40 flex cursor-pointer flex-col rounded-lg border p-2.5 text-left transition-all focus-within:ring-2 ${
                       isSelected
-                        ? "border-blue-600 bg-blue-50/50 text-blue-900 shadow-xs"
-                        : "border-borderLine bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                        ? "border-brand bg-brand/10 text-ink shadow-xs"
+                        : "border-line bg-page text-mute hover:border-line hover:bg-line2"
                     }`}
                   >
                     <input
@@ -229,10 +236,10 @@ export function FeedbackModal({
                       onChange={() => setType(option.id)}
                       className="sr-only"
                     />
-                    <span className="font-medium text-xs leading-snug">
+                    <span className="text-xs leading-snug font-medium">
                       {option.label}
                     </span>
-                    <span className="mt-0.5 text-[11px] text-mutedText leading-tight">
+                    <span className="text-mute2 mt-0.5 text-[11px] leading-tight">
                       {option.description}
                     </span>
                   </label>
@@ -245,10 +252,10 @@ export function FeedbackModal({
           <div>
             <label
               htmlFor="feedback-message"
-              className="block font-medium text-slate-800 text-xs uppercase tracking-wide"
+              className="text-ink block text-xs font-medium tracking-wide uppercase"
             >
               Descrição do problema ou sugestão{" "}
-              <span className="text-red-500">*</span>
+              <span className="text-danger-text">*</span>
             </label>
             <textarea
               id="feedback-message"
@@ -259,9 +266,9 @@ export function FeedbackModal({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Descreva o que você estava fazendo, o que observou ou qual dado parece incorreto..."
-              className="mt-1.5 w-full rounded-lg border border-borderLine bg-white px-3 py-2 text-ink text-sm transition-colors placeholder:text-mutedText focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="border-line bg-page text-ink placeholder:text-mute2 focus:border-brand focus:ring-focus-ring/20 mt-1.5 w-full rounded-lg border px-3 py-2 text-sm transition-colors focus:ring-2 focus:outline-none"
             />
-            <div className="mt-1 flex items-center justify-between text-[11px] text-mutedText">
+            <div className="text-mute2 mt-1 flex items-center justify-between text-[11px]">
               <span>Mínimo de 10 caracteres</span>
               <span>{message.length}/2000</span>
             </div>
@@ -271,10 +278,10 @@ export function FeedbackModal({
           <div>
             <label
               htmlFor="feedback-email"
-              className="block font-medium text-slate-800 text-xs uppercase tracking-wide"
+              className="text-ink block text-xs font-medium tracking-wide uppercase"
             >
               Seu e-mail{" "}
-              <span className="font-normal text-mutedText lowercase">
+              <span className="text-mute2 font-normal lowercase">
                 (opcional, caso queira retorno)
               </span>
             </label>
@@ -284,7 +291,7 @@ export function FeedbackModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="exemplo@email.com"
-              className="mt-1.5 w-full rounded-lg border border-borderLine bg-white px-3 py-2 text-ink text-sm transition-colors placeholder:text-mutedText focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="border-line bg-page text-ink placeholder:text-mute2 focus:border-brand focus:ring-focus-ring/20 mt-1.5 w-full rounded-lg border px-3 py-2 text-sm transition-colors focus:ring-2 focus:outline-none"
             />
           </div>
 
@@ -292,17 +299,21 @@ export function FeedbackModal({
           {errorMessage && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800 text-xs leading-relaxed"
+              className="border-danger-fill/30 bg-danger-fill/10 text-danger-text flex items-start gap-2 rounded-lg border p-3 text-xs leading-relaxed"
             >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+              <AlertCircle className="text-danger-text mt-0.5 h-4 w-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {/* Nota de Contexto e Privacidade */}
-          <p className="text-[11px] text-mutedText leading-relaxed">
-            Para facilitar a investigação técnica, informações sobre a página
-            atual e a sessão de navegação são enviadas com segurança ao PostHog.
+          <p className="text-mute2 text-[11px] leading-relaxed">
+            Guardamos seu texto, o e-mail (se você informar) e o endereço desta
+            página. Não guardamos seu IP nem dados do seu navegador. A mensagem
+            e o e-mail não são enviados a ferramentas de análise de uso; só
+            registramos, sem o conteúdo, que o formulário foi aberto. Não
+            escreva CPF ou outros dados pessoais. Para pedir a exclusão do
+            relato, veja a Política de Privacidade.
           </p>
 
           {/* Botões de Ação */}
@@ -311,14 +322,14 @@ export function FeedbackModal({
               type="button"
               onClick={handleClose}
               disabled={status === "loading"}
-              className="rounded-lg border border-borderLine px-4 py-2 font-medium text-slate-700 text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 disabled:opacity-50"
+              className="border-line text-mute hover:bg-line2 focus-visible:ring-mute3 rounded-lg border px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={status === "loading"}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 disabled:opacity-50"
+              className="bg-ink text-onink hover:bg-ink/90 focus-visible:ring-mute3 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
             >
               {status === "loading" ? (
                 <>

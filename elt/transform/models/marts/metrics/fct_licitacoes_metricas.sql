@@ -5,7 +5,7 @@
 with licitacoes_base as (
     select
         *,
-        lower(unaccent(coalesce(modalidade, ''))) as modalidade_clean
+        lower({{ target.schema }}.unaccent(coalesce(modalidade, ''))) as modalidade_clean
     from {{ ref('fct_licitacoes') }}
 ),
 
@@ -94,7 +94,7 @@ despesas_adesao_externa as (
         coalesce(dg.empenhado, 0)::numeric(15, 2) as empenhado_contrato,
         coalesce(dg.pago, 0)::numeric(15, 2) as pago_contrato,
         dg.data_empenho as data_referencia,
-        lower(unaccent(coalesce(dg.descricao, ''))) as descricao_clean
+        lower({{ target.schema }}.unaccent(coalesce(dg.descricao, ''))) as descricao_clean
     from {{ ref('fct_despesas') }} dg
     where dg.descricao is not null and dg.descricao != ''
 ),
@@ -168,10 +168,10 @@ unificado as (
 unificado_sanitizado as (
     select
         u.*,
-        lower(unaccent(coalesce(u.modalidade, ''))) as modalidade_clean,
-        lower(unaccent(coalesce(u.fundlegal, ''))) as fundlegal_clean,
-        lower(unaccent(coalesce(u.fornecedor_nome, ''))) as fornecedor_clean,
-        lower(unaccent(coalesce(u.objeto, ''))) as objeto_clean
+        lower({{ target.schema }}.unaccent(coalesce(u.modalidade, ''))) as modalidade_clean,
+        lower({{ target.schema }}.unaccent(coalesce(u.fundlegal, ''))) as fundlegal_clean,
+        lower({{ target.schema }}.unaccent(coalesce(u.fornecedor_nome, ''))) as fornecedor_clean,
+        lower({{ target.schema }}.unaccent(coalesce(u.objeto, ''))) as objeto_clean
     from unificado u
 ),
 
@@ -233,12 +233,28 @@ com_limites as (
              or u.objeto_clean like '%reforma%'
              or u.objeto_clean like '%construcao%'
            then 'limite_dispensa_obras_engenharia'
-           when u.objeto_clean like '%veiculo%'
-             or u.objeto_clean like '%automovel%'
-             or u.objeto_clean like '%motocicleta%'
-             or u.objeto_clean like '%caminhao%'
-             or u.objeto_clean like '%onibus%'
-             or u.objeto_clean like '%frota%'
+           when (
+               u.objeto_clean like '%veiculo%'
+               or u.objeto_clean like '%automovel%'
+               or u.objeto_clean like '%motocicleta%'
+               or u.objeto_clean like '%caminhao%'
+               or u.objeto_clean like '%onibus%'
+               or u.objeto_clean like '%frota%'
+             )
+             and (
+               u.objeto_clean like '%manutencao%'
+               or u.objeto_clean like '%conserto%'
+               or u.objeto_clean like '%reparo%'
+               or u.objeto_clean like '%peca%'
+               or (
+                 u.objeto_clean like '%revisao%'
+                 and u.objeto_clean not like '%aquisicao%'
+                 and u.objeto_clean not like '%compra%'
+                 and u.objeto_clean not like '%adquir%'
+                 and u.objeto_clean not like '%zero quilometro%'
+                 and u.objeto_clean not like '%0km%'
+               )
+             )
            then 'limite_dispensa_veiculos'
            else 'limite_dispensa_compras_servicos'
        end

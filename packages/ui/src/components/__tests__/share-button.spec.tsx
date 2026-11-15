@@ -301,4 +301,37 @@ describe("ShareButton Component", () => {
       expect(mockShare).toHaveBeenCalledTimes(1);
     });
   });
+  it("variante inline copia a url informada e confirma quando não há compartilhamento nativo", async () => {
+    const mockClipboardWrite = vi.fn().mockResolvedValue(undefined);
+    const onShare = vi.fn();
+    Object.defineProperty(window, "navigator", {
+      value: {
+        ...originalNavigator,
+        share: undefined,
+        clipboard: { writeText: mockClipboardWrite },
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(
+      <ShareButton
+        variant="inline"
+        url="/porciuncula_prefeitura/obras?ano=2024"
+        onShare={onShare}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Compartilhar/ }));
+
+    await waitFor(() => {
+      expect(mockClipboardWrite).toHaveBeenCalledWith(
+        "https://transparencia.app/porciuncula_prefeitura/obras?ano=2024",
+      );
+    });
+    expect(onShare).toHaveBeenCalledWith({
+      method: "clipboard",
+      url: "https://transparencia.app/porciuncula_prefeitura/obras?ano=2024",
+    });
+    expect(await screen.findByText("Link copiado!")).toBeInTheDocument();
+  });
 });

@@ -8,14 +8,18 @@ interface MetricasDespesas {
 
 import {
   getAnaliseDespesasMetrics,
+  getDespesasPorFuncaoMetrics,
   getEntidades,
   getOpacidadeContabilMetrics,
   getPortalConfig,
   getPosicaoFiscalDetalhesMetrics,
   getRadarGastosSensiveisMetrics,
+  getRestosAPagarHistoricoMetrics,
   getRestosAPagarResumoMetrics,
+  getTopFornecedoresExecucaoMetrics,
 } from "@transparencia/db";
 import { createCachedDataLoader } from "@/lib/cache";
+import { loadSourceFreshnessOrEmpty } from "@/lib/frescor-fontes";
 
 export interface DespesasSearchParams {
   ano?: string;
@@ -102,6 +106,8 @@ function requireEmpresaIdsForMetrics(
   return empresaIds;
 }
 
+const LIMITE_FORNECEDORES = 10;
+
 async function fetchRawDespesasData(
   portalSlug: string,
   searchParams: DespesasSearchParams,
@@ -119,15 +125,28 @@ async function fetchRawDespesasData(
     radarGastosSensiveis,
     restosResumo,
     posicaoDetalhes,
+    restosHistorico,
     opacidadeContabil,
     portalConfig,
+    areasPorFuncao,
+    topFornecedores,
+    frescorFontes,
   ] = await Promise.all([
     getAnaliseDespesasMetrics(tenantSlug, selectedYear, empresaIds),
     getRadarGastosSensiveisMetrics(tenantSlug, selectedYear, empresaIds),
     getRestosAPagarResumoMetrics(tenantSlug, selectedYear, empresaIds),
     getPosicaoFiscalDetalhesMetrics(tenantSlug, selectedYear, empresaIds),
+    getRestosAPagarHistoricoMetrics(tenantSlug, selectedYear, empresaIds),
     getOpacidadeContabilMetrics(tenantSlug, selectedYear),
     getPortalConfig(tenantSlug),
+    getDespesasPorFuncaoMetrics(tenantSlug, selectedYear, empresaIds),
+    getTopFornecedoresExecucaoMetrics({
+      portalSlug: tenantSlug,
+      year: selectedYear,
+      empresaIds,
+      limit: LIMITE_FORNECEDORES,
+    }),
+    loadSourceFreshnessOrEmpty(tenantSlug),
   ]);
 
   const metricasGerais = summarizeAnaliseDespesasMetrics(
@@ -151,16 +170,21 @@ async function fetchRawDespesasData(
   };
 
   return {
+    portalSlug: tenantSlug,
     context,
     portalConfig,
     metricasGerais,
     radarGastosSensiveis,
     restosResumo: restosResumoEnriquecido,
+    restosHistorico,
     opacidadeContabil,
+    areasPorFuncao,
+    topFornecedores,
+    frescorFontes,
   };
 }
 
 export const loadDespesasData = createCachedDataLoader(
   fetchRawDespesasData,
-  "despesas-v6",
+  "despesas-v7",
 );

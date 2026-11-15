@@ -62,7 +62,7 @@ describe("PessoalRegimeSection Component", () => {
     expect(screen.getAllByText("Consolidado Municipal").length).toBeGreaterThan(
       0,
     );
-    expect(screen.getByText(/700 profissionais/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/700 servidores/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/4,0\s*mi/i)).toBeInTheDocument();
   });
 
@@ -76,12 +76,8 @@ describe("PessoalRegimeSection Component", () => {
       />,
     );
 
-    expect(
-      screen.getByText(/Harmonização de Vínculos Cadastrais/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/187 profissionais cadastrados/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Vínculos reclassificados/i)).toBeInTheDocument();
+    expect(screen.getByText(/187 servidores/i)).toBeInTheDocument();
 
     const linkLei = screen.getByRole("link", {
       name: /Art\. 37 da Constituição Federal/i,
@@ -105,10 +101,8 @@ describe("PessoalRegimeSection Component", () => {
       />,
     );
 
-    expect(
-      screen.getByText(/Harmonização de Vínculos Cadastrais/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/1 profissional cadastrado/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vínculos reclassificados/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 servidor aparece/i)).toBeInTheDocument();
   });
 
   it("não exibe a nota de auditoria cívica quando totalDivergencias é 0 ou ausente", () => {
@@ -122,9 +116,7 @@ describe("PessoalRegimeSection Component", () => {
     );
 
     expect(
-      screen.queryByText(
-        /Auditoria Cívica: Harmonização de Vínculos Cadastrais/i,
-      ),
+      screen.queryByText(/Auditoria Cívica: Vínculos reclassificados/i),
     ).not.toBeInTheDocument();
 
     rerender(
@@ -136,9 +128,7 @@ describe("PessoalRegimeSection Component", () => {
     );
 
     expect(
-      screen.queryByText(
-        /Auditoria Cívica: Harmonização de Vínculos Cadastrais/i,
-      ),
+      screen.queryByText(/Auditoria Cívica: Vínculos reclassificados/i),
     ).not.toBeInTheDocument();
   });
 
@@ -159,9 +149,9 @@ describe("PessoalRegimeSection Component", () => {
     expect(screen.getAllByText(/14[.,]29%/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/14[.,]28%/).length).toBeGreaterThanOrEqual(1);
 
-    expect(screen.getByText(/62[.,]50%.*da despesa/)).toBeInTheDocument();
-    expect(screen.getByText(/25[.,]00%.*da despesa/)).toBeInTheDocument();
-    expect(screen.getByText(/12[.,]50%.*da despesa/)).toBeInTheDocument();
+    expect(screen.getByText(/62[.,]50%.*da folha/)).toBeInTheDocument();
+    expect(screen.getByText(/25[.,]00%.*da folha/)).toBeInTheDocument();
+    expect(screen.getByText(/12[.,]50%.*da folha/)).toBeInTheDocument();
   });
 
   it("renderiza barra de progresso proporcional com tooltips em cada segmento", () => {
@@ -247,7 +237,7 @@ describe("PessoalRegimeSection Component", () => {
     );
 
     const btn = screen.getByRole("button", {
-      name: /ver lista de profissionais auditados/i,
+      name: /ver detalhes \(1\)/i,
     });
     expect(btn).toBeInTheDocument();
 
@@ -255,9 +245,7 @@ describe("PessoalRegimeSection Component", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "Profissionais com Divergência Cadastral Auditada — 2026",
-      ),
+      screen.getByText("Servidores com vínculo reclassificado — 2026"),
     ).toBeInTheDocument();
     expect(screen.getAllByText("12345").length).toBeGreaterThanOrEqual(1);
     expect(

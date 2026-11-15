@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: raw_inep_censo
+    schema: raw_inep_censo
+    description: "Dados brutos do Censo Escolar (INEP), de todos os portais, com portal_slug na chave"
+    tables:
+      - name: matriculas_rede_municipal
+        description: Matrículas da educação básica nas escolas municipais em atividade (Censo Escolar de maio). Um registro por portal e ano
+        meta:
+          primary_key:
+          - portal_slug
+          - ano
+        columns:
+        - name: portal_slug
+        - name: ano
+        - name: codigo_municipio_ibge
+          data_type: integer
+        - name: matriculas_educacao_infantil
+          data_type: integer
+        - name: matriculas_ensino_fundamental
+          data_type: integer
+        - name: coletado_em
+          data_type: timestamptz

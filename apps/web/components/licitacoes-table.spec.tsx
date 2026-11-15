@@ -42,11 +42,11 @@ const mockContratos: ContratoSemLicitacaoItem[] = [
 ];
 
 describe("LicitacoesTable", () => {
-  it("não renderiza o select de ordenação legado na toolbar", () => {
+  it("não renderiza o select de ordenação legado na toolbar (só o controle mobile do DenseTable)", () => {
     render(<LicitacoesTable data={mockContratos} />);
 
-    expect(screen.queryByText("Ordenar por")).not.toBeInTheDocument();
-    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(screen.getAllByLabelText("Ordenar por")).toHaveLength(1);
+    expect(screen.getAllByRole("combobox")).toHaveLength(1);
   });
 
   it("renderiza ordenado inicialmente por maior valor (desc)", () => {
@@ -189,7 +189,7 @@ describe("LicitacoesTable", () => {
 
     // Confirma que está na página 2 (botão 2 ativo e itens com menores valores visíveis na página 2)
     const page2Btn = screen.getByRole("button", { name: "Página 2" });
-    expect(page2Btn).toHaveClass("bg-[#2b6cb0]");
+    expect(page2Btn).toHaveClass("bg-ink");
     expect(screen.getAllByText("Fornecedor A").length).toBeGreaterThanOrEqual(
       1,
     );
@@ -200,23 +200,23 @@ describe("LicitacoesTable", () => {
 
     // Deve resetar para página 1
     const page1Btn = screen.getByRole("button", { name: "Página 1" });
-    expect(page1Btn).toHaveClass("bg-[#2b6cb0]");
+    expect(page1Btn).toHaveClass("bg-ink");
     expect(screen.getAllByText("Fornecedor A").length).toBeGreaterThanOrEqual(
       1,
     );
     expect(screen.queryByText("Fornecedor L")).not.toBeInTheDocument();
   });
 
-  it("filtra dados pela barra de busca mantendo a ordenação", () => {
-    render(<LicitacoesTable data={mockContratos} />);
+  it("não exibe busca própria e renderiza linhas mobile expansíveis", () => {
+    const { container } = render(<LicitacoesTable data={mockContratos} />);
 
-    const searchInput = screen.getByPlaceholderText(
-      "Buscar fornecedor, objeto ou modalidade...",
+    expect(
+      screen.queryByPlaceholderText(
+        "Buscar fornecedor, objeto ou modalidade...",
+      ),
+    ).not.toBeInTheDocument();
+    expect(container.querySelectorAll("details")).toHaveLength(
+      mockContratos.length,
     );
-    fireEvent.change(searchInput, { target: { value: "Reforma" } });
-
-    const rows = screen.getAllByRole("row");
-    expect(rows).toHaveLength(2); // Header + 1 match
-    expect(rows[1]).toHaveTextContent("Beta Construções");
   });
 });

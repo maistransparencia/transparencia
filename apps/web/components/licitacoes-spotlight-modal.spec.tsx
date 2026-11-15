@@ -624,6 +624,36 @@ describe("LicitacoesSpotlightModal & LicitacoesSearchBar", () => {
       ).toBeInTheDocument();
     });
 
+    it("deve abrir pré-preenchido com termoInicial, buscando em todos os anos", async () => {
+      (global.fetch as Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ licitacoes: [], contratos: [], total: 0 }),
+      });
+
+      render(
+        <LicitacoesSpotlightModal
+          isOpen={true}
+          onClose={vi.fn()}
+          portalSlug="porciuncula_prefeitura"
+          ano={2026}
+          termoInicial="05422000000101"
+        />,
+      );
+
+      expect(screen.getByRole("combobox")).toHaveValue("05422000000101");
+
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("q=05422000000101"),
+          expect.anything(),
+        );
+      });
+      expect(global.fetch).not.toHaveBeenCalledWith(
+        expect.stringContaining("ano=2026"),
+        expect.anything(),
+      );
+    });
+
     it("deve permitir alternar o escopo da busca entre 'Todos os anos' e 'Apenas 2026' filtrando requisição por ano", async () => {
       (global.fetch as Mock).mockResolvedValue({
         ok: true,

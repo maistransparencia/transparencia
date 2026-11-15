@@ -62,15 +62,16 @@ export function getClientIp(req: Request): string {
 
 /**
  * Limite de requisições por IP (padrão: 5 requisições a cada 10 minutos).
+ * O escopo isola a cota de cada rota, para que uma não consuma a da outra.
  */
 export function checkIpRateLimit(
+  scope: string,
   reqOrIp: Request | string,
-  limit = 5,
-  windowMs = 10 * 60 * 1000,
+  { limit = 5, windowMs = 10 * 60 * 1000 } = {},
 ): RateLimitResult {
   const ip = typeof reqOrIp === "string" ? reqOrIp : getClientIp(reqOrIp);
   const normalizedIp = ip.trim() || "unknown-ip";
-  return checkRateLimit(`ip:${normalizedIp}`, limit, windowMs);
+  return checkRateLimit(`${scope}:ip:${normalizedIp}`, limit, windowMs);
 }
 
 /**

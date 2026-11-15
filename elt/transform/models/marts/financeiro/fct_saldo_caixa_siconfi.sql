@@ -1,5 +1,5 @@
 with stg as (
-    select * from {{ ref('stg_siconfi_msc_patrimonial') }}
+    select * from {{ ref('stg_siconfi__msc_patrimonial') }}
 ),
 
 fontes as (
@@ -30,11 +30,10 @@ stg_com_fonte as (
         coalesce(
             f.grupo_destinacao,
             case
-                when s.fonte_recursos in ('1500', '2500', '10010000', '10900000', '1502') then 'livre'
+                when s.fonte_recursos in ('1500', '1501', '2500', '2501', '10010000', '10900000', '1502') then 'livre'
                 when s.fonte_recursos like '166%' then 'assistencia_social'
-                when s.fonte_recursos in ('1501', '2501', '12110000') or s.fonte_recursos like '16%' then 'saude'
+                when s.fonte_recursos in ('12110000') or s.fonte_recursos like '16%' then 'saude'
                 when s.fonte_recursos like '154%' or s.fonte_recursos like '155%' or s.fonte_recursos like '11%' then 'educacao'
-                when s.fonte_recursos in ('1750', '1755') then 'meio_ambiente'
                 when s.fonte_recursos like '18%' or s.fonte_recursos like '28%' or s.fonte_recursos like '98%' then 'previdencia'
                 when s.fonte_recursos = 'sem_fonte' then 'sem_fonte'
                 else 'outros_vinculados'
@@ -43,7 +42,7 @@ stg_com_fonte as (
         coalesce(
             f.recurso_vinculado_flag,
             case
-                when s.fonte_recursos in ('1500', '2500', '10010000', '10900000', '1502') then false
+                when s.fonte_recursos in ('1500', '1501', '2500', '2501', '10010000', '10900000', '1502') then false
                 when s.fonte_recursos = 'sem_fonte' then false
                 else true
             end
@@ -55,7 +54,7 @@ stg_com_fonte as (
 
 agregado_siconfi as (
     select
-        p.portal_slug,
+        s.portal_slug,
         s.cod_ibge,
         s.ano,
         s.mes_referencia,
@@ -67,9 +66,10 @@ agregado_siconfi as (
         coalesce(sum(case when s.recurso_vinculado_flag then s.saldo_valor else 0 end), 0)::numeric(18, 2) as saldo_recursos_vinculados
     from stg_com_fonte s
     inner join portais p
-        on p.cod_ibge = s.cod_ibge
+        on p.portal_slug = s.portal_slug
+        and p.cod_ibge = s.cod_ibge
     group by
-        p.portal_slug,
+        s.portal_slug,
         s.cod_ibge,
         s.ano,
         s.mes_referencia,

@@ -14,6 +14,8 @@ type EmendaRow = Record<string, unknown>;
 export const emendasStatsVazio: EmendasStatsDTO = {
   totalAutorizado: 0,
   totalEmpenhado: 0,
+  totalRecebidoFundo: 0,
+  totalReceitaPossivel: 0,
   taxaEmpenho: 0,
   maiorEmenda: 0,
   lista: [],
@@ -30,7 +32,7 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
     return {
       id: `${String(r.autor ?? "")}-${String(r.resumo ?? "")}-${numero}-${index}`,
       numero,
-      objeto: String(r.resumo ?? ""),
+      objeto: String(r.objeto_emenda ?? ""),
       valorAutorizado,
       empenhado: empenhado > 0 ? empenhado : null,
       autor: String(r.autor ?? ""),
@@ -38,8 +40,14 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
       esferaOrigem: String(r.esfera_origem ?? ""),
       atoNormativo: String(r.ato_normativo ?? ""),
       destinacao: String(r.destinacao ?? ""),
-      qtdEmpenhos: 0,
+      quantidadeEmpenhos: 0,
       empenhos: [],
+      valorRecebidoFundo: Number(r.valor_recebido_fundo ?? 0),
+      recebimentoFundo: String(r.recebimento_fundo ?? "nao_identificado"),
+      receitaCodigo: r.receita_codigo ? String(r.receita_codigo) : null,
+      receitaDescricao: r.receita_descricao
+        ? String(r.receita_descricao)
+        : null,
     };
   });
 
@@ -68,6 +76,13 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
     (sum, item) => sum + (item.empenhado ?? 0),
     0,
   );
+  const totalRecebidoFundo = sortedLista.reduce(
+    (sum, item) => sum + item.valorRecebidoFundo,
+    0,
+  );
+  const totalReceitaPossivel = sortedLista
+    .filter((item) => item.recebimentoFundo === "valor_igual")
+    .reduce((sum, item) => sum + item.valorAutorizado, 0);
   const maiorEmenda = sortedLista.reduce(
     (max, item) => Math.max(max, item.valorAutorizado),
     0,
@@ -76,6 +91,8 @@ export function montarEmendasStats(rows: EmendaRow[]): EmendasStatsDTO {
   return {
     totalAutorizado,
     totalEmpenhado,
+    totalRecebidoFundo,
+    totalReceitaPossivel,
     taxaEmpenho: totalAutorizado > 0 ? totalEmpenhado / totalAutorizado : 0,
     maiorEmenda,
     lista: sortedLista,

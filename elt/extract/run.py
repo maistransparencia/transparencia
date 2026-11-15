@@ -11,26 +11,45 @@ from typing import Any, cast
 
 from elt.core.config import PortalConfig
 from elt.extract.base import EndpointConfig
+from elt.extract.errors import UNEXPECTED_ERROR, classify_error
+from elt.load.coletas import MUNICIPAL_PORTAL_SOURCE
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def _log_failed(run_dir: Path, listagem: str, empresa: str, year: int, error: Exception) -> None:
+def _log_failed(
+    run_dir: Path,
+    listagem: str,
+    empresa: str,
+    year: int,
+    error: Exception | str,
+    fonte: str = MUNICIPAL_PORTAL_SOURCE,
+    erro_codigo: str | None = None,
+) -> None:
+    """Registra a falha com a fonte do catálogo e o código estável; o loader decide por eles, não pelo texto."""
+    codigo = erro_codigo or (classify_error(error) if isinstance(error, BaseException) else UNEXPECTED_ERROR)
     log_file = run_dir / "failed_requests.csv"
     file_exists = log_file.exists()
     with open(log_file, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         if not file_exists:
-            writer.writerow(["timestamp", "listagem", "empresa", "year", "error"])
-        writer.writerow([datetime.now().isoformat(), listagem, empresa, year, str(error)])
+            writer.writerow(["timestamp", "listagem", "empresa", "year", "error", "fonte", "erro_codigo"])
+        writer.writerow([datetime.now().isoformat(), listagem, empresa, year, str(error), fonte, codigo])
+
+
+def _write_json(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(rows, ensure_ascii=False, indent=2, default=str))
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Extract raw data from portal API")
     parser.add_argument("--portal", required=True, help="Portal slug (e.g. porciuncula_prefeitura)")
     parser.add_argument("--years", nargs="+", type=int, help="Years to extract (default: all since ano_inicial)")
-    parser.add_argument("--only", help="Extract only this listagem endpoint")
+    parser.add_argument(
+        "--only", nargs="+", help="Extract only these sources (one or more listagem endpoints or source keys)"
+    )
     args = parser.parse_args()
 
     portal = PortalConfig.load(args.portal)
@@ -54,13 +73,33 @@ def main() -> None:
     years = args.years or list(range(portal.ano_inicial, date.today().year + 1))
 
     siconfi_keys = {"siconfi", "siconfi_msc", "siconfi_msc_patrimonial"}
+    siconfi_rgf_keys = {"siconfi", "siconfi_rgf"}
     pncp_keys = {"pncp", "pncp_compras", "pncp_itens"}
     obrasgov_keys = {"obrasgov"}
-    if args.only:
-        valid = [e.listagem for e in endpoints] + list(siconfi_keys) + list(pncp_keys) + list(obrasgov_keys)
-        if args.only not in valid:
-            raise ValueError(f"Unknown listagem: {args.only!r}. Valid: {valid}")
-        endpoints = [e for e in endpoints if e.listagem == args.only]
+    farmacia_sus_keys = {"farmacia_sus"}
+    # SIOPE e SIOPS só rodam quando nomeados: sem --only o pipeline diário não os inclui.
+    siope_keys = {"siope"}
+    siops_keys = {"siops"}
+    # Chave de grupo: todas as listagens do portal da prefeitura (sem criar fonte nova por sistema).
+    portal_municipal_key = "portal_municipal"
+    only = set(args.only or [])
+    if only:
+        valid = (
+            [e.listagem for e in endpoints]
+            + list(siconfi_keys | siconfi_rgf_keys)
+            + list(pncp_keys)
+            + list(obrasgov_keys)
+            + list(farmacia_sus_keys)
+            + list(siope_keys)
+            + list(siops_keys)
+            + [portal_municipal_key]
+        )
+        unknown = sorted(only - set(valid))
+        if unknown:
+            raise ValueError(f"Unknown listagem: {unknown!r}. Valid: {valid}")
+        # portal_municipal mantem todas as listagens, mesmo combinada com chaves de outras fontes.
+        if portal_municipal_key not in only:
+            endpoints = [e for e in endpoints if e.listagem in only]
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = Path(f"data/raw_runs/{portal.slug}/{timestamp}")
@@ -110,7 +149,7 @@ def main() -> None:
                     logger.warning("Failed: %s / %s / %d: %s", config.listagem, empresa_name, year, exc)
                     _log_failed(run_dir, config.listagem, empresa_name, year, exc)
 
-    if not args.only or args.only in siconfi_keys:
+    if not only or only & siconfi_keys:
         from elt.extract.siconfi_msc import SiconfiMscExtractor
 
         logger.info("Extracting SICONFI MSC Patrimonial for IBGE %s...", portal.cod_ibge)
@@ -129,9 +168,25 @@ def main() -> None:
                 )
             except Exception as exc:
                 logger.warning("Failed: siconfi_msc_patrimonial / %s / %d: %s", portal.slug, year, exc)
-                _log_failed(run_dir, "siconfi_msc_patrimonial", str(portal.cod_ibge), year, exc)
+                _log_failed(run_dir, "siconfi_msc_patrimonial", str(portal.cod_ibge), year, exc, fonte="siconfi_msc")
 
-    if not args.only or args.only in pncp_keys:
+    if not only or only & siconfi_rgf_keys:
+        from elt.extract.siconfi_rgf import SiconfiRgfExtractor
+
+        logger.info("Extracting SICONFI RGF Anexo 01 for IBGE %s...", portal.cod_ibge)
+        rgf_extractor = SiconfiRgfExtractor()
+        for year in years:
+            try:
+                rgf_rows = rgf_extractor.extract_ano(portal.cod_ibge, year)
+                out = run_dir / "siconfi_rgf" / f"{portal.cod_ibge}_{year}.json"
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(json.dumps(rgf_rows, ensure_ascii=False, indent=2))
+                logger.info("Extracted siconfi_rgf / %s / %d → %d rows", portal.slug, year, len(rgf_rows))
+            except Exception as exc:
+                logger.warning("Failed: siconfi_rgf / %s / %d: %s", portal.slug, year, exc)
+                _log_failed(run_dir, "siconfi_rgf", str(portal.cod_ibge), year, exc, fonte="siconfi_rgf")
+
+    if not only or only & pncp_keys:
         from elt.extract.pncp import extract_and_load_pncp
 
         portal_cnpj = None
@@ -159,9 +214,9 @@ def main() -> None:
             logger.info("Extracted PNCP data for %s", portal.slug)
         except Exception as exc:
             logger.warning("Failed: pncp / %s: %s", portal.slug, exc)
-            _log_failed(run_dir, "pncp", portal.slug, years[-1] if years else 0, exc)
+            _log_failed(run_dir, "pncp", portal.slug, years[-1] if years else 0, exc, fonte="pncp")
 
-    if not args.only or args.only in obrasgov_keys:
+    if not only or only & obrasgov_keys:
         from elt.extract.obrasgov import ObrasGovExtractor
 
         logger.info("Extracting ObrasGov data for %s (cod_ibge: %s)...", portal.slug, portal.cod_ibge)
@@ -176,7 +231,62 @@ def main() -> None:
                 logger.info("Extracted obrasgov / %s / %s → %d rows", portal.slug, key, len(rows))
         except Exception as exc:
             logger.warning("Failed: obrasgov / %s: %s", portal.slug, exc)
-            _log_failed(run_dir, "obrasgov", portal.slug, years[-1] if years else 0, exc)
+            _log_failed(run_dir, "obrasgov", portal.slug, years[-1] if years else 0, exc, fonte="obrasgov")
+
+    if not only or only & farmacia_sus_keys:
+        from elt.extract.farmacia_sus import FarmaciaSusExtractor
+
+        logger.info("Extracting Farmácia SUS data for %s (cod_ibge: %s)...", portal.slug, portal.cod_ibge)
+        try:
+            farmacia_extractor = FarmaciaSusExtractor()
+            farmacia_data = farmacia_extractor.extract(portal_slug=portal.slug, cod_ibge=portal.cod_ibge)
+            farmacia_error_code = getattr(farmacia_extractor, "last_error_code", None)
+            if farmacia_error_code:
+                # A coleta com falha preserva o estoque e só gera coletas.json; o código segue para o loader pelo CSV.
+                _log_failed(
+                    run_dir,
+                    "farmacia_sus",
+                    portal.slug,
+                    years[-1] if years else 0,
+                    farmacia_extractor.last_error_message or farmacia_error_code,
+                    fonte="farmacia_sus",
+                    erro_codigo=farmacia_error_code,
+                )
+            farmacia_dir = run_dir / "farmacia_sus"
+            farmacia_dir.mkdir(parents=True, exist_ok=True)
+            for key, rows in farmacia_data.items():
+                out = farmacia_dir / f"{key}.json"
+                out.write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+                logger.info("Extracted farmacia_sus / %s / %s → %d rows", portal.slug, key, len(rows))
+        except Exception as exc:
+            logger.warning("Failed: farmacia_sus / %s: %s", portal.slug, exc)
+            _log_failed(run_dir, "farmacia_sus", portal.slug, years[-1] if years else 0, exc, fonte="farmacia_sus")
+
+    if only & siope_keys:
+        from elt.extract.siope import extrair_siope
+
+        logger.info("Extracting SIOPE indicators for %s...", portal.slug)
+        try:
+            siope_rows = extrair_siope(portal, args.years)
+            _write_json(run_dir / "siope_indicadores" / "indicadores.json", siope_rows)
+            logger.info("Extracted siope_indicadores / %s → %d rows", portal.slug, len(siope_rows))
+        except Exception as exc:
+            logger.warning("Failed: siope / %s: %s", portal.slug, exc)
+            _log_failed(run_dir, "siope", portal.slug, years[-1] if years else 0, exc, fonte="siope")
+
+    if only & siops_keys:
+        from elt.extract.siops import SiopsExtractor, extrair_siops, slowest_requests
+
+        logger.info("Extracting SIOPS indicators for %s...", portal.slug)
+        siops_extractor = SiopsExtractor()
+        try:
+            siops_rows = extrair_siops([portal], args.years, siops_extractor)
+            _write_json(run_dir / "siops_indicadores" / "indicadores.json", siops_rows)
+            logger.info("Extracted siops_indicadores / %s → %d rows", portal.slug, len(siops_rows))
+        except Exception as exc:
+            logger.warning("Failed: siops / %s: %s", portal.slug, exc)
+            _log_failed(run_dir, "siops", portal.slug, years[-1] if years else 0, exc, fonte="siops")
+        logger.info("SIOPS slowest requests for %s: %s", portal.slug, slowest_requests(siops_extractor))
 
     logger.info("Extraction complete → %s", run_dir)
 

@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: stg_inep_censo__matriculas
+    description: "Matrículas do Censo Escolar (INEP) de todos os portais, no grão portal + ano"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, ano]
+    columns:
+      - name: portal_slug
+        data_type: text
+        tests:
+          - not_null
+      - name: ano
+        data_type: integer
+        tests:
+          - not_null
+      - name: matriculas_educacao_infantil
+        data_type: integer
+        tests:
+          - not_null
+      - name: matriculas_ensino_fundamental
+        data_type: integer
+        tests:
+          - not_null
+      - name: coletado_em
+        data_type: timestamp with time zone

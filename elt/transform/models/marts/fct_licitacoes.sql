@@ -13,11 +13,12 @@ with licitacoes as (
         valor_estimado,
         valor_homologado,
         situacao,
+        situacao_codigo,
         data_abertura,
         carona,
         fonte_objeto,
         link_sistema_origem
-    from {{ ref('int_licitacoes_consolidadas') }}
+    from {{ ref('int_licitacoes') }}
 )
 
 select
@@ -33,6 +34,7 @@ select
     valor_estimado::numeric(15, 2) as valor_estimado,
     valor_homologado::numeric(15, 2) as valor_homologado,
     situacao,
+    situacao_codigo,
     data_abertura,
     carona,
     fonte_objeto,

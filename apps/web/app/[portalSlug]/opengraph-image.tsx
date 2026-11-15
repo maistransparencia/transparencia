@@ -2,7 +2,6 @@ import {
   getEntidades,
   getExecucaoOrcamentariaMetrics,
   getFolhaVsServicosMetrics,
-  getLimiteMaximoLrfPessoal,
   getPortalConfig,
   getPosicaoFiscalMetrics,
 } from "@transparencia/db";
@@ -43,13 +42,11 @@ async function fetchOgHomepageData(portalSlug: string, currentYear: number) {
           portalSlug,
         })
       : [];
-  const limiteMaximoLrf = await getLimiteMaximoLrfPessoal(currentYear);
   return {
     portalConfig,
     posicaoFiscal,
     execucaoList,
     folhaList,
-    limiteMaximoLrf,
   };
 }
 
@@ -67,13 +64,8 @@ export default async function Image({
   const currentYear = new Date().getFullYear();
 
   try {
-    const {
-      portalConfig,
-      posicaoFiscal,
-      execucaoList,
-      folhaList,
-      limiteMaximoLrf,
-    } = await loadOgHomepageData(portalSlug, currentYear);
+    const { portalConfig, posicaoFiscal, execucaoList, folhaList } =
+      await loadOgHomepageData(portalSlug, currentYear);
 
     const portalDisplayName =
       portalConfig?.displayName?.trim() || "Prefeitura Municipal";
@@ -85,8 +77,11 @@ export default async function Image({
       (acc, item) => acc + item.totalEmpenhado,
       0,
     );
-    const percentualFolha = folhaList[0]?.percentualFolha ?? 0;
-    const limiteTeto = limiteMaximoLrf ?? 60;
+    const rgfPessoal = folhaList[0]?.rgf ?? null;
+    const percentualFolha =
+      rgfPessoal?.percentualDespesaPessoal ??
+      folhaList[0]?.percentualFolha ??
+      0;
 
     const metrics: OGMetricItem[] = [
       {
@@ -110,14 +105,20 @@ export default async function Image({
       {
         label: "Comprometimento Folha",
         value: fmtPercent(percentualFolha),
-        detail:
-          percentualFolha <= limiteTeto * 0.9
-            ? `Dentro do Limite (${limiteTeto}%)`
-            : "Alerta de Limite LRF",
+        // Só o número oficial do RGF recebe veredito; a estimativa do portal fica neutra.
+        detail: rgfPessoal
+          ? (() => {
+              if (!rgfPessoal.statusLrf) return "Número oficial do RGF";
+              if (rgfPessoal.statusLrf === "normal")
+                return "Dentro dos limites da lei";
+              return "Alerta de Limite LRF";
+            })()
+          : "Estimativa do portal",
         variant: (() => {
-          if (percentualFolha <= limiteTeto * 0.9) return "success";
-          if (percentualFolha <= limiteTeto) return "warning";
-          return "danger";
+          if (!rgfPessoal?.statusLrf) return "default";
+          if (rgfPessoal.statusLrf === "normal") return "success";
+          if (rgfPessoal.statusLrf === "excedido") return "danger";
+          return "warning";
         })(),
       },
     ];

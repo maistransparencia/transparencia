@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: fct_saude_rede_por_mil_moradores_metricas
+    description: "Leitos e profissionais de saúde por mil moradores, uma linha por portal e ano. Dado derivado (total do CNES dividido pela população residente). Só a competência mais recente de cada ano entra. Valor nulo significa sem dado, nunca zero"
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [portal_slug, ano]
+    columns:
+      - name: portal_slug
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_portais')
+                field: portal_slug
+      - name: ano
+        data_type: integer
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+      - name: competencia_leitos
+        data_type: integer
+        description: "Competência do CNES (AAAAMM) usada nos leitos; nula quando o CNES não respondeu no ano"
+      - name: competencia_profissionais
+        data_type: integer
+        description: "Competência do CNES (AAAAMM) usada nos profissionais; pode diferir da dos leitos"
+      - name: total_leitos_existentes
+        data_type: integer
+      - name: total_leitos_sus
+        data_type: integer
+      - name: total_profissionais
+        data_type: integer
+        description: "Pessoas distintas por nome normalizado (contagem aproximada)"
+      - name: total_profissionais_sus
+        data_type: integer
+      - name: populacao_residente
+        data_type: integer
+      - name: ano_populacao_referencia
+        data_type: integer
+        description: "Ano da população usada na divisão"
+      - name: populacao_estimada
+        data_type: boolean
+        description: "Verdadeiro quando a população do ano não existe na fonte e foi usada a do último ano disponível"
+      - name: leitos_existentes_por_mil_moradores
+        data_type: numeric
+      - name: leitos_sus_por_mil_moradores
+        data_type: numeric
+      - name: profissionais_por_mil_moradores
+        data_type: numeric
+      - name: profissionais_sus_por_mil_moradores
+        data_type: numeric
+      - name: data_coleta
+        data_type: date

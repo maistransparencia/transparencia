@@ -1,3 +1,7 @@
+import {
+  contarLicitacoesAtivas,
+  somarEmpenhadoContratosVigentes,
+} from "@transparencia/db";
 import { getPartialYearPeriod } from "@transparencia/ui";
 import type { loadLicitacoesData } from "./loader";
 
@@ -67,7 +71,15 @@ export function buildLicitacoesViewModel(raw: LicitacoesRawData) {
     return alertaDispensa !== null;
   })();
 
+  const contratosServicosVigentes = raw.contratosServicosVigentes || [];
+  const licitacoesEmAndamento = raw.licitacoesEmAndamento || [];
+
   return {
+    quantidadeLicitacoesAtivas: contarLicitacoesAtivas(licitacoesEmAndamento),
+    quantidadeContratosVigentes: contratosServicosVigentes.length,
+    totalEmpenhadoContratosVigentes: somarEmpenhadoContratosVigentes(
+      contratosServicosVigentes,
+    ),
     selectedYear: raw.context.selectedYear,
     isCurrentYear: raw.context.isCurrentYear,
     isFilteredByEntidade,
@@ -82,9 +94,9 @@ export function buildLicitacoesViewModel(raw: LicitacoesRawData) {
     limiteDispensaComprasServicos,
     fracionamentoVendorsMap,
     numCasosFracionamento: Object.keys(fracionamentoVendorsMap).length,
-    contratosServicosVigentes: raw.contratosServicosVigentes || [],
-    top3ContratosVigentes: (raw.contratosServicosVigentes || []).slice(0, 3),
-    licitacoesEmAndamento: raw.licitacoesEmAndamento || [],
+    contratosServicosVigentes,
+    top3ContratosVigentes: contratosServicosVigentes.slice(0, 3),
+    licitacoesEmAndamento,
     itensByLicitacao: raw.itensByLicitacao || {},
     alertaDispensa,
     taxaContratacaoDireta,

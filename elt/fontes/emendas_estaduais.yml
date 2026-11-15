@@ -1,0 +1,74 @@
+# Uma entrada por fonte oficial de emendas estaduais. Adicionar um Estado novo é adicionar uma entrada aqui:
+# o extrator, os modelos dbt e a tela não mudam. `colunas` mapeia o modelo comum (chave) para o cabeçalho do
+# arquivo da fonte (valor, comparado sem espaços nas pontas, sem acento e sem diferenciar caixa).
+# `modalidades` mapeia o texto da fonte (sem número inicial) para o código snake_case do modelo comum.
+#
+# GATILHO: toda UF de `elt/transform/seeds/seed_portais.csv` precisa estar em `fontes` (fonte oficial configurada)
+# ou em `ufs_sem_fonte` (decisão explícita, com motivo). Cadastrar uma cidade de UF nova sem isso quebra
+# `elt/tests/test_cobertura_fontes_emendas_estaduais.py`. UF em `ufs_sem_fonte` mostra o estado neutro na tela.
+ufs_sem_fonte: []
+# exemplo: - uf: XX
+#            motivo: Estado não publica detalhamento em arquivo aberto (verificado em AAAA-MM-DD)
+fontes:
+  - codigo_fonte: redeplan_rj
+    uf: RJ
+    orgao_publicador: Secretaria de Estado de Planejamento e Gestão do Rio de Janeiro (Redeplan)
+    pagina_url: https://www.redeplan.planejamento.rj.gov.br/demaisprocessos/emendas.html
+    # Base legal da publicação (lida no Diário Oficial de 23/07/2026, via PDF da Redeplan). Ainda não aparece na tela:
+    # só depois de confirmação de advogado humano. Demais normas estaduais seguem NÃO VERIFICADAS.
+    base_legal:
+      - norma: Lei Complementar estadual nº 232/2026 (art. 21 da LC 219/2024, na nova redação)
+        url: https://www.redeplan.planejamento.rj.gov.br/img/docs/emendas/2026/LC%20232_2026.pdf
+    codificacao: utf-8-sig
+    delimitador: ";"
+    separador_decimal: ","
+    simbolo_moeda: "R$"
+    # arquivo sem fase no nome é o da primeira fase (o de janeiro não traz "1fase")
+    fase_padrao: "1"
+    arquivos:
+      detalhamento:
+        # padrão aplicado ao endereço do link (sem diferenciar caixa e acento); só links .csv
+        padrao_link: detalhamento
+        # grupos nomeados do nome do arquivo
+        padrao_ano: '(?P<ano>20\d{2})'
+        padrao_data: '(?P<dia>\d{2})(?P<mes>\d{2})(?P<ano>20\d{2})'
+        padrao_fase: '(?P<fase>\d)\s*fase'
+      # relatório de execução (opcional): só os bimestrais de 2026, que trazem a mesma estrutura; os quadrimestrais
+      # de 2024 e 2025 não são lidos aqui
+      execucao:
+        padrao_link: '(?=.*execucao)(?:.*bimestre|.*\dbi_)'
+        padrao_ano: '(?P<ano>20\d{2})'
+    colunas:
+      numero_emenda: Emenda
+      identificador: Identificador
+      autor: Autor
+      valor: Valor
+      objeto: Objeto
+      beneficiario: Beneficiário
+      municipio: Município
+      funcao: Função
+      unidade_orcamentaria: UO
+      modalidade: Modalidade
+    # cabeçalhos do relatório de execução; `posicao` traz mês e ano do relatório (ex.: "8 / 2026")
+    colunas_execucao:
+      identificador: Cod. Emenda
+      posicao: posição
+      dotacao_inicial: Dotação Inicial
+      empenhado: Empenhado
+      liquidado: Liquidado
+      pago: Pago
+    # Área (saúde, educação) sem adivinhar pelo texto. 1º a unidade orçamentária (códigos próprios de cada Estado),
+    # 2º o código da função orçamentária (padrão nacional: 10 saúde, 12 educação). O resto fica em "outras".
+    areas:
+      unidade_orcamentaria:
+        18010-SEEDUC: educacao
+        29610-FES: saude
+      funcao:
+        "10": saude
+        "12": educacao
+    modalidades:
+      execucao direta: execucao_direta
+      transferencia especial: transferencia_especial
+      finalidade definida: finalidade_definida
+      fundo a fundo: fundo_a_fundo
+      osc: osc

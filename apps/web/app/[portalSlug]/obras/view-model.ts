@@ -5,6 +5,7 @@ import type {
   SituacaoObra,
   SituacaoObraFiltro,
 } from "@transparencia/db";
+import type { BadgeVariant } from "@transparencia/ui";
 import {
   fmtCompact,
   fmtCurrency,
@@ -14,12 +15,14 @@ import {
   getPartialYearPeriod,
   maskCpfCnpj,
 } from "@transparencia/ui";
+import { urlObraCipi } from "@/lib/constants/fontes-oficiais";
+import { urlLegislacao } from "@/lib/constants/legislacao";
 import type { RawObrasData } from "./loader";
 
 export interface SituacaoVisual {
   label: string;
-  colorHex: string;
-  badgeClass: string;
+  corPreenchimento: string;
+  badgeVariant: BadgeVariant;
   bgClass: string;
   textClass: string;
 }
@@ -29,50 +32,50 @@ export function getSituacaoVisual(situacao: string): SituacaoVisual {
     case "em_execucao":
       return {
         label: "Em Execução",
-        colorHex: "#2563eb",
-        badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
-        bgClass: "bg-blue-600",
-        textClass: "text-blue-700",
+        corPreenchimento: "var(--brand-fill)",
+        badgeVariant: "accent",
+        bgClass: "bg-brand-fill",
+        textClass: "text-brand-text",
       };
     case "paralisada":
       return {
         label: "Paralisada",
-        colorHex: "#dc2626",
-        badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
-        bgClass: "bg-rose-500",
-        textClass: "text-rose-700",
+        corPreenchimento: "var(--danger-fill)",
+        badgeVariant: "danger",
+        bgClass: "bg-danger-fill",
+        textClass: "text-danger-text",
       };
     case "concluida":
       return {
         label: "Concluída",
-        colorHex: "#16a34a",
-        badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-        bgClass: "bg-emerald-600",
-        textClass: "text-emerald-700",
+        corPreenchimento: "var(--ok-fill)",
+        badgeVariant: "success",
+        bgClass: "bg-ok-fill",
+        textClass: "text-ok-text",
       };
     case "cadastrada":
       return {
         label: "Não iniciada",
-        colorHex: "#64748b",
-        badgeClass: "bg-slate-50 text-slate-700 border-slate-200",
-        bgClass: "bg-slate-400",
-        textClass: "text-slate-700",
+        corPreenchimento: "var(--mute3)",
+        badgeVariant: "default",
+        bgClass: "bg-mute3",
+        textClass: "text-mute",
       };
     case "cancelada":
       return {
         label: "Cancelada",
-        colorHex: "#475569",
-        badgeClass: "bg-zinc-50 text-zinc-700 border-zinc-200",
-        bgClass: "bg-zinc-400",
-        textClass: "text-zinc-700",
+        corPreenchimento: "var(--mute)",
+        badgeVariant: "default",
+        bgClass: "bg-mute",
+        textClass: "text-mute",
       };
     default:
       return {
         label: "Não iniciada",
-        colorHex: "#64748b",
-        badgeClass: "bg-slate-50 text-slate-700 border-slate-200",
-        bgClass: "bg-slate-400",
-        textClass: "text-slate-700",
+        corPreenchimento: "var(--mute3)",
+        badgeVariant: "default",
+        bgClass: "bg-mute3",
+        textClass: "text-mute",
       };
   }
 }
@@ -90,7 +93,7 @@ export interface ObraContratoViewModel {
   licitacaoNumero: string | null;
   status: "vigente" | "encerrado" | string;
   statusLabel: string;
-  statusBadgeClasses: string;
+  statusBadgeVariant: BadgeVariant;
   dataInicio: string | null;
   dataInicioFormatada: string;
   vencimentoAtual: string | null;
@@ -118,15 +121,12 @@ export function mapContratoToViewModel(
     return rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
   })();
 
-  const statusBadgeClasses = (() => {
-    if (isVigente) return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    if (rawStatus === "encerrado")
-      return "bg-slate-50 text-slate-700 border-slate-200";
-    if (rawStatus === "suspenso")
-      return "bg-amber-50 text-amber-700 border-amber-200";
+  const statusBadgeVariant = ((): BadgeVariant => {
+    if (isVigente) return "success";
+    if (rawStatus === "suspenso") return "warning";
     if (rawStatus === "cancelado" || rawStatus === "rescindido")
-      return "bg-rose-50 text-rose-700 border-rose-200";
-    return "bg-slate-50 text-slate-700 border-slate-200";
+      return "danger";
+    return "default";
   })();
 
   const fornecedorCpfCnpjMascarado = (() => {
@@ -158,7 +158,7 @@ export function mapContratoToViewModel(
     licitacaoNumero: contrato.licitacaoNumero ?? null,
     status: contrato.status,
     statusLabel,
-    statusBadgeClasses,
+    statusBadgeVariant,
     dataInicio: contrato.dataInicio ?? null,
     dataInicioFormatada: contrato.dataInicio
       ? fmtDate(contrato.dataInicio)
@@ -221,8 +221,8 @@ export interface ObraItemViewModel {
   nomeObra: string;
   situacao: SituacaoObra;
   situacaoLabel: string;
-  situacaoColorHex: string;
-  situacaoBadgeClasses: string;
+  situacaoCorPreenchimento: string;
+  situacaoBadgeVariant: BadgeVariant;
   orgaoResponsavel: string;
   valorInvestimentoPrevisto: number;
   valorInvestimentoFormatado: string;
@@ -264,7 +264,7 @@ export interface ObraMarkerItem {
   nomeObra: string;
   situacao: SituacaoObra;
   situacaoLabel: string;
-  situacaoColorHex: string;
+  situacaoCorPreenchimento: string;
   latitude: number;
   longitude: number;
   isUrbana: boolean;
@@ -311,7 +311,6 @@ export interface ObrasViewModel {
     busca?: string;
   };
   obras: ObraItemViewModel[];
-  paralisadasObras: ObraItemViewModel[];
   markers: ObraMarkerItem[];
   urbanCenter: [number, number];
   urbanBounds: [[number, number], [number, number]] | null;
@@ -426,8 +425,8 @@ function mapObraToViewModel(
     nomeObra: obra.nomeObra,
     situacao: obra.situacao,
     situacaoLabel: visual.label,
-    situacaoColorHex: visual.colorHex,
-    situacaoBadgeClasses: visual.badgeClass,
+    situacaoCorPreenchimento: visual.corPreenchimento,
+    situacaoBadgeVariant: visual.badgeVariant,
     orgaoResponsavel: obra.orgaoResponsavel ?? "Órgão não informado",
     valorInvestimentoPrevisto: obra.valorInvestimentoPrevisto,
     valorInvestimentoFormatado: fmtCurrency(obra.valorInvestimentoPrevisto),
@@ -510,7 +509,7 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
       nomeObra: o.nomeObra,
       situacao: o.situacao,
       situacaoLabel: o.situacaoLabel,
-      situacaoColorHex: o.situacaoColorHex,
+      situacaoCorPreenchimento: o.situacaoCorPreenchimento,
       latitude: o.latitude as number,
       longitude: o.longitude as number,
       isUrbana: o.isUrbana,
@@ -537,10 +536,6 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
   const urbanBounds = computeBounds(urbanCoords);
   const territorioBounds = computeBounds(allCoords);
   const obrasForaUrbanaCount = markers.filter((m) => !m.isUrbana).length;
-
-  const paralisadasObras = obrasViewModels.filter(
-    (o) => o.situacao === "paralisada",
-  );
 
   const kpis: ObrasKpisViewModel = {
     totalObras: resumo.totalObras,
@@ -585,7 +580,6 @@ export function buildObrasViewModel(rawData: RawObrasData): ObrasViewModel {
     kpis,
     filtros,
     obras: obrasViewModels,
-    paralisadasObras,
     markers,
     urbanCenter: [centerLat, centerLng],
     urbanBounds,
@@ -750,12 +744,9 @@ export function buildObraDetalheViewModel(
     };
   })();
 
-  const linkObrasGov = `https://cipi.economia.gov.br/cipi-frontend/acesso-livre/visao-geral-intervencao/${encodeURIComponent(
-    obra.idProjeto,
-  )}`;
+  const linkObrasGov = urlObraCipi(obra.idProjeto);
 
-  const linkLegislacao =
-    "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm#art115p6";
+  const linkLegislacao = urlLegislacao("lei14133", "art115p6");
 
   const cleanPortalSlug = obra.portalSlug || portalSlug;
   const contratos = (obra.contratos ?? []).map((c) =>

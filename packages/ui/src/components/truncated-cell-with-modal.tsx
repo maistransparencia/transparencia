@@ -60,14 +60,14 @@ export function TruncatedCellWithModal({
     return (
       <div
         className={cn(
-          "text-left font-normal text-slate-700 text-xs leading-relaxed",
+          "text-mute text-left text-xs leading-relaxed font-normal",
           className,
         )}
       >
-        <span className="text-inherit leading-relaxed">{text}</span>
+        <span className="leading-relaxed text-inherit">{text}</span>
         {secondaryText && (
           <p
-            className="line-clamp-1 pt-0.5 text-[11px] text-slate-400 italic"
+            className="text-mute3 line-clamp-1 pt-0.5 text-[11px] italic"
             title={secondaryText}
           >
             {secondaryText}
@@ -96,7 +96,7 @@ export function TruncatedCellWithModal({
     <>
       <div
         className={cn(
-          "text-left font-normal text-slate-700 text-xs leading-relaxed",
+          "text-mute text-left text-xs leading-relaxed font-normal",
           className,
         )}
       >
@@ -107,13 +107,13 @@ export function TruncatedCellWithModal({
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
           }}
-          className="text-inherit leading-relaxed"
+          className="leading-relaxed text-inherit"
         >
           {text}
         </p>
         {secondaryText && (
           <p
-            className="line-clamp-1 pt-0.5 text-[11px] text-slate-400 italic"
+            className="text-mute3 line-clamp-1 pt-0.5 text-[11px] italic"
             title={secondaryText}
           >
             {secondaryText}
@@ -122,7 +122,7 @@ export function TruncatedCellWithModal({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="mt-0.5 inline-flex items-center gap-1 rounded-xs font-semibold text-[11px] text-blue-600 transition-colors hover:text-blue-800 hover:underline focus:outline-hidden focus:ring-2 focus:ring-blue-500/40"
+          className="text-brand-text focus:ring-focus-ring mt-0.5 inline-flex items-center gap-1 rounded-xs text-[11px] font-semibold transition-colors hover:underline hover:opacity-80 focus:ring-2 focus:outline-hidden"
         >
           <Maximize2 className="h-3 w-3 shrink-0" aria-hidden="true" />
           <span>Ver mais</span>
@@ -142,23 +142,20 @@ export function TruncatedCellWithModal({
               type="button"
               onClick={handleCopy}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 font-medium text-xs shadow-2xs transition-colors",
+                "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-medium shadow-2xs transition-colors",
                 copied
-                  ? "border border-emerald-300 bg-emerald-50 text-emerald-700"
-                  : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100",
+                  ? "border-ok-fill bg-ok-fill/15 text-ok-text border"
+                  : "border-line bg-page text-mute hover:bg-line2 active:bg-track border",
               )}
             >
               {copied ? (
                 <>
-                  <Check
-                    className="h-4 w-4 text-emerald-600"
-                    aria-hidden="true"
-                  />
+                  <Check className="text-ok-text h-4 w-4" aria-hidden="true" />
                   <span className="font-semibold">Copiado!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="h-4 w-4 text-slate-500" aria-hidden="true" />
+                  <Copy className="text-mute2 h-4 w-4" aria-hidden="true" />
                   <span>Copiar texto completo</span>
                 </>
               )}
@@ -170,7 +167,7 @@ export function TruncatedCellWithModal({
                   href={effectiveExternalLink.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2 font-semibold text-blue-700 text-xs transition-colors hover:bg-blue-100 active:bg-blue-200"
+                  className="border-brand-fill bg-brand-fill/15 text-brand-text hover:bg-brand-fill/25 active:bg-brand-fill/30 inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors"
                 >
                   <span>
                     {effectiveExternalLink.label ||
@@ -182,7 +179,7 @@ export function TruncatedCellWithModal({
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 font-medium text-slate-700 text-xs transition-colors hover:bg-slate-50 active:bg-slate-100"
+                className="border-line bg-page text-mute hover:bg-line2 active:bg-track rounded-lg border px-3.5 py-2 text-xs font-medium transition-colors"
               >
                 Fechar
               </button>
@@ -192,11 +189,11 @@ export function TruncatedCellWithModal({
       >
         <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-2">
           {secondaryText && (
-            <div className="rounded-md border border-slate-200/60 bg-slate-50 p-2.5 text-slate-600 text-xs">
+            <div className="border-line/60 bg-line2 text-mute rounded-md border p-2.5 text-xs">
               {secondaryText}
             </div>
           )}
-          <p className="select-text whitespace-pre-wrap font-sans text-slate-800 text-sm leading-relaxed">
+          <p className="text-ink font-sans text-sm leading-relaxed whitespace-pre-wrap select-text">
             {text}
           </p>
         </div>

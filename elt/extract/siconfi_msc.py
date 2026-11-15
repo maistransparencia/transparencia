@@ -19,8 +19,8 @@ DEFAULT_USER_AGENT = "TransparenciaPublica/1.0"
 DEFAULT_IBGE_PORCIUNCULA = 3304102
 
 
-class SiconfiMscExtractor:
-    """Extrator de Matriz de Saldos Contábeis (MSC Patrimonial) via API SICONFI/STN."""
+class SiconfiApiClient:
+    """Cliente HTTP comum da API SICONFI/STN: limite de taxa, retries com backoff e conversões seguras."""
 
     def __init__(
         self,
@@ -44,30 +44,14 @@ class SiconfiMscExtractor:
         if elapsed < self.min_interval_seconds:
             time.sleep(self.min_interval_seconds - elapsed)
 
-    def fetch_page(
+    def _get_json(
         self,
-        ibge: int,
-        ano: int,
-        mes: int,
-        offset: int = 0,
-        limit: int = 5000,
+        params: dict[str, str | int],
+        descricao: str,
         session: requests.Session | None = None,
     ) -> dict[str, Any]:
-        """Busca uma página de dados da MSC Patrimonial com retry e backoff exponencial."""
-        ano = ano or datetime.now().year
-        mes = mes or datetime.now().month
-
+        """GET com retry e backoff exponencial; 404 vira resposta vazia."""
         client = session or requests
-        params: dict[str, str | int] = {
-            "id_ente": ibge,
-            "an_referencia": str(ano),
-            "me_referencia": str(mes),
-            "co_tipo_matriz": "MSCC",
-            "classe_conta": 1,
-            "id_tv": "ending_balance",
-            "offset": offset,
-            "limit": limit,
-        }
         headers = {
             "User-Agent": self.user_agent,
             "Accept": "application/json",
@@ -88,7 +72,7 @@ class SiconfiMscExtractor:
                 )
 
                 if resp.status_code == 404:
-                    logger.info("MSC não encontrada (404) para IBGE %s, ano %s, mês %s", ibge, ano, mes)
+                    logger.info("SICONFI não encontrou dados (404) para %s", descricao)
                     return {"items": [], "hasMore": False}
 
                 if resp.status_code in (429, 500, 502, 503, 504):
@@ -106,8 +90,7 @@ class SiconfiMscExtractor:
                     continue
 
                 resp.raise_for_status()
-                data = resp.json()
-                return data
+                return resp.json()
 
             except (requests.RequestException, ValueError) as err:
                 last_exception = err
@@ -122,12 +105,55 @@ class SiconfiMscExtractor:
                     time.sleep(backoff)
                     backoff *= 2
 
-        if last_exception:
-            raise RuntimeError(
-                f"Falha ao consultar API SICONFI para IBGE {ibge}, ano {ano}, mês {mes} após {self.max_retries} tentativas"
-            ) from last_exception
+        raise RuntimeError(
+            f"Falha ao consultar API SICONFI para {descricao} após {self.max_retries} tentativas"
+        ) from last_exception
 
-        raise RuntimeError(f"Falha desconhecida ao consultar API SICONFI para IBGE {ibge}, ano {ano}, mês {mes}")
+    @staticmethod
+    def _safe_int(val: Any, default: int = 0) -> int:
+        if val is None or val == "":
+            return default
+        try:
+            return int(val)
+        except (ValueError, TypeError):
+            return default
+
+    @staticmethod
+    def _safe_float(val: Any, default: float = 0.0) -> float:
+        if val is None or val == "":
+            return default
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return default
+
+
+class SiconfiMscExtractor(SiconfiApiClient):
+    """Extrator de Matriz de Saldos Contábeis (MSC Patrimonial) via API SICONFI/STN."""
+
+    def fetch_page(
+        self,
+        ibge: int,
+        ano: int,
+        mes: int,
+        offset: int = 0,
+        limit: int = 5000,
+        session: requests.Session | None = None,
+    ) -> dict[str, Any]:
+        """Busca uma página de dados da MSC Patrimonial com retry e backoff exponencial."""
+        ano = ano or datetime.now().year
+        mes = mes or datetime.now().month
+        params: dict[str, str | int] = {
+            "id_ente": ibge,
+            "an_referencia": str(ano),
+            "me_referencia": str(mes),
+            "co_tipo_matriz": "MSCC",
+            "classe_conta": 1,
+            "id_tv": "ending_balance",
+            "offset": offset,
+            "limit": limit,
+        }
+        return self._get_json(params, f"IBGE {ibge}, ano {ano}, mês {mes}", session)
 
     def extract_mes(
         self,
@@ -175,24 +201,6 @@ class SiconfiMscExtractor:
             except Exception as err:
                 logger.error("Erro ao extrair mês %s/%s: %s", mes, ano, err)
         return consolidated
-
-    @staticmethod
-    def _safe_int(val: Any, default: int = 0) -> int:
-        if val is None or val == "":
-            return default
-        try:
-            return int(val)
-        except (ValueError, TypeError):
-            return default
-
-    @staticmethod
-    def _safe_float(val: Any, default: float = 0.0) -> float:
-        if val is None or val == "":
-            return default
-        try:
-            return float(val)
-        except (ValueError, TypeError):
-            return default
 
     @classmethod
     def normalize_item(
@@ -247,7 +255,7 @@ def extract_and_load_siconfi(
     total_loaded = 0
 
     if db is not None:
-        ensure_siconfi_table(db, portal.raw_schema)
+        ensure_siconfi_table(db)
 
     for year in years:
         logger.info("Extraindo SICONFI MSC Patrimonial para IBGE %s, ano %s...", portal.cod_ibge, year)
@@ -261,7 +269,7 @@ def extract_and_load_siconfi(
             logger.info("Arquivo raw salvo em %s", out_file)
 
         if db is not None and rows:
-            loaded = load_siconfi_msc(db, rows, schema=portal.raw_schema)
+            loaded = load_siconfi_msc(db, rows, portal.slug)
             logger.info("Inseridos/atualizados %d registros na tabela siconfi_msc_patrimonial", loaded)
             total_loaded += loaded
 
@@ -294,12 +302,12 @@ def main() -> None:
         if not run_dir.exists():
             raise ValueError(f"Diretório {run_dir} não existe.")
         engine = get_engine()
-        ensure_siconfi_table(engine, portal.raw_schema)
+        ensure_siconfi_table(engine)
         total = 0
         for json_file in sorted(run_dir.rglob("*.json")):
             if json_file.parent.name == "siconfi_msc_patrimonial":
                 rows = json.loads(json_file.read_text(encoding="utf-8"))
-                loaded = load_siconfi_msc(engine, rows, schema=portal.raw_schema)
+                loaded = load_siconfi_msc(engine, rows, portal.slug)
                 logger.info("Carregados %d registros de %s", loaded, json_file)
                 total += loaded
         logger.info("Carga concluída. Total: %d registros.", total)
