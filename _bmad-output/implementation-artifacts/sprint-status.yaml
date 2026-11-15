@@ -295,10 +295,7 @@ development_status:
   26-3-fiorilli-em-raw-fiorilli-base-do-loader-e-tabelas-sem-leitor: review
   26-4-remocao-dos-schemas-por-municipio-e-dos-modelos-de-consolidacao: in-progress
   26-5-rgf-em-raw-siconfi: review
-  26-6-fiorilli-em-raw-fiorilli-diarias-transferencias-emendas-e-pessoal: backlog
-  26-7-fiorilli-em-raw-fiorilli-licitacoes-contratos-e-despesas-por-fornecedor: backlog
-  26-8-fiorilli-em-raw-fiorilli-despesas-gerais-restos-a-pagar-orgao-e-unidade: backlog
-  26-9-fiorilli-em-raw-fiorilli-receitas: backlog
+  26-6-fiorilli-em-raw-fiorilli-tabelas-restantes-numa-story-so: backlog
   epic-26-retrospective: optional
 
   epic-27: done

@@ -15,13 +15,13 @@ context:
 
 ## Intent
 
-**Problem:** depois das Stories 26.3 e 26.5 a 26.9, as tabelas raw estarão em `raw_fiorilli` e `raw_siconfi`, mas o código ainda carrega o mapa temporário de tabelas migradas, a propriedade `raw_schema` por município, os staging por portal e os modelos `int_*_consolidadas`. Também não há monitoramento de escala: o número de schemas passa a crescer com os provedores, e o volume de cada tabela cresce com os municípios.
+**Problem:** depois das Stories 26.3, 26.5 e 26.6, as tabelas raw estarão em `raw_fiorilli` e `raw_siconfi`, mas o código ainda carrega o mapa temporário de tabelas migradas, a propriedade `raw_schema` por município, os staging por portal e os modelos `int_*_consolidadas`. Também não há monitoramento de escala: o número de schemas passa a crescer com os provedores, e o volume de cada tabela cresce com os municípios.
 
 **Approach:** remover o legado (mapa, `raw_schema`, staging por portal, consolidações, fontes antigas) e deixar só o desenho por fonte; acrescentar o monitoramento de escala do `raw_<fonte>` com limiares num único lugar, métricas no log da carga mensal, teste estrutural e nota de desenho. Os schemas `raw_<portal>` só são apagados em produção por script separado, depois da conferência do Julio.
 
 ## Boundaries & Constraints
 
-**Always:** executar só depois de 26.3, 26.5, 26.6, 26.7, 26.8 e 26.9 concluídas; paridade das saídas dos marts antes e depois (contagens e totais por `portal_slug`); `portal_slug` em todo `JOIN` e `GROUP BY` (Regra 23); nada de literal de tenant; identificadores novos em inglês; rodar tudo no banco local (Regra 15); `make db/backup` antes de qualquer script no banco local.
+**Always:** executar só depois de 26.3, 26.5 e 26.6 concluídas; paridade das saídas dos marts antes e depois (contagens e totais por `portal_slug`); `portal_slug` em todo `JOIN` e `GROUP BY` (Regra 23); nada de literal de tenant; identificadores novos em inglês; rodar tudo no banco local (Regra 15); `make db/backup` antes de qualquer script no banco local.
 
 **Never:** executar DROP, migração ou carga em produção; apagar tabelas antigas no banco local sem backup e sem a conferência de paridade ter passado; mudar o que o cidadão vê; abrir issue automática por limiar, particionar tabelas ou criar índices extras; mexer em `raw_siope`, `raw_siops` e demais schemas que já são por fonte.
 
@@ -70,8 +70,8 @@ context:
 
 ## Implementation Notes
 
-Parcial (Julio autorizou seguir com 26.3 em review e 26.5 a 26.9 em backlog). Feito: limiares `SCALE_*` em `elt/core/config.py`, `elt/load/scale_monitor.py` integrado ao fim de `elt/load/run.py` (duração, linhas/tamanho/colunas por tabela, municípios, limiar destacado), `elt/tests/test_raw_fonte_escala.py`, `elt/scripts/drop_raw_por_municipio.sql` (não executado), `docs/raw-por-fonte-escala.md`. A duração fica só no log; `registro_coletas` não ganhou colunas.
-Pendente (depende de 26.5 a 26.9, só 6 tabelas do Fiorilli estão em `raw_fiorilli`): remover `MIGRATED_RAW_TABLES`/`raw_schema`, staging por portal, `int_*_consolidadas`, ajustes de conftest/build_test_db e a paridade antes/depois.
+Parcial (Julio autorizou seguir com 26.3 em review e 26.5 e 26.6 em backlog). Feito: limiares `SCALE_*` em `elt/core/config.py`, `elt/load/scale_monitor.py` integrado ao fim de `elt/load/run.py` (duração, linhas/tamanho/colunas por tabela, municípios, limiar destacado), `elt/tests/test_raw_fonte_escala.py`, `elt/scripts/drop_raw_por_municipio.sql` (não executado), `docs/raw-por-fonte-escala.md`. A duração fica só no log; `registro_coletas` não ganhou colunas.
+Pendente (depende de 26.5 e 26.6, só 6 tabelas do Fiorilli estão em `raw_fiorilli`): remover `MIGRATED_RAW_TABLES`/`raw_schema`, staging por portal, `int_*_consolidadas`, ajustes de conftest/build_test_db e a paridade antes/depois.
 
 ## Spec Change Log
 
@@ -79,7 +79,7 @@ Pendente (depende de 26.5 a 26.9, só 6 tabelas do Fiorilli estão em `raw_fiori
 
 ## Design Notes
 
-Verificar no início se 26.3 e 26.5 a 26.9 estão em `done` no `sprint-status.yaml`; se não, parar. O checklist de produção do épico (itens 1 a 7) é do Julio: o DROP em produção só roda no fechamento, com autorização explícita. Reavaliar o desenho quando o primeiro limiar de volume for atingido ou passar de 5 municípios no mesmo provedor.
+Verificar no início se 26.3, 26.5 e 26.6 estão em `done` no `sprint-status.yaml`; se não, parar. O checklist de produção do épico (itens 1 a 7) é do Julio: o DROP em produção só roda no fechamento, com autorização explícita. Reavaliar o desenho quando o primeiro limiar de volume for atingido ou passar de 5 municípios no mesmo provedor.
 
 ## Verification
 

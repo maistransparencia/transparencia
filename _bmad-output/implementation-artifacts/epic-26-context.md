@@ -13,10 +13,7 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 - Story 26.3: Fiorilli em `raw_fiorilli`: base do loader e tabelas sem leitor dbt
 - Story 26.4: Remoção dos schemas por município e dos modelos de consolidação
 - Story 26.5: Migração do RGF (`siconfi_rgf`) para `raw_siconfi`
-- Story 26.6: Fiorilli: diárias, transferências, emendas cadastradas e pessoal
-- Story 26.7: Fiorilli: licitações, contratos e despesas por fornecedor
-- Story 26.8: Fiorilli: despesas gerais, restos a pagar, por órgão e por unidade
-- Story 26.9: Fiorilli: receitas (orçamentária, União, Estado e extra-orçamentária)
+- Story 26.6: Fiorilli: todas as tabelas restantes numa story só (antigas 26.6 a 26.9)
 
 ## Requirements & Constraints
 
@@ -38,6 +35,6 @@ Passar a camada raw de "um schema por município" (`raw_<portal_slug>`) para "um
 
 ## Cross-Story Dependencies
 
-- Ordem de execução: 26.3, 26.6, 26.7, 26.8, 26.9, 26.5, 26.4 (a 26.4 vai por último).
-- 26.3 cria a base do loader usada por 26.6 a 26.9; 26.5 (RGF) segue o método da 26.1.
+- Ordem de execução: 26.3, 26.6, 26.5, 26.4 (a 26.4 vai por último).
+- 26.3 cria a base do loader usada pela 26.6; 26.5 (RGF) segue o método da 26.1.
 - Relação com a pendência de migração de PK/`full-refresh` da Epic 19.
