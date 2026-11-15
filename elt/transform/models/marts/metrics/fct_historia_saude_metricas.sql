@@ -5,7 +5,7 @@
 with orgaos_saude as (
     select portal_slug, empresa_id, orgao_nome
     from {{ ref('dim_orgao') }}
-    where lower(unaccent(orgao_nome)) ilike '%saude%'
+    where lower({{ target.schema }}.unaccent(orgao_nome)) ilike '%saude%'
 ),
 
 dotacao_saude_orgao as (
@@ -119,7 +119,7 @@ repasses_saude as (
         t.ano,
         sum(coalesce(t.repasse, 0)) as repasse_recebido
     from {{ ref('fct_transferencias') }} t
-    where lower(unaccent(t.entidade_recebedora)) ilike '%saude%'
+    where lower({{ target.schema }}.unaccent(t.entidade_recebedora)) ilike '%saude%'
         and not exists (
             select 1
             from orgaos_saude o
@@ -138,7 +138,7 @@ emendas_saude as (
     left join orgaos_saude o
         on e.portal_slug = o.portal_slug
         and e.empresa_id = o.empresa_id
-    where o.empresa_id is not null or lower(unaccent(e.destinacao)) ilike '%saud%' or lower(unaccent(e.resumo)) ilike '%saud%'
+    where o.empresa_id is not null or lower({{ target.schema }}.unaccent(e.destinacao)) ilike '%saud%' or lower({{ target.schema }}.unaccent(e.resumo)) ilike '%saud%'
     group by e.portal_slug, e.ano
 ),
 

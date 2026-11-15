@@ -251,7 +251,7 @@ licitacoes_unificadas as (
 licitacoes_com_situacao as (
     select
         *,
-        unaccent(lower(trim(coalesce(situacao, '')))) as situacao_normalizada
+        {{ target.schema }}.unaccent(lower(trim(coalesce(situacao, '')))) as situacao_normalizada
     from licitacoes_unificadas
 )
 

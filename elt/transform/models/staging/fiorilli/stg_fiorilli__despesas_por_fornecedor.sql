@@ -10,7 +10,7 @@ cast_and_clean as (
         codigo,
         descricao,
         insmf as fornecedor_cpf_cnpj,
-        upper(unaccent(cepci)) as fornecedor_cidade_clean,
+        upper({{ target.schema }}.unaccent(cepci)) as fornecedor_cidade_clean,
         cepci as fornecedor_cidade,
         nullif(replace(empenhado, ',', '.'), '')::numeric(15, 2) as empenhado,
         nullif(replace(liquidado, ',', '.'), '')::numeric(15, 2) as liquidado,

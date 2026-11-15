@@ -5,7 +5,7 @@
 with licitacoes_base as (
     select
         *,
-        lower(unaccent(coalesce(modalidade, ''))) as modalidade_clean
+        lower({{ target.schema }}.unaccent(coalesce(modalidade, ''))) as modalidade_clean
     from {{ ref('fct_licitacoes') }}
 ),
 
@@ -94,7 +94,7 @@ despesas_adesao_externa as (
         coalesce(dg.empenhado, 0)::numeric(15, 2) as empenhado_contrato,
         coalesce(dg.pago, 0)::numeric(15, 2) as pago_contrato,
         dg.data_empenho as data_referencia,
-        lower(unaccent(coalesce(dg.descricao, ''))) as descricao_clean
+        lower({{ target.schema }}.unaccent(coalesce(dg.descricao, ''))) as descricao_clean
     from {{ ref('fct_despesas') }} dg
     where dg.descricao is not null and dg.descricao != ''
 ),
@@ -168,10 +168,10 @@ unificado as (
 unificado_sanitizado as (
     select
         u.*,
-        lower(unaccent(coalesce(u.modalidade, ''))) as modalidade_clean,
-        lower(unaccent(coalesce(u.fundlegal, ''))) as fundlegal_clean,
-        lower(unaccent(coalesce(u.fornecedor_nome, ''))) as fornecedor_clean,
-        lower(unaccent(coalesce(u.objeto, ''))) as objeto_clean
+        lower({{ target.schema }}.unaccent(coalesce(u.modalidade, ''))) as modalidade_clean,
+        lower({{ target.schema }}.unaccent(coalesce(u.fundlegal, ''))) as fundlegal_clean,
+        lower({{ target.schema }}.unaccent(coalesce(u.fornecedor_nome, ''))) as fornecedor_clean,
+        lower({{ target.schema }}.unaccent(coalesce(u.objeto, ''))) as objeto_clean
     from unificado u
 ),
 

@@ -24,10 +24,10 @@ cadprev_despesas as (
     where
         d.elemento = '71'
         and (
-            (nullif(trim(p.previdencia_sigla), '') is not null and lower(unaccent(d.fornecedor_nome)) ilike '%' || lower(unaccent(p.previdencia_sigla)) || '%')
+            (nullif(trim(p.previdencia_sigla), '') is not null and lower({{ target.schema }}.unaccent(d.fornecedor_nome)) ilike '%' || lower({{ target.schema }}.unaccent(p.previdencia_sigla)) || '%')
             or (nullif(trim(p.previdencia_cnpj), '') is not null and regexp_replace(coalesce(d.fornecedor_cpf_cnpj, ''), '[^0-9]', '', 'g') = p.previdencia_cnpj)
-            or lower(unaccent(d.fornecedor_nome)) ilike '%rpps%'
-            or lower(unaccent(d.descricao)) ilike '%cadprev%'
+            or lower({{ target.schema }}.unaccent(d.fornecedor_nome)) ilike '%rpps%'
+            or lower({{ target.schema }}.unaccent(d.descricao)) ilike '%cadprev%'
         )
         and (d.tipo_empenho is null or d.tipo_empenho != 'AN')
 ),
