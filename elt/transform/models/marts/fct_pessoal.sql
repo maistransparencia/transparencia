@@ -15,7 +15,7 @@ with pessoal as (
         matricula,
         categoria_regime,
         regime_previdenciario
-    from {{ ref('int_pessoal_consolidado') }}
+    from {{ ref('int_pessoal') }}
 )
 
 select

@@ -73,7 +73,7 @@ Instalar via `make dbt/deps` (requer `packages.yml` com `dbt-labs/dbt_utils`).
 | Camada        | Padrão                        | Exemplo                                      |
 | ------------- | ----------------------------- | -------------------------------------------- |
 | Staging       | `stg_<portal>__<tabela>.sql`  | `stg_porciuncula_prefeitura__licitacoes.sql` |
-| Intermediate  | `int_<nome>.sql`              | `int_licitacoes_consolidadas.sql`            |
+| Intermediate  | `int_<nome>.sql`              | `int_licitacoes.sql`            |
 | Mart dimensão | `dim_<nome>.sql`              | `dim_licitacao.sql`                          |
 | Mart fato     | `fct_<nome>.sql`              | `fct_despesas.sql`                           |
 | Seed          | `seed_<portal>_<nome_pt>.csv` | `seed_porciuncula_prefeitura_orgaos.csv`     |
@@ -118,7 +118,7 @@ Source declarado em `models/staging/<portal>/_sources.yml`, schema: `raw_<portal
 **Intermediate** — é o lugar correto para re-graining, deduplicação e UNION ALL entre portais. Quando a fonte pode emitir múltiplas linhas para a mesma chave de negócio (ex: mesmo código de receita com fontes STN distintas), o GROUP BY + SUM deve ocorrer aqui, após o UNION ALL:
 
 ```sql
--- int_<entidade>_consolidada.sql
+-- int_<entidade>.sql
 with combined as (
     select ... from {{ ref('stg_portal_a__<tabela>') }}
     union all
@@ -239,7 +239,7 @@ unit_tests:
   - name: test_empenhado_liquido_calculo
     model: fct_despesas
     given:
-      - input: ref('int_despesas_consolidadas')
+      - input: ref('int_despesas')
         rows:
           - {empenho_id: "1", tipo_empenho: "OR", empenhado: 1000.00}
           - {empenho_id: "1", tipo_empenho: "AN", empenhado: -200.00}

@@ -1,7 +1,7 @@
 -- Staging: receita_orcamentaria
 -- Casts text → numeric e padroniza nomes de colunas. Relação 1:1 com a fonte.
 -- A deduplicação entre a linha total (sem fonte STN) e as linhas de detalhe por
--- fonte STN ocorre em int_receitas_consolidadas (camada intermediária).
+-- fonte STN ocorre em int_receitas (camada intermediária).
 
 with source as (
     select * from {{ source('raw_fiorilli', 'receita_orcamentaria') }}

@@ -1,4 +1,4 @@
-"""Testes de integração do dedupe de receitas orçamentárias em int_receitas_consolidadas."""
+"""Testes de integração do dedupe de receitas orçamentárias em int_receitas."""
 
 from decimal import Decimal
 
@@ -45,15 +45,12 @@ _SQL_FOLHAS = """
 """
 
 
-PORTAIS = [
-    ("porciuncula_prefeitura", "raw_porciuncula_prefeitura"),
-    ("natividade_prefeitura", "raw_natividade_prefeitura"),
-]
+PORTAIS = ["porciuncula_prefeitura", "natividade_prefeitura"]
 
 
-@pytest.fixture(params=PORTAIS, ids=[p[0] for p in PORTAIS])
+@pytest.fixture(params=PORTAIS)
 def portal(request, conn):
-    portal_slug, schema = request.param
+    portal_slug = request.param
     conn.execute(
         text(
             "DELETE FROM raw_fiorilli.receita_orcamentaria "

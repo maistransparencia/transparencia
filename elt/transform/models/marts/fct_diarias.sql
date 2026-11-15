@@ -12,7 +12,7 @@ with diarias as (
         data,
         unidade,
         descricao
-    from {{ ref('int_diarias_consolidadas') }}
+    from {{ ref('stg_fiorilli__diarias') }}
 )
 
 select

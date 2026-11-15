@@ -39,7 +39,7 @@ contratos_dedup as (
                 partition by portal_slug, ano, empresa_id, licitacao_numero
                 order by length(coalesce(objeto_completo, objeto, '')) desc, contrato_numero asc
             ) as rn
-        from {{ ref('int_contratos_consolidados') }}
+        from {{ ref('stg_fiorilli__contratos') }}
         where licitacao_numero is not null
           and coalesce(objeto_completo, objeto) is not null
     ) sub

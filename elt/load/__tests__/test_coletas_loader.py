@@ -102,7 +102,7 @@ def test_farmacia_counts_as_collected_only_when_collection_succeeded(tmp_path):
 
 def _run_main(monkeypatch, engine, run_dir, *, farmacia_rows=1, siconfi_rgf_rows=1):
     """Executa main() sobre um diretório de coleta, com extração e carga das fontes substituídas por dublês."""
-    portal = SimpleNamespace(slug="portal_a", provider="fiorilli", raw_schema="raw_portal_a")
+    portal = SimpleNamespace(slug="portal_a", provider="fiorilli")
     monkeypatch.setattr(sys, "argv", ["run", "--portal", "portal_a", "--dir", str(run_dir)])
     monkeypatch.setattr(load_run.PortalConfig, "load", lambda slug: portal)
     monkeypatch.setattr(
@@ -411,7 +411,7 @@ def test_main_flags_suspicious_empty_portal_municipal(monkeypatch, engine, tmp_p
         monkeypatch.setattr(
             load_run.PortalConfig,
             "load",
-            lambda slug: SimpleNamespace(slug="portal_a", provider="fiorilli", raw_schema="raw_portal_a"),
+            lambda slug: SimpleNamespace(slug="portal_a", provider="fiorilli"),
         )
         monkeypatch.setattr(load_run, "get_engine", lambda: engine)
         monkeypatch.setattr(load_run, "_upsert_raw", lambda *args, **kwargs: upserts.append(args) or 0)

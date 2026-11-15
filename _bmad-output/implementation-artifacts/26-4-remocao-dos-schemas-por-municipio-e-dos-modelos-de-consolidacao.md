@@ -52,15 +52,15 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `elt/core/config.py` e os quatro escritores -- remover o mapa e `raw_schema`; schema `raw_<provider>` com `portal_slug` na chave -- fim do legado
-- [ ] `elt/transform/models/intermediate/` e `marts/` -- remover as consolidações e apontar os consumidores ao staging único -- Regra 23
-- [ ] `elt/transform/models/staging/<portal>/` -- remover staging e fontes por portal -- Regra 5
+- [x] `elt/core/config.py` e os quatro escritores -- remover o mapa e `raw_schema`; schema `raw_<provider>` com `portal_slug` na chave -- fim do legado
+- [x] `elt/transform/models/intermediate/` e `marts/` -- remover as consolidações e apontar os consumidores ao staging único -- Regra 23
+- [x] `elt/transform/models/staging/<portal>/` -- remover staging e fontes por portal -- Regra 5
 - [x] `elt/core/config.py` -- limiares de escala num único lugar (20 municípios por provedor, 5 milhões de linhas, 10 min, 150 colunas) -- calibrar com 5 a 10 municípios
 - [x] `elt/load/run.py`, `elt/load/coletas.py` -- registrar início/fim e emitir no log da carga linhas e tamanho por tabela (`pg_stat_user_tables`, `pg_total_relation_size`), municípios distintos por fonte e limiar ultrapassado -- monitoramento
 - [x] `elt/tests/` -- teste estrutural (tabela raw migrada: PK com `portal_slug`, no máximo 150 colunas), teste dos limiares e do log -- I/O Matrix
 - [x] `elt/scripts/drop_raw_por_municipio.sql` -- derruba `raw_<portal>` com checagem de paridade e de leitores; não rodar em produção -- reprodutível
 - [x] `docs/` e `epic-26-context.md` -- nota de desenho e limiares -- apontada pelo teste
-- [ ] `schema.sql.gz` e conftest -- regenerar sem `raw_<portal>` -- Regra 21
+- [x] `schema.sql.gz` e conftest -- regenerar sem `raw_<portal>` -- Regra 21
 
 **Acceptance Criteria:**
 - Given o banco local antes e depois da remoção, when o dbt roda, then contagens e totais dos marts por `portal_slug` são iguais.
@@ -71,7 +71,7 @@ context:
 ## Implementation Notes
 
 Parcial (Julio autorizou seguir com 26.3 em review e 26.5 e 26.6 em backlog). Feito: limiares `SCALE_*` em `elt/core/config.py`, `elt/load/scale_monitor.py` integrado ao fim de `elt/load/run.py` (duração, linhas/tamanho/colunas por tabela, municípios, limiar destacado), `elt/tests/test_raw_fonte_escala.py`, `elt/scripts/drop_raw_por_municipio.sql` (não executado), `docs/raw-por-fonte-escala.md`. A duração fica só no log; `registro_coletas` não ganhou colunas.
-Pendente (depende de 26.5 e 26.6, só 6 tabelas do Fiorilli estão em `raw_fiorilli`): remover `MIGRATED_RAW_TABLES`/`raw_schema`, staging por portal, `int_*_consolidadas`, ajustes de conftest/build_test_db e a paridade antes/depois.
+Concluído (retomada pós 26.3, 26.5 e 26.6): `MIGRATED_RAW_TABLES` e `PortalConfig.raw_schema` removidos; `resolve_raw_schema(portal)` devolve `raw_<provider>` e `resolve_key_cols`/`tag_rows_with_portal` sempre aplicam `portal_slug`. Removidos os passthroughs `int_{contratos,despesas_orgao,despesas_unidade,diarias,emendas,transferencias}_consolidad*` e `int_siconfi_rgf_consolidada` (marts leem `stg_fiorilli__*`); as quatro consolidações com lógica própria foram renomeadas para `int_despesas`, `int_licitacoes`, `int_pessoal` e `int_receitas`. Staging e `_sources.yml` por portal removidos; a fonte `raw_pncp` (que morava no `_sources.yml` de Porciúncula) foi para `staging/pncp/_sources.yml`. `schema.sql.gz` já não existe (Regra 21); `conftest` usa `search_path` com `raw_fiorilli`. Paridade: `docs/producao-26-6-conferencia-marts.sql` antes e depois no banco local, idêntica (28 linhas, hashes iguais). `make check` e `make test` passam; `make dbt/test` tem 2 falhas preexistentes sem relação (unit test de `fct_historia_saude_metricas` sem mock de `fct_saude_origem_recursos_metricas`; unicidade de `fct_licitacoes_itens`). `pnpm test`/`typecheck` não rodados: os marts não mudaram. O DROP dos `raw_<portal>` em produção segue com o Julio.
 
 ## Spec Change Log
 

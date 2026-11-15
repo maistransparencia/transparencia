@@ -26,7 +26,7 @@ unit_tests:
     description: "Valida a classificação determinística e precedência léxica de despesas (resíduos, consórcios, sentenças, sensíveis)"
     model: int_despesas_reclassificadas
     given:
-      - input: ref('int_despesas_consolidadas')
+      - input: ref('int_despesas')
         rows:
           # 1. Combustível
           - {portal_slug: 'porciuncula_prefeitura', fonte: 'exercicio', ano: 2026, empresa_id: '2', empenho_id: '1', pk_empenho: '1', tipo_empenho: 'OR', elemento: '30', natureza_despesa_codigo: '3.3.90.30.01', fornecedor_nome: 'POSTO EXTREMO NORTE LTDA', descricao: 'AQUISIÇÃO DE ÓLEO DIESEL S-10 PARA VEÍCULOS', empenhado: 1000.00}
