@@ -1,10 +1,7 @@
--- Intermediário: consolida pessoal de todos os portais via union all.
--- Para adicionar novo portal: incluir novo select em pessoal_unificado abaixo.
+-- Intermediário: consolida pessoal de todos os portais Fiorilli.
 
 with pessoal_unificado as (
-    select 'porciuncula_prefeitura' as portal_slug, * from {{ ref('stg_porciuncula_prefeitura__pessoal') }}
-    union all
-    select 'natividade_prefeitura' as portal_slug, * from {{ ref('stg_natividade_prefeitura__pessoal') }}
+    select * from {{ ref('stg_fiorilli__pessoal') }}
 ),
 
 classificado as (

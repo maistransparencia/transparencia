@@ -5,9 +5,7 @@
 }}
 
 with source as (
-    select * from {{ ref('stg_porciuncula_prefeitura__receita_extra_orcamentaria') }}
-    union all
-    select * from {{ ref('stg_natividade_prefeitura__receita_extra_orcamentaria') }}
+    select * from {{ ref('stg_fiorilli__receita_extra_orcamentaria') }}
 )
 
 select

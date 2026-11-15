@@ -2,7 +2,7 @@
 title: 'Story 26.3: Fiorilli em raw_fiorilli: base do loader e tabelas sem leitor dbt'
 type: 'refactor'
 created: '2026-11-14'
-status: 'in-review'
+status: 'done'
 baseline_commit: '8be0c8769f751141e43a1a7ca8a61a6569138da1'
 route: 'dispatch'
 review_loop_iteration: 0

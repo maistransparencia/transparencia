@@ -175,7 +175,6 @@ def test_isolamento_entre_portais(conn):
 @pytest.fixture
 def seed_receitas_e_despesas(conn):
     """Receita e despesa sintéticas do ano de conferência: 3 linhas de receita contam, 4 não, 1 despesa conta."""
-    schema = f"raw_{_PORTAL}"
     receitas = [
         ("1110.00.0.0.00.00", "", "600,00"),  # impostos municipais: conta
         ("1711.51.1.1.00.00", "", "300,00"),  # FPM: conta
@@ -188,13 +187,19 @@ def seed_receitas_e_despesas(conn):
     for codigo, fontestn, valor in receitas:
         conn.execute(
             text(
-                f"""
-                INSERT INTO {schema}.receita_orcamentaria
-                    (ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
-                VALUES (:ano, '98', :codigo, :fontestn, 'Receita sintetica', :valor, '0,00')
+                """
+                INSERT INTO raw_fiorilli.receita_orcamentaria
+                    (portal_slug, ano, empresa, codigo, fontestn, nome, arrecadado_total, previsao_atualizada)
+                VALUES (:portal_slug, :ano, '98', :codigo, :fontestn, 'Receita sintetica', :valor, '0,00')
                 """
             ),
-            {"ano": str(_ANO_CONFERENCIA), "codigo": codigo, "fontestn": fontestn, "valor": valor},
+            {
+                "portal_slug": _PORTAL,
+                "ano": str(_ANO_CONFERENCIA),
+                "codigo": codigo,
+                "fontestn": fontestn,
+                "valor": valor,
+            },
         )
     despesas = [
         ("1", "10", "Saúde", "Receitas de Impostos e Transf. de Impostos", "180,00"),
@@ -204,13 +209,14 @@ def seed_receitas_e_despesas(conn):
     for numero, funcao, funcao_nome, fonte, liquidado in despesas:
         conn.execute(
             text(
-                f"""
-                INSERT INTO {schema}.despesas_gerais
-                    (ano, empresa, numero, funcao, funcaonome, descfonrec, empenhado, liquidado, pago)
-                VALUES (:ano, '98', :numero, :funcao, :funcao_nome, :fonte, :valor, :valor, :valor)
+                """
+                INSERT INTO raw_fiorilli.despesas_gerais
+                    (portal_slug, ano, empresa, numero, funcao, funcaonome, descfonrec, empenhado, liquidado, pago)
+                VALUES (:portal_slug, :ano, '98', :numero, :funcao, :funcao_nome, :fonte, :valor, :valor, :valor)
                 """
             ),
             {
+                "portal_slug": _PORTAL,
                 "ano": _ANO_CONFERENCIA,
                 "numero": numero,
                 "funcao": funcao,
@@ -222,11 +228,17 @@ def seed_receitas_e_despesas(conn):
     conn.commit()
     yield
     conn.execute(
-        text(f"DELETE FROM {schema}.receita_orcamentaria WHERE ano = :ano AND empresa = '98'"),
-        {"ano": str(_ANO_CONFERENCIA)},
+        text(
+            "DELETE FROM raw_fiorilli.receita_orcamentaria "
+            "WHERE portal_slug = :portal_slug AND ano = :ano AND empresa = '98'"
+        ),
+        {"portal_slug": _PORTAL, "ano": str(_ANO_CONFERENCIA)},
     )
     conn.execute(
-        text(f"DELETE FROM {schema}.despesas_gerais WHERE ano = :ano AND empresa = '98'"), {"ano": _ANO_CONFERENCIA}
+        text(
+            "DELETE FROM raw_fiorilli.despesas_gerais WHERE portal_slug = :portal_slug AND ano = :ano AND empresa = '98'"
+        ),
+        {"portal_slug": _PORTAL, "ano": _ANO_CONFERENCIA},
     )
     conn.commit()
 

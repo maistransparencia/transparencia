@@ -1,10 +1,9 @@
--- Intermediário: consolida licitacoes de todos os portais via union all.
+-- Intermediário: consolida licitacoes de todos os portais Fiorilli.
 -- Enriquecimento hierárquico de objetos: PNCP (1ª) -> Contrato local (2ª) -> TCE-RJ (3ª) -> Municipal (4ª).
--- Para adicionar novo portal: incluir novo CTE + union all abaixo.
 
 with licitacoes_municipais as (
     select
-        'porciuncula_prefeitura' as portal_slug,
+        portal_slug,
         ano,
         empresa_id,
         licitacao_numero,
@@ -17,25 +16,7 @@ with licitacoes_municipais as (
         carona,
         edital_numero,
         processo
-    from {{ ref('stg_porciuncula_prefeitura__licitacoes') }}
-
-    union all
-
-    select
-        'natividade_prefeitura' as portal_slug,
-        ano,
-        empresa_id,
-        licitacao_numero,
-        modalidade,
-        objeto,
-        discriminacao,
-        valor,
-        situacao,
-        data_abertura,
-        carona,
-        edital_numero,
-        processo
-    from {{ ref('stg_natividade_prefeitura__licitacoes') }}
+    from {{ ref('stg_fiorilli__licitacoes') }}
 ),
 
 contratos_dedup as (

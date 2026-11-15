@@ -135,9 +135,9 @@ def test_fct_licitacoes_enrichment_columns(conn):
     conn.execute(
         text(
             """
-            INSERT INTO "raw_porciuncula_prefeitura"."licitacoes" (ano, empresa, numero, discr, valor, situacao)
-            VALUES (2025, '1', 'PE 099/2025', 'Objeto truncado municipal', '1000.00', 'em_andamento')
-            ON CONFLICT (ano, empresa, numero) DO UPDATE SET discr = EXCLUDED.discr;
+            INSERT INTO "raw_fiorilli"."licitacoes" (portal_slug, ano, empresa, numero, discr, valor, situacao)
+            VALUES ('porciuncula_prefeitura', 2025, '1', 'PE 099/2025', 'Objeto truncado municipal', '1000.00', 'em_andamento')
+            ON CONFLICT (portal_slug, ano, empresa, numero) DO UPDATE SET discr = EXCLUDED.discr;
             """
         )
     )
@@ -200,9 +200,9 @@ def test_fct_licitacoes_situacao_codigo(conn):
             conn.execute(
                 text(
                     """
-                    INSERT INTO "raw_porciuncula_prefeitura"."licitacoes" (ano, empresa, numero, discr, valor, situacao)
-                    VALUES (2025, '1', :numero, 'Objeto de teste', '1000.00', :situacao)
-                    ON CONFLICT (ano, empresa, numero) DO UPDATE SET situacao = EXCLUDED.situacao;
+                    INSERT INTO "raw_fiorilli"."licitacoes" (portal_slug, ano, empresa, numero, discr, valor, situacao)
+                    VALUES ('porciuncula_prefeitura', 2025, '1', :numero, 'Objeto de teste', '1000.00', :situacao)
+                    ON CONFLICT (portal_slug, ano, empresa, numero) DO UPDATE SET situacao = EXCLUDED.situacao;
                     """
                 ),
                 {"numero": numero, "situacao": situacao},
@@ -239,7 +239,8 @@ def test_fct_licitacoes_situacao_codigo(conn):
     finally:
         conn.execute(
             text(
-                """DELETE FROM "raw_porciuncula_prefeitura"."licitacoes" WHERE ano = 2025 AND numero = ANY(:numeros)"""
+                """DELETE FROM "raw_fiorilli"."licitacoes"
+                WHERE portal_slug = 'porciuncula_prefeitura' AND ano = 2025 AND numero = ANY(:numeros)"""
             ),
             {"numeros": [n for n, _ in municipais]},
         )

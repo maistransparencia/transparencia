@@ -36,8 +36,10 @@ def seed_decimo_terceiro(conn, pg):
     def limpar():
         for portal in (_PORTAL, _OUTRO_PORTAL):
             conn.execute(
-                text(f"DELETE FROM raw_{portal}.despesas_gerais WHERE ano = :ano AND empresa = '1'"),
-                {"ano": str(_ANO)},
+                text(
+                    "DELETE FROM raw_fiorilli.despesas_gerais WHERE portal_slug = :portal_slug AND ano = :ano AND empresa = '1'"
+                ),
+                {"portal_slug": portal, "ano": str(_ANO)},
             )
         conn.commit()
 
@@ -45,13 +47,14 @@ def seed_decimo_terceiro(conn, pg):
     for portal, numero, elemento, tpem, descricao, empenhado, pago in _EMPENHOS:
         conn.execute(
             text(
-                f"""
-                INSERT INTO raw_{portal}.despesas_gerais
-                    (ano, empresa, numero, tpem, elemento, produ, empenhado, liquidado, pago)
-                VALUES (:ano, '1', :numero, :tpem, :elemento, :descricao, :empenhado, :pago, :pago)
+                """
+                INSERT INTO raw_fiorilli.despesas_gerais
+                    (portal_slug, ano, empresa, numero, tpem, elemento, produ, empenhado, liquidado, pago)
+                VALUES (:portal_slug, :ano, '1', :numero, :tpem, :elemento, :descricao, :empenhado, :pago, :pago)
                 """
             ),
             {
+                "portal_slug": portal,
                 "ano": str(_ANO),
                 "numero": numero,
                 "tpem": tpem,

@@ -25,6 +25,26 @@ MIGRATED_RAW_TABLES: dict[str, frozenset[str]] = {
             "empresas",
             "receita_detalhes",
             "metadata",
+            # Story 26.6: despesas
+            "despesas_gerais",
+            "despesas_restos_pagar",
+            "despesas_por_orgao",
+            "despesas_por_unidade",
+            "despesas_por_fornecedor",
+            # receitas
+            "receita_orcamentaria",
+            "receita_uniao",
+            "receita_estado",
+            "receita_extra_orcamentaria",
+            # compras
+            "licitacoes",
+            "contratos",
+            # pessoal
+            "pessoal",
+            "diarias",
+            # repasses
+            "transferencias",
+            "emendas_cad",
         }
     ),
 }

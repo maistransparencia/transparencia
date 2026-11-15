@@ -591,3 +591,7 @@ status: open
   summary: No workflow de ingestão, portal sem `data/raw_runs/$portal` só loga "Pulando load" e não reprova o job.
   evidence: comportamento anterior à story 23.3, apontado na revisão; uma extração que não gerou diretório passaria como verde.
 
+
+- source_spec: `_bmad-output/implementation-artifacts/26-6-fiorilli-em-raw-fiorilli-tabelas-restantes-numa-story-so.md`
+  summary: Desempatar de forma explicita o `distinct on` do perfil do fornecedor em `fct_despesas` (restos a pagar), por exemplo pela chave do empenho.
+  evidence: 244 linhas de restos a pagar mudaram `funcao`/`subfuncao`/`elemento` apos a migracao da 26.6 por empate (mesmo ano e data de empenho, subfuncao 361 e 364); defeito anterior, a ordem fisica mudou. Resolver antes do fechamento da epic 26, pois a migracao de producao pode reordenar de novo.
