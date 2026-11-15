@@ -1,7 +1,7 @@
 {{ config(materialized='table') }}
 
 with rgf as (
-    select * from {{ ref('int_siconfi_rgf_consolidada') }}
+    select * from {{ ref('stg_siconfi__rgf') }}
 ),
 
 portais as (
@@ -10,7 +10,7 @@ portais as (
 
 por_periodo as (
     select
-        p.portal_slug,
+        r.portal_slug,
         r.ano,
         r.periodicidade,
         r.periodo,
@@ -20,8 +20,9 @@ por_periodo as (
         max(r.valor) filter (where r.cod_conta = 'DespesaComPessoalTotal' and r.coluna = '% sobre a RCL Ajustada') as percentual_despesa_pessoal
     from rgf r
     inner join portais p
-        on p.cod_ibge = r.cod_ibge
-    group by p.portal_slug, r.ano, r.periodicidade, r.periodo
+        on p.portal_slug = r.portal_slug
+        and p.cod_ibge = r.cod_ibge
+    group by r.portal_slug, r.ano, r.periodicidade, r.periodo
 )
 
 select

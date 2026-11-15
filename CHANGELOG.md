@@ -5,6 +5,9 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🌟 Destaques da Versão (RGF do Siconfi em schema por fonte)
+* **RGF em `raw_siconfi` com `portal_slug` na chave:** a despesa com pessoal (RGF Anexo 01) passa a ter uma tabela única da fonte, recarregada por portal, e um staging só (`stg_siconfi__rgf`) no lugar dos staging por município; `fct_pessoal_rgf_metricas` junta por `portal_slug` e os números não mudam. Script de migração em `elt/scripts/migrate_siconfi_rgf_para_raw_siconfi.sql`.
+
 ### 🌟 Destaques da Versão (MSC do Siconfi em schema por fonte)
 * **MSC Patrimonial em `raw_siconfi` com `portal_slug` na chave:** a tabela deixa de existir por município e passa a ser única da fonte, recarregada por portal. Um staging só (`stg_siconfi__msc_patrimonial`) substitui os staging por portal e o consolidado; os números dos marts não mudam. Script de migração em `elt/scripts/migrate_siconfi_msc_para_raw_siconfi.sql`.
 
