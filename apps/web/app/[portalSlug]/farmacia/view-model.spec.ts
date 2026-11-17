@@ -96,6 +96,7 @@ function makeRaw(opts: {
         {
           codigoPrincipioAtivo: "losartana",
           nomePrincipioAtivo: "Losartana",
+          termoBusca: "losartana potassica",
           grupoTerapeutico: "cardiovascular",
           ordemExibicao: 1,
           destaqueCardInicial: true,
@@ -105,6 +106,7 @@ function makeRaw(opts: {
         {
           codigoPrincipioAtivo: "metformina",
           nomePrincipioAtivo: "Metformina",
+          termoBusca: "metformina potassica",
           grupoTerapeutico: "diabetes",
           ordemExibicao: 2,
           destaqueCardInicial: false,
@@ -114,6 +116,7 @@ function makeRaw(opts: {
         {
           codigoPrincipioAtivo: "captopril",
           nomePrincipioAtivo: "Captopril",
+          termoBusca: "captopril potassica",
           grupoTerapeutico: "cardiovascular",
           ordemExibicao: 3,
           destaqueCardInicial: false,
@@ -123,6 +126,7 @@ function makeRaw(opts: {
         {
           codigoPrincipioAtivo: "hidroclorotiazida",
           nomePrincipioAtivo: "Hidroclorotiazida",
+          termoBusca: "hidroclorotiazida potassica",
           grupoTerapeutico: "cardiovascular",
           ordemExibicao: 4,
           destaqueCardInicial: false,
@@ -149,7 +153,7 @@ describe("buildFarmaciaViewModel", () => {
       {
         codigoPrincipioAtivo: "losartana",
         nomePrincipioAtivo: "Losartana",
-        href: "/portal_x/farmacia?q=Losartana#resultados",
+        href: "/portal_x/farmacia?q=losartana+potassica#resultados",
       },
     ]);
   });
@@ -240,7 +244,7 @@ describe("buildFarmaciaViewModel essenciais", () => {
       ["Hidroclorotiazida", "somente_combinacao"],
     ]);
     expect(vm.essenciais[1].href).toBe(
-      "/portal_x/farmacia?q=Metformina#resultados",
+      "/portal_x/farmacia?q=metformina+potassica#resultados",
     );
   });
 
@@ -270,6 +274,7 @@ describe("buildFarmaciaViewModel essenciais", () => {
       {
         codigoPrincipioAtivo: "x",
         nomePrincipioAtivo: "X",
+        termoBusca: "x potassica",
         grupoTerapeutico,
         ordemExibicao: 1,
         destaqueCardInicial: false,
@@ -796,6 +801,7 @@ describe("remedio so com lote vencido", () => {
       {
         codigoPrincipioAtivo: "captopril",
         nomePrincipioAtivo: "Captopril",
+        termoBusca: "captopril potassica",
         grupoTerapeutico: "cardiovascular",
         ordemExibicao: 1,
         destaqueCardInicial: false,
