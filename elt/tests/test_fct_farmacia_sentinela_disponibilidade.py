@@ -380,8 +380,14 @@ def test_termo_busca_acha_os_itens_que_o_card_contou(conn, raw, portais):
         portal, "a2", "1001", "INSULINA HUMANA REGULAR 100 UI/ML SOLUÇÃO INJETÁVEL 10 ML", _dia(1), validade=_dia(-90)
     )
     raw.estoque(portal, "a3", "1001", "Losartana Potássica 50mg", _dia(1))
+    raw.estoque(portal, "a4", "1001", "INSULINA HUMANA 70% NPH + 30% REGULAR 100 UI/ML", _dia(1))
     conn.commit()
 
+    total_principais = conn.execute(
+        text(
+            "SELECT count(DISTINCT codigo_principio_ativo) FROM analytics.seed_farmacia_medicamentos_sentinela WHERE tipo_correspondencia = 'principal'"
+        )
+    ).scalar()
     termos = dict(
         conn.execute(
             text(
@@ -391,7 +397,7 @@ def test_termo_busca_acha_os_itens_que_o_card_contou(conn, raw, portais):
             {"p": portal},
         ).fetchall()
     )
-    assert len(termos) == 23
+    assert len(termos) == total_principais
     assert all(termos.values())
 
     for codigo in ("insulina_nph", "insulina_regular", "losartana"):
