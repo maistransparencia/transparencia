@@ -26,11 +26,13 @@ const poolMax = Number(process.env.DATABASE_POOL_MAX) || 5;
 const pool = new pg.Pool({
   connectionString,
   max: poolMax,
-  options: "-c search_path=analytics,public",
+  options: "-c search_path=analytics,public,extensions",
 });
 
 pool.on("connect", (client) => {
-  client.query("SET search_path = analytics, public;").catch(() => {});
+  client
+    .query("SET search_path = analytics, public, extensions;")
+    .catch(() => {});
 });
 
 // O Postgres gerenciado encerra conexões ociosas. Quando isso acontece, o `pg`
@@ -53,11 +55,13 @@ export const db = new Kysely<any>({
 const writePool = new pg.Pool({
   connectionString: writeConnectionString,
   max: poolMax,
-  options: "-c search_path=analytics,public",
+  options: "-c search_path=analytics,public,extensions",
 });
 
 writePool.on("connect", (client) => {
-  client.query("SET search_path = analytics, public;").catch(() => {});
+  client
+    .query("SET search_path = analytics, public, extensions;")
+    .catch(() => {});
 });
 
 writePool.on("error", (err) => {
