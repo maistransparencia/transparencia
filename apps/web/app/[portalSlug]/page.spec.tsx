@@ -354,6 +354,7 @@ describe("VisaoGeralPage", () => {
             {
               codigoPrincipioAtivo: "dipirona",
               nomePrincipioAtivo: "Dipirona",
+              termoBusca: "dipirona",
               grupoTerapeutico: "dor_febre",
               ordemExibicao: 1,
               destaqueCardInicial: true,
@@ -366,7 +367,7 @@ describe("VisaoGeralPage", () => {
     );
     render(await VisaoGeralPage(props));
     const pilula = screen.getByRole("link", { name: "Dipirona" });
-    expect(pilula.getAttribute("href")).toContain("/farmacia?q=Dipirona");
+    expect(pilula.getAttribute("href")).toContain("/farmacia?q=dipirona");
   });
 
   it("obra paralisada mostra Merece atenção sempre com o motivo escrito", async () => {

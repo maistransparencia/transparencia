@@ -481,6 +481,66 @@ describe("getFarmaciaSentinelas", () => {
     });
   });
 
+  it("expoe o termo de busca do essencial separado do rotulo exibido", async () => {
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "insulina_nph",
+      nomePrincipioAtivo: "Insulina NPH",
+      termoBusca: "insulina humana nph",
+    });
+    const [nph] = (await getFarmaciaSentinelas(PORTAL_A)).sentinelas;
+    expect(nph).toMatchObject({
+      nomePrincipioAtivo: "Insulina NPH",
+      termoBusca: "insulina humana nph",
+    });
+  });
+
+  it("a busca pelo termo do essencial acha o estoque registrado como insulina humana", async () => {
+    const base = {
+      portalSlug: PORTAL_A,
+      dataColeta: "2026-10-20",
+      dataPosicaoMaisRecente: "2026-10-18",
+      diasDesdePosicaoMaisRecente: 2,
+      codigoCnes: "1001",
+      nomeUnidade: "UBS Centro",
+      quantidadeEstoque: 10,
+      dataPosicaoEstoque: "2026-10-18",
+    };
+    const estoque = [
+      "INSULINA HUMANA NPH 100 UI/ML",
+      "INSULINA HUMANA REGULAR 100 UI/ML",
+      "INSULINA HUMANA 70% NPH + 30% REGULAR 100 UI/ML",
+      "LOSARTANA POTÁSSICA 50MG",
+      "LOSARTANA POTÁSSICA + HIDROCLOROTIAZIDA 50MG",
+    ];
+    await Promise.all(
+      estoque.map((nomeMedicamento, indice) =>
+        seedFarmacia({
+          ...base,
+          idRegistro: `termo-${indice}`,
+          nomeMedicamento,
+        }),
+      ),
+    );
+    const buscarPorTermo = async (termoBusca: string) =>
+      (await getFarmaciaSus(PORTAL_A, { busca: termoBusca })).remedios
+        .map((remedio) => remedio.nomeMedicamento)
+        .sort();
+
+    expect(await buscarPorTermo("insulina humana nph")).toEqual([
+      "INSULINA HUMANA NPH 100 UI/ML",
+    ]);
+    expect(await buscarPorTermo("insulina humana regular")).toEqual([
+      "INSULINA HUMANA REGULAR 100 UI/ML",
+    ]);
+    // A busca é por trecho: também lista a combinação, que o card conta à parte.
+    expect(await buscarPorTermo("losartana")).toEqual([
+      "LOSARTANA POTÁSSICA + HIDROCLOROTIAZIDA 50MG",
+      "LOSARTANA POTÁSSICA 50MG",
+    ]);
+  });
+
   it("calcula indicadores dos essenciais sem assumir numero de unidades", async () => {
     await seedFarmaciaSentinela({
       portalSlug: PORTAL_A,

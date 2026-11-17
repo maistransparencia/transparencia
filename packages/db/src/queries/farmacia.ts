@@ -592,6 +592,8 @@ export async function getFarmaciaIndiceAlfabetico(
 export interface FarmaciaSentinelaDTO {
   codigoPrincipioAtivo: string;
   nomePrincipioAtivo: string;
+  /** Termo que a busca da página usa para achar os mesmos itens que o card contou. */
+  termoBusca: string;
   grupoTerapeutico: string;
   ordemExibicao: number;
   destaqueCardInicial: boolean;
@@ -678,6 +680,7 @@ export async function getFarmaciaSentinelas(
     .select([
       "codigo_principio_ativo",
       sql<string>`min(nome_principio_ativo)`.as("nome_principio_ativo"),
+      sql<string>`min(termo_busca)`.as("termo_busca"),
       sql<string>`min(grupo_terapeutico)`.as("grupo_terapeutico"),
       sql<number>`min(ordem_exibicao)`.as("ordem_exibicao"),
       sql<boolean>`bool_or(destaque_card_inicial)`.as("destaque_card_inicial"),
@@ -707,6 +710,7 @@ export async function getFarmaciaSentinelas(
     (l): FarmaciaSentinelaDTO => ({
       codigoPrincipioAtivo: l.codigo_principio_ativo,
       nomePrincipioAtivo: l.nome_principio_ativo,
+      termoBusca: l.termo_busca,
       grupoTerapeutico: l.grupo_terapeutico,
       ordemExibicao: toNumberOrNull(l.ordem_exibicao) ?? 0,
       destaqueCardInicial: Boolean(l.destaque_card_inicial),

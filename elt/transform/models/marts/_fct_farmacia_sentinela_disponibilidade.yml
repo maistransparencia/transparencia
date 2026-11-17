@@ -37,6 +37,13 @@ models:
           - type: not_null
         tests:
           - not_null
+      - name: termo_busca
+        description: "Prefixo normalizado do nome do princípio ativo no estoque (ex.: 'insulina humana nph'); é o termo que a busca da página usa para achar os itens contados."
+        data_type: text
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
       - name: grupo_terapeutico
         data_type: text
         constraints:

@@ -5,6 +5,11 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [2.0.4] - 2026-11-16
+
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **Busca dos remédios essenciais de `/farmacia` não achava insulina NPH e Regular:** o link do card buscava pelo nome exibido ("Insulina NPH"), mas o estoque registra "Insulina humana NPH"; a busca só achava a mistura 70/30 vencida ("sem lote dentro da validade") ou nada. O link agora busca pelo mesmo trecho de nome que o card usa para contar o estoque, então "Insulina NPH" e "Insulina Regular" levam aos itens que o card contou. A mistura 70/30 não aparece na busca de NPH. A busca por trecho pode listar a mais itens que o card (por exemplo, combinações do mesmo remédio); testes conferem essa relação.
+
 ## [2.0.3] - 2026-11-16
 
 ### ✨ Novas Funcionalidades (Added)
