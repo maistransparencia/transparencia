@@ -63,6 +63,8 @@ export function LicitacoesSpotlightModal({
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
+  // O portal depende de document.body; com ?q= o modal já nasce aberto no SSR.
+  const [isMounted, setIsMounted] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -333,7 +335,11 @@ export function LicitacoesSpotlightModal({
     }
   }, [selectedIndex]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isOpen || !isMounted) return null;
 
   return createPortal(
     <div
