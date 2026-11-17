@@ -481,6 +481,21 @@ describe("getFarmaciaSentinelas", () => {
     });
   });
 
+  it("expoe o termo de busca do essencial separado do rotulo exibido", async () => {
+    await seedFarmaciaSentinela({
+      portalSlug: PORTAL_A,
+      codigoCnes: "1001",
+      codigoPrincipioAtivo: "insulina_nph",
+      nomePrincipioAtivo: "Insulina NPH",
+      termoBusca: "insulina humana nph",
+    });
+    const [nph] = (await getFarmaciaSentinelas(PORTAL_A)).sentinelas;
+    expect(nph).toMatchObject({
+      nomePrincipioAtivo: "Insulina NPH",
+      termoBusca: "insulina humana nph",
+    });
+  });
+
   it("calcula indicadores dos essenciais sem assumir numero de unidades", async () => {
     await seedFarmaciaSentinela({
       portalSlug: PORTAL_A,
