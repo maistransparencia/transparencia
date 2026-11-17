@@ -5,6 +5,8 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-11-16
+
 ### ✨ Novas Funcionalidades (Added)
 * **Faixas de alerta e prudencial na barra de gasto com pessoal:** a barra de `/pessoal` mostra, sobre o número oficial do RGF, as faixas verde (dentro do limite), âmbar (a partir do limite de alerta) e vermelha (a partir do limite prudencial), com um marcador no valor atual e legenda com o teto. O `ThresholdMeter` ganhou a prop `bands`; sem ela, o comportamento não muda.
 
