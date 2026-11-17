@@ -998,6 +998,7 @@ describe("buildVisaoGeralViewModel - farmacia", () => {
     ) => ({
       codigoPrincipioAtivo: codigo,
       nomePrincipioAtivo: codigo.toUpperCase(),
+      termoBusca: codigo,
       grupoTerapeutico: "dor_febre",
       ordemExibicao: ordem,
       destaqueCardInicial: true,
@@ -1027,7 +1028,7 @@ describe("buildVisaoGeralViewModel - farmacia", () => {
         "med8",
       ]);
       expect(vm.farmaciaExemplos[0].href).toBe(
-        `${vm.farmaciaDetailUrl}?q=MED3#resultados`,
+        `${vm.farmaciaDetailUrl}?q=med3#resultados`,
       );
     });
 

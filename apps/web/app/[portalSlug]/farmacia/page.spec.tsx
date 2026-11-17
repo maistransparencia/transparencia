@@ -50,6 +50,7 @@ function makeRaw(farmacia: Record<string, unknown>, busca = "") {
               {
                 codigoPrincipioAtivo: "losartana",
                 nomePrincipioAtivo: "Losartana",
+                termoBusca: "losartana",
                 grupoTerapeutico: "cardiovascular",
                 ordemExibicao: 1,
                 destaqueCardInicial: true,
@@ -92,7 +93,7 @@ describe("FarmaciaPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Losartana" })).toHaveAttribute(
       "href",
-      "/portal_x/farmacia?q=Losartana#resultados",
+      "/portal_x/farmacia?q=losartana#resultados",
     );
     expect(
       screen.getByText("Unidades que informaram estoque"),

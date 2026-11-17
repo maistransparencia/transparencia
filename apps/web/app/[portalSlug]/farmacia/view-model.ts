@@ -58,7 +58,7 @@ export function buildExemplosFarmacia(
     .map((s) => ({
       codigoPrincipioAtivo: s.codigoPrincipioAtivo,
       nomePrincipioAtivo: s.nomePrincipioAtivo,
-      href: `${detailUrl}?${new URLSearchParams({ q: s.nomePrincipioAtivo }).toString()}#${ID_SECAO_RESULTADOS}`,
+      href: `${detailUrl}?${new URLSearchParams({ q: s.termoBusca }).toString()}#${ID_SECAO_RESULTADOS}`,
     }));
 }
 
@@ -154,7 +154,7 @@ function buildEssenciais(
         status !== "no_estoque" && item.unidadesComRelacionadoValido > 0
           ? AVISO_RELACIONADO_VALIDO
           : null,
-      href: buildFarmaciaHref(portalSlug, item.nomePrincipioAtivo),
+      href: buildFarmaciaHref(portalSlug, item.termoBusca),
       pedido:
         status === "sem_registro" || status === "somente_vencido"
           ? buildPedidosDoMedicamento({
