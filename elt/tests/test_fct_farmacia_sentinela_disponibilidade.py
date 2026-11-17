@@ -368,3 +368,39 @@ def test_insulina_generica_conta_qualquer_tipo_inclusive_analogas(conn, raw, por
     assert mapa["insulina"] == ("com_registro_estoque", 1)
     assert mapa["insulina_nph"] == ("sem_registro_estoque", 0)
     assert mapa["insulina_regular"] == ("sem_registro_estoque", 0)
+
+
+def test_termo_busca_acha_os_itens_que_o_card_contou(conn, raw, portais):
+    portal = portais[0]
+    raw.coleta(portal)
+    raw.estoque(
+        portal, "a1", "1001", "INSULINA HUMANA NPH 100 UI/ML SUSPENSÃO INJETÁVEL 10 ML", _dia(1), validade=_dia(-90)
+    )
+    raw.estoque(
+        portal, "a2", "1001", "INSULINA HUMANA REGULAR 100 UI/ML SOLUÇÃO INJETÁVEL 10 ML", _dia(1), validade=_dia(-90)
+    )
+    raw.estoque(portal, "a3", "1001", "Losartana Potássica 50mg", _dia(1))
+    conn.commit()
+
+    termos = dict(
+        conn.execute(
+            text(
+                "SELECT codigo_principio_ativo, termo_busca FROM analytics.fct_farmacia_sentinela_disponibilidade "
+                "WHERE portal_slug = :p AND codigo_cnes = '1001'"
+            ),
+            {"p": portal},
+        ).fetchall()
+    )
+    assert len(termos) == 23
+    assert all(termos.values())
+
+    for codigo in ("insulina_nph", "insulina_regular", "losartana"):
+        achados = conn.execute(
+            text(
+                "SELECT count(*) FROM analytics.fct_farmacia_estoque "
+                "WHERE portal_slug = :p AND codigo_cnes = '1001' "
+                "AND analytics.unaccent(lower(nome_medicamento)) LIKE '%' || analytics.unaccent(lower(:t)) || '%'"
+            ),
+            {"p": portal, "t": termos[codigo]},
+        ).scalar()
+        assert achados == 1, codigo

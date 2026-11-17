@@ -17,6 +17,7 @@ sentinelas as (
     select
         codigo_principio_ativo,
         min(nome_principio_ativo) as nome_principio_ativo,
+        min(prefixo_nome_normalizado) as termo_busca,
         min(grupo_terapeutico) as grupo_terapeutico,
         min(ordem_exibicao::integer) as ordem_exibicao,
         bool_or(destaque_card_inicial = 'true') as destaque_card_inicial
@@ -147,6 +148,7 @@ select
     unidades_ativas.codigo_cnes,
     sentinelas.codigo_principio_ativo,
     sentinelas.nome_principio_ativo,
+    sentinelas.termo_busca,
     sentinelas.grupo_terapeutico,
     sentinelas.ordem_exibicao,
     sentinelas.destaque_card_inicial,
