@@ -5,11 +5,15 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-11-16
+
 ### ✨ Novas Funcionalidades (Added)
 * **Faixas de alerta e prudencial na barra de gasto com pessoal:** a barra de `/pessoal` mostra, sobre o número oficial do RGF, as faixas verde (dentro do limite), âmbar (a partir do limite de alerta) e vermelha (a partir do limite prudencial), com um marcador no valor atual e legenda com o teto. O `ThresholdMeter` ganhou a prop `bands`; sem ela, o comportamento não muda.
 
 ### 🐛 Correções & Refinamentos (Fixed & Polish)
 * **Scroll horizontal no mobile em `/orcamento`:** a tabela acessível do gráfico de saldo em caixa alargava a página e empurrava a barra inferior para fora da tela.
+* **Busca de licitações e contratos devolvia sempre "sem resultados" em produção:** as funções de similaridade de texto (`pg_trgm`) ficam no schema `extensions` do banco gerenciado, que não estava no `search_path` das conexões de `@transparencia/db`; a query falhava e a busca respondia vazio. O `search_path` passou a incluir `extensions` (ignorado onde o schema não existe).
+* **Modal de busca em `/licitacoes` encostado na base da tela no mobile:** o modal passa a ser renderizado em `document.body`, usa altura dinâmica (`dvh`) e respeita a área segura do rodapé, sem deixar faixa da página aparecendo abaixo.
 
 ## [2.0.0] - 2026-11-15
 
