@@ -24,6 +24,7 @@ import {
 import posthog from "posthog-js";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export interface LicitacoesSpotlightModalProps {
   isOpen: boolean;
@@ -334,12 +335,12 @@ export function LicitacoesSpotlightModal({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Busca global de licitações e contratos"
-      className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-start sm:p-6 sm:pt-20"
+      className="fixed inset-0 z-50 flex h-dvh items-end justify-center p-0 sm:items-start sm:p-6 sm:pt-20"
       onKeyDown={handleKeyDown}
     >
       {/* Backdrop com desfoque */}
@@ -350,7 +351,7 @@ export function LicitacoesSpotlightModal({
       />
 
       {/* Caixa do modal (Bottom-sheet em mobile, card centralizado em desktop) */}
-      <div className="border-line bg-page relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-md border transition-all sm:max-h-[85vh] sm:rounded-md">
+      <div className="border-line bg-page relative flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-md border transition-all sm:max-h-[85dvh] sm:rounded-md">
         {/* Barra superior de arrasto / indicador visual em mobile */}
         <div className="bg-line mx-auto mt-2 h-1 w-10 rounded-full sm:hidden" />
 
@@ -466,7 +467,7 @@ export function LicitacoesSpotlightModal({
           ref={listRef}
           id="search-results-list"
           role="listbox"
-          className="max-h-[60vh] overflow-y-auto p-2 sm:p-3"
+          className="max-h-[60dvh] overflow-y-auto p-2 sm:p-3"
         >
           {/* Sugestões Iniciais quando termo < 2 */}
           {searchTerm.trim().length < 2 && (
@@ -797,7 +798,7 @@ export function LicitacoesSpotlightModal({
         </div>
 
         {/* Rodapé com atalhos e contagem amigável (sem ternários aninhados) */}
-        <div className="border-line bg-line2 text-mute2 flex items-center justify-center border-t px-4 py-2.5 text-[11px] sm:justify-between">
+        <div className="border-line bg-line2 text-mute2 flex items-center justify-center border-t px-4 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] text-[11px] sm:justify-between">
           <div className="hidden items-center gap-3 sm:flex">
             <span className="flex items-center gap-1">
               <kbd className="border-line bg-page rounded border px-1.5 py-0.5 text-[10px]">
@@ -828,6 +829,7 @@ export function LicitacoesSpotlightModal({
           </span>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
