@@ -5,7 +5,13 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
-### ✨ Novidades (Added)
+## [2.1.0] - 2026-11-18
+
+### 🌟 Destaques da Versão (13º salário com régua do ano anterior e regras da Farmácia SUS)
+* **13º salário comparado com o ano anterior:** `/pessoal` e a home deixam de mostrar um percentual "quitado" e passam a mostrar quanto já foi pago, contra o mesmo período do ano anterior, separando servidores ativos de aposentados e pensionistas.
+* **Farmácia SUS:** `/farmacia` explica quem pode retirar remédio e em que condições, com as fontes legais.
+
+### ✨ Novas Funcionalidades (Added)
 * **`/farmacia` explica quem pode retirar remédio na Farmácia SUS:** seção "Quem pode retirar remédio na Farmácia SUS?" com a regra geral federal (atendido pelo SUS, receita de profissional do SUS, remédio da lista oficial, retirada em unidade indicada pelo SUS) e a resposta "depende" para retirar em outra cidade, com links do Planalto para a Lei 8.080/1990 e o Decreto 7.508/2011. Glossário ganhou "lista oficial de medicamentos do SUS" e "remédio de maior custo".
 
 ### 🐛 Correções & Refinamentos (Fixed & Polish)
