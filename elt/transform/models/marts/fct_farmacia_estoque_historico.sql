@@ -25,6 +25,15 @@ with normalizado as (
 ),
 
 {% if is_incremental() %}
+-- Ultima coleta ja gravada de cada portal, calculada uma vez (um subselect correlacionado rodaria por linha).
+ultima_coleta_portal as (
+    select
+        historico.portal_slug,
+        max(historico.data_coleta) as ultima_data_coleta
+    from {{ this }} as historico
+    group by historico.portal_slug
+),
+
 -- Chaves logicas tocadas desde a ultima coleta de cada portal; elas sao reagregadas por inteiro
 -- para que a soma gravada nunca seja parcial.
 chaves_tocadas as (
@@ -35,14 +44,9 @@ chaves_tocadas as (
         normalizado.numero_lote,
         normalizado.data_posicao_estoque
     from normalizado
-    where normalizado.data_coleta >= coalesce(
-        (
-            select max(historico.data_coleta)
-            from {{ this }} as historico
-            where historico.portal_slug = normalizado.portal_slug
-        ),
-        date '1900-01-01'
-    )
+    left join ultima_coleta_portal
+        on ultima_coleta_portal.portal_slug = normalizado.portal_slug
+    where normalizado.data_coleta >= coalesce(ultima_coleta_portal.ultima_data_coleta, date '1900-01-01')
 ),
 
 estoque as (
