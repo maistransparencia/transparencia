@@ -4571,3 +4571,41 @@ So that the comparison with the LRF limits (teto, prudencial e alerta) is the sa
 **Implementação (2026-11-11):** extrator `elt/extract/siconfi_rgf.py` (RGF Anexo 01, Executivo municipal; periodicidade e período vêm da resposta da API), tabela `siconfi_rgf` no schema raw do portal, `fct_pessoal_rgf_metricas` (despesa de 12 meses, RCL ajustada e percentual do mesmo período), `getFolhaVsServicosMetrics` com `rgf` e `rgfAnoAnteriorMesmoPeriodo` (`rclProxy` removido, sem fallback para `total_folha`, comparadores `>`). Pendente: carga e conferência com dados reais (Porciúncula 2024, 3º quadrimestre: 53,46% sobre RCL ajustada de R$ 132,2 mi); confirmar com a API se Natividade 2024 realmente não tem RGF; revisão de texto pelo `editor-cidadao` e da citação pelo `jurista-fiscal`; migração para `raw_siconfi` na Story 26.5.
 
 **Dependências:** confirmar com o `jurista-fiscal` a redação da janela de 12 meses e qual periodicidade (quadrimestral ou semestral) vale para cada município; Epic 26 para o padrão de schema por fonte.
+
+---
+
+### Story TD.3: 13º Salário em /pessoal com Régua do Ano Anterior (Sem "100% Quitado" Enganoso)
+
+As a citizen wondering whether the Prefeitura has paid the 13th salary,  
+I want the 13th salary on `/pessoal` to be compared with what was paid at the same point last year,  
+So that a small amount, all of it paid, is not read as "the 13th salary is settled".
+
+**Origem:** sessão de 2026-11-17, a partir de uma declaração do prefeito de Natividade (posse em 16/11/2026) de que a Prefeitura não tem recursos para o 13º, enquanto o portal mostrava cerca de R$ 1,1 mi pagos.
+
+**Evidência (Natividade, banco local, mesmo critério do mart):**
+- 2025: R$ 4,92 mi pagos (junho, aposentados: R$ 1,01 mi; agosto, adiantamento dos servidores: R$ 1,38 mi; dezembro, fechamento: R$ 2,53 mi).
+- 2026 até 28/10: R$ 1,16 mi pagos, quase tudo a aposentados em junho (R$ 1,16 mi). Não há empenho de adiantamento em agosto: os maiores empenhos de folha de jul e ago são folha mensal comum, e nenhum fala em 13º.
+- Por grupo (elemento de despesa): em 2026, aposentados (01) R$ 1,04 mi e pensionistas (03) R$ 0,11 mi, ou 93% do total; servidores ativos (11) só **R$ 16 mil** em 3 empenhos. Em 2025, ativos R$ 2,84 mi, aposentados R$ 1,87 mi e pensionistas R$ 0,21 mi.
+- O mart devolve `pago = empenhado = R$ 1,16 mi` (100%), porque só existe empenho do que foi pago. O `DecimoTerceiroCard` de `/pessoal` mostra "Percentual quitado 100%" com barra verde.
+
+**Problema:** o percentual compara o pago com o que foi **empenhado**, e a Prefeitura só empenha o que paga. O cidadão lê "quitado" onde há só uma parcela. A home (Story 27.4) já evita isso mostrando só o valor pago acumulado; `/pessoal` ainda não.
+
+**Acceptance Criteria:**
+- **Given** o 13º de um portal em `/pessoal`
+- **When** o card é exibido
+- **Then** a pergunta é "A Prefeitura já pagou o 13º este ano?"; o card **não** mostra "Percentual quitado" nem barra de progresso baseada em `pago / empenhado`.
+- **And** o card mostra o valor pago acumulado no ano e a régua: o valor pago no **ano anterior** (total) e, quando houver, o pago até o **mesmo mês** do ano anterior pelo mês do empenho. Os dois vêm da camada de dados (`@transparencia/db`), sem cálculo na página (CLAUDE.md §2).
+- **And** o valor é dividido em **dois grupos**, cada um com pago do ano e régua do ano anterior: **servidores ativos** (elemento 11, vencimentos e vantagens do pessoal civil, mais 04 e 16 quando houver) e **aposentados e pensionistas** (elementos 01 e 03). A divisão sai do **elemento de despesa**, nunca do texto da descrição. O elemento 96 (ressarcimento) fica no grupo dos ativos, como já conta no mart; o `contador-publico` confirma isso e o nome de cada elemento antes da tela.
+- **And** os dois grupos somam exatamente o `pago_13` total do mart (teste de paridade), e o código do grupo é lowercase snake_case (`ativos`, `inativos_pensionistas`; Regra 10), com o rótulo "Servidores ativos" / "Aposentados e pensionistas" só na camada de visualização.
+- **And** a tela **não** distingue efetivo, comissionado ou temporário: o elemento 11 reúne todos, e a divisão por vínculo fica fora do escopo.
+- **And** a tela diz que o valor é **parcial** quando o pago do ano corrente é menor que o pago até o mesmo mês do ano anterior, sem a palavra "atrasado", "calote" ou qualquer acusação. Texto sugerido: "Em 2026, a Prefeitura pagou R$ X de 13º a aposentados e pensionistas e R$ Y a servidores ativos. Em 2025, até o mesmo mês, tinha pago R$ A e R$ B, e no ano todo R$ C e R$ D." Cada grupo recebe a sua própria régua, para o cidadão ver qual deles está abaixo do ano anterior. O texto passa pelo `editor-cidadao`.
+- **And** a descrição diz que o valor inclui aposentados e pensionistas, e que "não aparece pagamento" é diferente de "não foi pago": só vale o que a Prefeitura publicou (Regra 27, dado derivado).
+- **And** a régua é calculada **para qualquer município**, com os anos vindos dos dados (`${ano}` e `${ano - 1}`), sem literal de município, UF ou ano (Regra 23); sem ano anterior com dado, o card mostra só o pago acumulado.
+- **And** o mart passa a expor o `pago_13` por mês de empenho (ou a query usa `fct_despesas` com o mesmo filtro do mart, num único lugar), sem duplicar o critério dos elementos 01, 03, 04, 11, 16 e 96, o agrupamento ativos / inativos e pensionistas e o padrão de texto "13º", "décimo terceiro", "13 salário" (Regra 14).
+- **And** **não** se classifica "adiantamento" ou "fechamento" por texto de descrição: a divisão em parcelas é frágil e varia por município.
+- **And** `contador-publico` valida o critério e a janela por mês de empenho; `editor-cidadao` valida o texto; `CHANGELOG.md`, `llms.txt` e `llms-full.txt` são atualizados (Regra 12).
+- **And** `make db/test/build` isolado, `pnpm typecheck` e `pnpm test` passam, com testes: ano corrente abaixo do anterior no mesmo mês; igual ou acima; sem ano anterior; `pago` zerado; município sem o 13º (card some); grupo sem valor (um grupo zerado e outro não); soma dos grupos igual ao total; elemento 13 (encargos) fora dos dois grupos.
+
+**Fora do escopo:** divisão por vínculo (efetivo, comissionado, temporário; o mart só tem essa abertura para a folha total, não para o 13º); saldo em caixa e disponibilidade financeira para pagar o 13º (exige fonte própria, e é a pergunta que a fala do prefeito realmente levanta); alterar o card da home (Story 27.4 já cobre); texto sobre a declaração do prefeito.
+
+**Dependências:** nenhuma de dados. Mexe no mesmo mart de 27.4 (`fct_pessoal_folha_metricas`); se o mart ganhar o mês, atualizar os testes de paridade de `/pessoal`.

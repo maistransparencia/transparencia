@@ -1,4 +1,4 @@
-import { fmtDate } from "@transparencia/ui";
+import { fmtDate, SectionHeader } from "@transparencia/ui";
 import { ExternalLink } from "lucide-react";
 import { ShowYourWorkButton } from "@/components/show-your-work-button";
 import { FONTES_OFICIAIS } from "@/lib/constants/fontes-oficiais";
@@ -15,11 +15,8 @@ export function FarmaciaFonteDados({
   portalSlug,
 }: FarmaciaFonteDadosProps) {
   return (
-    <section
-      className="border-ink flex flex-col gap-3 border-t-2 pt-7"
-      aria-labelledby="farmacia-fonte-titulo"
-    >
-      <h2 id="farmacia-fonte-titulo">Fonte dos dados</h2>
+    <section className="scroll-mt-20" aria-labelledby="farmacia-fonte-titulo">
+      <SectionHeader title="Fonte dos dados" />
       <p className="text-mute text-sm leading-relaxed">
         Os dados vêm da lista de estoque que cada unidade de saúde envia ao
         Ministério da Saúde e que fica no portal de dados abertos

@@ -1,3 +1,4 @@
+import { SectionHeader } from "@transparencia/ui";
 import Link from "next/link";
 import { FarmaciaDisponibilidadeUnidades } from "./farmacia-disponibilidade-unidades";
 import {
@@ -240,11 +241,16 @@ export function FarmaciaIndiceAz({ indice, idSecao }: FarmaciaIndiceAzProps) {
       className="flex scroll-mt-20 flex-col gap-4 lg:scroll-mt-4"
     >
       <div className="space-y-1">
-        <h2 id={`${idSecao}-titulo`}>Procurar por letra</h2>
-        <p className="text-mute2 text-[13px]">
-          Escolha a inicial do remédio. Os quadradinhos mostram em quantas
-          unidades ele consta na lista de estoque.
-        </p>
+        <SectionHeader
+          className="border-t-0"
+          title={<span id={`${idSecao}-titulo`}>Procurar por letra</span>}
+          description={
+            <>
+              Escolha a inicial do remédio. Os quadradinhos mostram em quantas
+              unidades ele consta na lista de estoque.
+            </>
+          }
+        />
       </div>
       <FarmaciaIndiceChips chips={indice.chips} />
       <Corpo indice={indice} />

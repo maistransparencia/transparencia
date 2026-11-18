@@ -1,6 +1,7 @@
 import { AlertCircle } from "lucide-react";
 import type { Metadata } from "next";
 import { FarmaciaCabecalho } from "@/components/farmacia/farmacia-cabecalho";
+import { FarmaciaDireitoRemedios } from "@/components/farmacia/farmacia-direito-remedios";
 import { FarmaciaFonteDados } from "@/components/farmacia/farmacia-fonte-dados";
 import { FarmaciaIndicadores } from "@/components/farmacia/farmacia-indicadores";
 import { FarmaciaIndiceAz } from "@/components/farmacia/farmacia-indice-az";
@@ -115,6 +116,8 @@ export default async function FarmaciaPage({
           totalUnidadesAtivas={viewModel.totalUnidadesAtivas}
         />
       )}
+
+      <FarmaciaDireitoRemedios />
 
       {conforme && (
         <FarmaciaFonteDados
