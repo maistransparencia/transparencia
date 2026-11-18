@@ -6,9 +6,11 @@ describe("FarmaciaDireitoRemedios", () => {
   it("responde as duas perguntas do cidadão sem afirmar que pode ou não retirar em outra cidade", () => {
     render(<FarmaciaDireitoRemedios />);
     expect(
-      screen.getAllByText("Quem pode retirar remédio na farmácia do SUS?")
-        .length,
-    ).toBeGreaterThan(0);
+      screen.getByText("Quem pode retirar remédio na Farmácia SUS?"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/Quem é atendido pelo SUS e tem receita/),
+    ).toBeTruthy();
     expect(
       screen.getByText("Posso retirar remédio em outra cidade?"),
     ).toBeTruthy();
