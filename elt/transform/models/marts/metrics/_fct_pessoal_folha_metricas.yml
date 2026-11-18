@@ -33,10 +33,10 @@ unit_tests:
     description: "Valida agregação de folha de pagamento, 13º salário, chefias e faixas de proventos"
     model: fct_pessoal_folha_metricas
     given:
-      - input: ref('fct_despesas')
+      - input: ref('int_pessoal_despesas_marcadas')
         rows:
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, elemento: "01", pago: 50000.00, empenhado_liquido: 0, empenhado: 0, liquidado: 0, descricao: "VENCIMENTOS", tipo_empenho: "OR" }
-          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, elemento: "01", pago: 10000.00, empenhado_liquido: 10000.00, empenhado: 10000.00, liquidado: 10000.00, descricao: "13 SALARIO", tipo_empenho: "OR" }
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, elemento: "01", pago: 50000.00, empenhado_liquido: 0, empenhado: 0, liquidado: 0, eh_decimo_terceiro: false }
+          - { portal_slug: "porciuncula_prefeitura", empresa_id: "1", ano: 2025, elemento: "01", pago: 10000.00, empenhado_liquido: 10000.00, empenhado: 10000.00, liquidado: 10000.00, eh_decimo_terceiro: true }
       - input: ref('fct_despesas_por_orgao')
         rows:
           - { portal_slug: "porciuncula_prefeitura", ano: 2025, empresa: "1", pago: 60000.00 }
