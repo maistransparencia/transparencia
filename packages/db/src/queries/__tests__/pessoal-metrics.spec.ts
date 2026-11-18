@@ -3,6 +3,7 @@ import {
   cleanupFixtures,
   createFixturePortalSlug,
   seedFontesReceita,
+  seedPessoalDecimoTerceiroMensal,
   seedPessoalDepartamento,
   seedPessoalFolha,
   seedPessoalRgf,
@@ -35,6 +36,13 @@ describe("pessoal-metrics", () => {
       efetivosConfianca: 8,
       comissionadosExternos: 2,
       bin0_25k: 10,
+    });
+    await seedPessoalDecimoTerceiroMensal({
+      portalSlug: PORTAL,
+      ano: TEST_YEAR,
+      grupoBeneficiario: "ativos",
+      mesEmpenho: 8,
+      pago13: 80_000,
     });
     await seedPessoalDepartamento({
       portalSlug: PORTAL,

@@ -295,7 +295,7 @@ describe("loadVisaoGeralData", () => {
     };
 
     it("traz o 13º da camada de dados para o ano ativo", async () => {
-      const decimoTerceiro = { pago: 10, percentual_pago: 0.5 };
+      const decimoTerceiro = { pago: 10 };
       getEntidadesMock.mockResolvedValue([{ id: "empresa-1" }]);
       getPosicaoFiscalMetricsMock.mockResolvedValue(null);
       getDecimoTerceiroHomeMock.mockResolvedValue(decimoTerceiro);

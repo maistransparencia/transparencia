@@ -571,6 +571,11 @@ export function buildVisaoGeralViewModel(raw: VisaoGeralRawData) {
       ? {
           pago: raw.decimoTerceiro.pago,
           semPagamento: raw.decimoTerceiro.pago <= 0,
+          grupos: raw.decimoTerceiro.grupos.map(({ grupo, pago }) => ({
+            grupo,
+            pago,
+          })),
+          decimoTerceiroDetailUrl: `${routeUrl("/pessoal")}#decimo-terceiro`,
         }
       : null,
     farmaciaStatus: raw.resumoFarmacia?.status ?? "indisponivel",

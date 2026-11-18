@@ -5,6 +5,9 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### 🐛 Correções & Refinamentos (Fixed & Polish)
+* **13º salário em `/pessoal` não mostra mais "100% quitado":** o percentual comparava o pago com o empenhado, e a Prefeitura só empenha o que paga, então uma parcela pequena parecia o 13º inteiro. O card agora pergunta "A Prefeitura já pagou o 13º salário este ano?", mostra o valor pago e a régua do ano anterior (pago até o último mês com despesa registrada e no ano inteiro, pelo mês do empenho; sem data do empenho, usa o mês registrado, também para o último mês com despesa), dividido em servidores ativos e aposentados e pensionistas pelo elemento de despesa. Valor abaixo do mesmo mês do ano anterior aparece com a etiqueta "Abaixo de {ano} no mesmo período", sem acusação; sem ano anterior com dado, só o pago acumulado; sem 13º no ano corrente, o card continua com o total do ano anterior. O aviso de que os valores seguem o mês do empenho fica à vista. O card mostra o total pago contra o mesmo período do ano anterior e, por grupo, barras comparáveis (ano corrente e ano anterior até o mesmo mês), com a etiqueta "Abaixo de {ano} no mesmo período" quando for o caso; a explicação do método fica em "Ver detalhes". A seção "Dinheiro que entra na cidade" da home ganhou uma barra dividida por grupo (servidores ativos, aposentados e pensionistas), com legenda e valores (verde e azul da marca), e o link "Ver detalhes" para o 13º em `/pessoal`. Novo mart `fct_pessoal_decimo_terceiro_mensal`, com o critério do 13º num só lugar (`int_pessoal_despesas_marcadas`).
+
 ## [2.0.4] - 2026-11-16
 
 ### 🐛 Correções & Refinamentos (Fixed & Polish)

@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: int_pessoal_despesas_marcadas
+    description: "Despesas de pessoal (elementos 01, 03, 04, 11, 13, 16, 96) com a marca de 13º salário, o grupo do beneficiário e o mês do empenho. Critério único do 13º."
+    columns:
+      - name: eh_decimo_terceiro
+        description: "Verdadeiro quando a despesa é 13º pago ao servidor; exclui elemento 13 (encargos), anulações e valores que só parecem 13º."
+      - name: grupo_beneficiario
+        description: "Grupo pelo elemento de despesa: inativos_pensionistas (01, 03) ou ativos (04, 11, 16, 96); nulo para o elemento 13."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["ativos", "inativos_pensionistas"]
+              config:
+                where: "elemento != '13'"
+      - name: mes_empenho
+        description: "Mês (1-12) da data do empenho; sem data, usa a coluna mes. Nulo só se nenhum dos dois existir."
+        tests:
+          - not_null:
+              config:
+                severity: warn
+                where: "eh_decimo_terceiro"

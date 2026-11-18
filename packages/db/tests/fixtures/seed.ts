@@ -612,6 +612,35 @@ export async function seedPessoalFolha(row: PessoalFolhaRow): Promise<void> {
     .execute();
 }
 
+export interface PessoalDecimoTerceiroMensalRow {
+  portalSlug: string;
+  empresaId?: string;
+  ano: number;
+  grupoBeneficiario: "ativos" | "inativos_pensionistas";
+  mesEmpenho: number | null;
+  /** Último mês com despesa registrada; padrão: o próprio mês do empenho. */
+  mesUltimoRegistro?: number | null;
+  pago13: number;
+}
+
+export async function seedPessoalDecimoTerceiroMensal(
+  row: PessoalDecimoTerceiroMensalRow,
+): Promise<void> {
+  await db
+    .insertInto("fct_pessoal_decimo_terceiro_mensal")
+    .values({
+      pessoal_decimo_terceiro_mensal_id: nextId("pdtm"),
+      portal_slug: row.portalSlug,
+      empresa_id: row.empresaId ?? "1",
+      ano: row.ano,
+      grupo_beneficiario: row.grupoBeneficiario,
+      mes_empenho: row.mesEmpenho,
+      mes_ultimo_registro: row.mesUltimoRegistro ?? row.mesEmpenho,
+      pago_13: row.pago13,
+    })
+    .execute();
+}
+
 export interface PessoalDepartamentoRow {
   portalSlug: string;
   empresaId: string;
@@ -1896,6 +1925,10 @@ export async function cleanupFixtures(portalSlug: string): Promise<void> {
     .execute();
   await db
     .deleteFrom("fct_pessoal_folha_metricas")
+    .where("portal_slug", "=", portalSlug)
+    .execute();
+  await db
+    .deleteFrom("fct_pessoal_decimo_terceiro_mensal")
     .where("portal_slug", "=", portalSlug)
     .execute();
   await db
