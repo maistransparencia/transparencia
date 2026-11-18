@@ -62,11 +62,15 @@ export interface DecimoTerceiroGrupoDTO {
   pagoAnoAnteriorAteMesmoMes: number | null;
   /** Pago no ano menor que o do ano anterior até o mesmo mês; `false` sem régua. */
   abaixoDoMesmoPeriodo: boolean;
+  /** Há ano anterior e mês de referência para comparar "até o mesmo mês". */
+  temRegua: boolean;
+  /** Nada pago no ano e nada pago no ano anterior até o mesmo mês (ou sem régua). */
+  semPagamentoNosDoisPeriodos: boolean;
 }
 
 export interface DecimoTerceiroExecucaoMetricsDTO {
   ano: number;
-  /** `ano - 1` quando há 13º pago nele; `null` caso contrário. */
+  /** `ano - 1` quando o mart tem linhas dele (mesmo com pago zero); `null` caso contrário. */
   anoAnterior: number | null;
   /** Último mês (1-12) com despesa registrada no ano; base da comparação com o ano anterior. */
   mesReferencia: number | null;
@@ -75,6 +79,8 @@ export interface DecimoTerceiroExecucaoMetricsDTO {
   pagoAnoAnterior: number | null;
   /** Pago no ano anterior até o mês de referência; `null` sem ano anterior ou sem mês. */
   pagoAnoAnteriorAteMesmoMes: number | null;
+  /** No ano anterior nada tinha sido pago até o mês de referência, mas houve pagamento depois. */
+  anoAnteriorPagouSoDepois: boolean;
   grupos: DecimoTerceiroGrupoDTO[];
 }
 
@@ -365,8 +371,8 @@ export async function getExecucaoDecimoTerceiroMetrics(
   const linhasAno = linhas.filter((linha) => linha.ano === year);
   const linhasAnoAnterior = linhas.filter((linha) => linha.ano === year - 1);
 
+  if (linhasAno.length === 0 && linhasAnoAnterior.length === 0) return null;
   const pago = somaPago(linhasAno, () => true);
-  if (linhasAno.length === 0) return null;
 
   const meses = linhasAno
     .flatMap((linha) => [linha.mes_empenho, linha.mes_ultimo_registro])
@@ -374,6 +380,8 @@ export async function getExecucaoDecimoTerceiroMetrics(
   const mesReferencia = meses.length > 0 ? Math.max(...meses) : null;
   const temAnoAnterior = linhasAnoAnterior.length > 0;
 
+  // Linhas do ano anterior sem mês de empenho (nem data nem coluna mes) entram no total
+  // do ano, mas não na régua "até o mesmo mês": sem mês não dá para saber se cabem na janela.
   const reguaDoAnoAnterior = (
     filtro: (linha: DecimoTerceiroMensalRow) => boolean,
   ) => ({
@@ -404,15 +412,23 @@ export async function getExecucaoDecimoTerceiroMetrics(
       abaixoDoMesmoPeriodo:
         regua.pagoAnoAnteriorAteMesmoMes !== null &&
         pagoDoGrupo < regua.pagoAnoAnteriorAteMesmoMes,
+      temRegua: regua.pagoAnoAnteriorAteMesmoMes !== null,
+      semPagamentoNosDoisPeriodos:
+        pagoDoGrupo === 0 && !regua.pagoAnoAnteriorAteMesmoMes,
     };
   });
+
+  const reguaTotal = reguaDoAnoAnterior(() => true);
 
   return {
     ano: year,
     anoAnterior: temAnoAnterior ? year - 1 : null,
     mesReferencia,
     pago,
-    ...reguaDoAnoAnterior(() => true),
+    ...reguaTotal,
+    anoAnteriorPagouSoDepois:
+      reguaTotal.pagoAnoAnteriorAteMesmoMes === 0 &&
+      (reguaTotal.pagoAnoAnterior ?? 0) > 0,
     grupos,
   };
 }

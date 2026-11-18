@@ -3,14 +3,18 @@
 -- 13º pago por mês de empenho e grupo (ativos / inativos_pensionistas).
 -- Mesmo critério de fct_pessoal_folha_metricas.pago_13 (int_pessoal_despesas_marcadas):
 -- a soma dos grupos e meses, por portal, ano e empresa, é igual a pago_13.
--- mes_ultimo_registro: último mês com qualquer despesa registrada no portal, ano e empresa;
+-- mes_ultimo_registro: último mês com qualquer despesa registrada no portal, ano e empresa
+-- (mesmo mês do empenho de int_pessoal_despesas_marcadas: data, ou coluna mes sem data);
 -- é o mês até onde o ano corrente pode ser comparado com o anterior, mesmo sem 13º nos meses recentes.
 with ultimo_registro as (
     select
         portal_slug,
         ano,
         coalesce(nullif(ltrim(empresa_id, '0'), ''), '0') as empresa_id,
-        max(extract(month from data_empenho))::integer as mes_ultimo_registro
+        max(coalesce(
+            extract(month from data_empenho)::integer,
+            case when mes ~ '^(0?[1-9]|1[0-2])$' then mes::integer end
+        )) as mes_ultimo_registro
     from {{ ref('fct_despesas') }}
     group by portal_slug, ano, coalesce(nullif(ltrim(empresa_id, '0'), ''), '0')
 ),

@@ -17,7 +17,7 @@ afterEach(async () => {
 
 const seed = (
   linhas: Omit<PessoalDecimoTerceiroMensalRow, "portalSlug">[],
-): Promise<undefined[]> =>
+): Promise<unknown[]> =>
   Promise.all(
     linhas.map((linha) =>
       seedPessoalDecimoTerceiroMensal({ portalSlug: PORTAL, ...linha }),
@@ -86,6 +86,8 @@ describe("getExecucaoDecimoTerceiroMetrics: régua do ano anterior", () => {
       pagoAnoAnterior: 5_100,
       pagoAnoAnteriorAteMesmoMes: 100,
       abaixoDoMesmoPeriodo: true,
+      temRegua: true,
+      semPagamentoNosDoisPeriodos: false,
     });
     expect(grupo(dto, "inativos_pensionistas")).toEqual({
       grupo: "inativos_pensionistas",
@@ -93,6 +95,8 @@ describe("getExecucaoDecimoTerceiroMetrics: régua do ano anterior", () => {
       pagoAnoAnterior: 900,
       pagoAnoAnteriorAteMesmoMes: 900,
       abaixoDoMesmoPeriodo: false,
+      temRegua: true,
+      semPagamentoNosDoisPeriodos: false,
     });
   });
 
@@ -117,6 +121,61 @@ describe("getExecucaoDecimoTerceiroMetrics: régua do ano anterior", () => {
     expect(grupo(dto, "ativos")?.pago).toBe(
       grupo(dto, "ativos")?.pagoAnoAnteriorAteMesmoMes,
     );
+    expect(grupo(dto, "ativos")?.abaixoDoMesmoPeriodo).toBe(false);
+  });
+
+  it("linha do ano anterior sem mês entra no total, mas não na régua do mesmo mês", async () => {
+    await seed([
+      {
+        ano: TEST_YEAR,
+        grupoBeneficiario: "ativos",
+        mesEmpenho: 6,
+        pago13: 50,
+      },
+      {
+        ano: ANO_ANTERIOR,
+        grupoBeneficiario: "ativos",
+        mesEmpenho: 6,
+        pago13: 100,
+      },
+      {
+        ano: ANO_ANTERIOR,
+        grupoBeneficiario: "ativos",
+        mesEmpenho: null,
+        pago13: 400,
+      },
+    ]);
+
+    const dto = await getExecucaoDecimoTerceiroMetrics(PORTAL, TEST_YEAR);
+
+    expect(dto?.pagoAnoAnterior).toBe(500);
+    expect(dto?.pagoAnoAnteriorAteMesmoMes).toBe(100);
+  });
+
+  it("ano corrente sem 13º mantém a régua do ano anterior", async () => {
+    await seed([
+      {
+        ano: ANO_ANTERIOR,
+        grupoBeneficiario: "ativos",
+        mesEmpenho: 12,
+        pago13: 700,
+      },
+    ]);
+
+    const dto = await getExecucaoDecimoTerceiroMetrics(PORTAL, TEST_YEAR);
+
+    expect(dto?.pago).toBe(0);
+    expect(dto?.anoAnterior).toBe(ANO_ANTERIOR);
+    expect(dto?.pagoAnoAnterior).toBe(700);
+    expect(dto?.pagoAnoAnteriorAteMesmoMes).toBeNull();
+    expect(grupo(dto, "ativos")?.semPagamentoNosDoisPeriodos).toBe(true);
+    expect(grupo(dto, "ativos")?.temRegua).toBe(false);
+  });
+
+  it("sem 13º em nenhum dos dois anos devolve null", async () => {
+    expect(
+      await getExecucaoDecimoTerceiroMetrics(PORTAL, TEST_YEAR),
+    ).toBeNull();
   });
 
   it("sem ano anterior devolve só o pago acumulado", async () => {
