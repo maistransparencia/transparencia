@@ -45,13 +45,45 @@ export function classificarStatusLrfPessoal(
   return "normal";
 }
 
-export interface DecimoTerceiroExecucaoMetricsDTO {
-  empenhado: number;
-  empenhadoBruto: number;
-  liquidado: number;
+/** Códigos dos grupos do 13º (Regra 10); o rótulo ao cidadão fica na UI. */
+export type DecimoTerceiroGrupoCodigo = "ativos" | "inativos_pensionistas";
+
+const DECIMO_TERCEIRO_GRUPOS: readonly DecimoTerceiroGrupoCodigo[] = [
+  "ativos",
+  "inativos_pensionistas",
+];
+
+export interface DecimoTerceiroGrupoDTO {
+  grupo: DecimoTerceiroGrupoCodigo;
   pago: number;
-  percentual_pago: number;
-  pctPago: number;
+  /** Total pago no ano anterior; `null` quando o ano anterior não tem dado. */
+  pagoAnoAnterior: number | null;
+  /** Pago no ano anterior até o mesmo mês de empenho; `null` sem ano anterior ou sem mês. */
+  pagoAnoAnteriorAteMesmoMes: number | null;
+  /** Pago no ano menor que o do ano anterior até o mesmo mês; `false` sem régua. */
+  abaixoDoMesmoPeriodo: boolean;
+}
+
+export interface DecimoTerceiroExecucaoMetricsDTO {
+  ano: number;
+  /** `ano - 1` quando há 13º pago nele; `null` caso contrário. */
+  anoAnterior: number | null;
+  /** Último mês (1-12) com despesa registrada no ano; base da comparação com o ano anterior. */
+  mesReferencia: number | null;
+  pago: number;
+  /** Total pago no ano anterior; `null` sem ano anterior. */
+  pagoAnoAnterior: number | null;
+  /** Pago no ano anterior até o mês de referência; `null` sem ano anterior ou sem mês. */
+  pagoAnoAnteriorAteMesmoMes: number | null;
+  grupos: DecimoTerceiroGrupoDTO[];
+}
+
+interface DecimoTerceiroMensalRow {
+  ano: number;
+  grupo_beneficiario: string;
+  mes_empenho: number | null;
+  mes_ultimo_registro: number | null;
+  pago_13: string;
 }
 
 export interface SalaryBinMetricsDTO {
@@ -286,8 +318,18 @@ export async function getFolhaVsServicosMetrics({
   });
 }
 
+const somaPago = (
+  linhas: DecimoTerceiroMensalRow[],
+  filtro: (linha: DecimoTerceiroMensalRow) => boolean,
+): number =>
+  linhas
+    .filter(filtro)
+    .reduce((total, linha) => total + (parseFloat(linha.pago_13) || 0), 0);
+
 /**
- * Retorna a execução do 13º salário a partir do mart atômico `fct_pessoal_folha_metricas`.
+ * Retorna o 13º pago no ano e a régua do ano anterior (total e até o mesmo mês
+ * de empenho), dividido em ativos e inativos/pensionistas, a partir do mart
+ * `fct_pessoal_decimo_terceiro_mensal`.
  */
 export async function getExecucaoDecimoTerceiroMetrics(
   portalSlug: string,
@@ -298,42 +340,80 @@ export async function getExecucaoDecimoTerceiroMetrics(
   if (Array.isArray(empresaIds) && empresaIds.length === 0) return null;
 
   let query = db
-    .selectFrom("fct_pessoal_folha_metricas")
+    .selectFrom("fct_pessoal_decimo_terceiro_mensal")
     .select((eb) => [
-      eb.fn.sum<string>("empenhado_13").as("empenhado_13"),
-      eb.fn.sum<string>("empenhado_bruto_13").as("empenhado_bruto_13"),
-      eb.fn.sum<string>("liquidado_13").as("liquidado_13"),
+      "ano",
+      "grupo_beneficiario",
+      "mes_empenho",
+      "mes_ultimo_registro",
       eb.fn.sum<string>("pago_13").as("pago_13"),
     ])
     .where("portal_slug", "=", portalSlug)
-    .where("ano", "=", year);
+    .where("ano", "in", [year, year - 1])
+    .groupBy([
+      "ano",
+      "grupo_beneficiario",
+      "mes_empenho",
+      "mes_ultimo_registro",
+    ]);
 
   if (empresaIds && empresaIds.length > 0) {
     query = query.where("empresa_id", "in", empresaIds);
   }
 
-  const row = await query.executeTakeFirst();
-  if (!row) return null;
+  const linhas = (await query.execute()) as DecimoTerceiroMensalRow[];
+  const linhasAno = linhas.filter((linha) => linha.ano === year);
+  const linhasAnoAnterior = linhas.filter((linha) => linha.ano === year - 1);
 
-  const empenhado_bruto = parseFloat(row.empenhado_bruto_13 ?? "0") || 0;
-  const empenhado_liquido =
-    parseFloat(row.empenhado_13 ?? "0") || empenhado_bruto;
-  const liquidado = parseFloat(row.liquidado_13 ?? "0") || 0;
-  const pago = parseFloat(row.pago_13 ?? "0") || 0;
+  const pago = somaPago(linhasAno, () => true);
+  if (linhasAno.length === 0) return null;
 
-  if (empenhado_bruto === 0 && empenhado_liquido === 0 && pago === 0) {
-    return null;
-  }
+  const meses = linhasAno
+    .flatMap((linha) => [linha.mes_empenho, linha.mes_ultimo_registro])
+    .filter((mes): mes is number => mes !== null);
+  const mesReferencia = meses.length > 0 ? Math.max(...meses) : null;
+  const temAnoAnterior = linhasAnoAnterior.length > 0;
 
-  const percentual_pago = empenhado_liquido > 0 ? pago / empenhado_liquido : 0;
+  const reguaDoAnoAnterior = (
+    filtro: (linha: DecimoTerceiroMensalRow) => boolean,
+  ) => ({
+    pagoAnoAnterior: temAnoAnterior
+      ? somaPago(linhasAnoAnterior, filtro)
+      : null,
+    pagoAnoAnteriorAteMesmoMes:
+      temAnoAnterior && mesReferencia !== null
+        ? somaPago(
+            linhasAnoAnterior,
+            (linha) =>
+              filtro(linha) &&
+              linha.mes_empenho !== null &&
+              linha.mes_empenho <= mesReferencia,
+          )
+        : null,
+  });
+
+  const grupos = DECIMO_TERCEIRO_GRUPOS.map((grupo): DecimoTerceiroGrupoDTO => {
+    const doGrupo = (linha: DecimoTerceiroMensalRow) =>
+      linha.grupo_beneficiario === grupo;
+    const pagoDoGrupo = somaPago(linhasAno, doGrupo);
+    const regua = reguaDoAnoAnterior(doGrupo);
+    return {
+      grupo,
+      pago: pagoDoGrupo,
+      ...regua,
+      abaixoDoMesmoPeriodo:
+        regua.pagoAnoAnteriorAteMesmoMes !== null &&
+        pagoDoGrupo < regua.pagoAnoAnteriorAteMesmoMes,
+    };
+  });
 
   return {
-    empenhado: empenhado_liquido,
-    empenhadoBruto: empenhado_bruto,
-    liquidado,
+    ano: year,
+    anoAnterior: temAnoAnterior ? year - 1 : null,
+    mesReferencia,
     pago,
-    percentual_pago,
-    pctPago: percentual_pago,
+    ...reguaDoAnoAnterior(() => true),
+    grupos,
   };
 }
 
