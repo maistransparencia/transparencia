@@ -110,8 +110,111 @@ describe("estados de borda no padrão Divisórias", () => {
     expect(larguras).toEqual(["100%", "0%"]);
   });
 
-  it("13º com percentual acima de 100 fica limitado a 100%", () => {
-    render(<DecimoTerceiroCard empenhado={10} pago={20} pctPago={2} />);
-    expect(screen.getByText("100%")).toBeTruthy();
+  it("13º não mostra percentual quitado nem barra, e divide os dois grupos com a régua", () => {
+    render(
+      <DecimoTerceiroCard
+        decimo13={{
+          ano: 2026,
+          anoAnterior: 2025,
+          mesReferencia: 6,
+          pago: 1_160_000,
+          pagoAnoAnterior: null,
+          pagoAnoAnteriorAteMesmoMes: null,
+          grupos: [
+            {
+              grupo: "ativos",
+              pago: 16_000,
+              pagoAnoAnterior: 2_840_000,
+              pagoAnoAnteriorAteMesmoMes: 100_000,
+              abaixoDoMesmoPeriodo: true,
+            },
+            {
+              grupo: "inativos_pensionistas",
+              pago: 1_144_000,
+              pagoAnoAnterior: 2_080_000,
+              pagoAnoAnteriorAteMesmoMes: 1_010_000,
+              abaixoDoMesmoPeriodo: false,
+            },
+          ],
+        }}
+      />,
+    );
+    expect(screen.queryByText(/Percentual quitado/)).toBeNull();
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    expect(screen.getByText("Servidores ativos")).toBeTruthy();
+    expect(screen.getByText("Aposentados e pensionistas")).toBeTruthy();
+    expect(screen.getAllByText(/2025 \(até junho\)/)).toHaveLength(2);
+    expect(screen.getAllByText(/Abaixo de 2025 no mesmo período/)).toHaveLength(
+      1,
+    );
+  });
+
+  it("13º sem ano anterior mostra só o pago acumulado", () => {
+    render(
+      <DecimoTerceiroCard
+        decimo13={{
+          ano: 2026,
+          anoAnterior: null,
+          mesReferencia: 6,
+          pago: 300,
+          pagoAnoAnterior: null,
+          pagoAnoAnteriorAteMesmoMes: null,
+          grupos: [
+            {
+              grupo: "ativos",
+              pago: 300,
+              pagoAnoAnterior: null,
+              pagoAnoAnteriorAteMesmoMes: null,
+              abaixoDoMesmoPeriodo: false,
+            },
+            {
+              grupo: "inativos_pensionistas",
+              pago: 0,
+              pagoAnoAnterior: null,
+              pagoAnoAnteriorAteMesmoMes: null,
+              abaixoDoMesmoPeriodo: false,
+            },
+          ],
+        }}
+      />,
+    );
+    expect(screen.queryByText(/2025/)).toBeNull();
+    expect(screen.queryByText(/Abaixo de/)).toBeNull();
+  });
+
+  it("13º sem pagamento no ano e no mesmo período do anterior explica em vez de barras vazias", () => {
+    render(
+      <DecimoTerceiroCard
+        decimo13={{
+          ano: 2026,
+          anoAnterior: 2025,
+          mesReferencia: 10,
+          pago: 0,
+          pagoAnoAnterior: 4_500_000,
+          pagoAnoAnteriorAteMesmoMes: 0,
+          grupos: [
+            {
+              grupo: "ativos",
+              pago: 0,
+              pagoAnoAnterior: 4_500_000,
+              pagoAnoAnteriorAteMesmoMes: 0,
+              abaixoDoMesmoPeriodo: false,
+            },
+            {
+              grupo: "inativos_pensionistas",
+              pago: 0,
+              pagoAnoAnterior: 40_000,
+              pagoAnoAnteriorAteMesmoMes: 0,
+              abaixoDoMesmoPeriodo: false,
+            },
+          ],
+        }}
+      />,
+    );
+    expect(
+      screen.getAllByText(/Nenhum pagamento registrado até outubro/),
+    ).toHaveLength(2);
+    expect(screen.getAllByText(/foram pagos depois/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Abaixo de/)).toBeNull();
   });
 });

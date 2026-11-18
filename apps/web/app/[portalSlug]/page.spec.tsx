@@ -194,12 +194,28 @@ describe("VisaoGeralPage", () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         decimoTerceiro: {
-          empenhado: 1_000_000,
-          empenhadoBruto: 1_000_000,
-          liquidado: 600_000,
+          ano: 2026,
+          anoAnterior: null,
+          mesReferencia: null,
           pago: 400_000,
-          percentual_pago: 0.4,
-          pctPago: 0.4,
+          pagoAnoAnterior: null,
+          pagoAnoAnteriorAteMesmoMes: null,
+          grupos: [
+            {
+              grupo: "ativos",
+              pago: 100_000,
+              pagoAnoAnterior: null,
+              pagoAnoAnteriorAteMesmoMes: null,
+              abaixoDoMesmoPeriodo: false,
+            },
+            {
+              grupo: "inativos_pensionistas",
+              pago: 300_000,
+              pagoAnoAnterior: null,
+              pagoAnoAnteriorAteMesmoMes: null,
+              abaixoDoMesmoPeriodo: false,
+            },
+          ],
         },
       }),
     );
@@ -224,18 +240,28 @@ describe("VisaoGeralPage", () => {
       screen.getByText(/Ainda não temos a data de cada pagamento/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/atrasad|não pagou/i)).toBeNull();
+    const legenda = within(blocoDecimoTerceiro());
+    expect(legenda.getByText("Servidores ativos")).toBeInTheDocument();
+    expect(legenda.getByText("Aposentados e pensionistas")).toBeInTheDocument();
+    const verDetalhes = within(blocoDecimoTerceiro()).getByRole("link", {
+      name: /Ver detalhes/,
+    });
+    expect(verDetalhes.getAttribute("href")).toMatch(
+      /\/pessoal.*#decimo-terceiro$/,
+    );
   });
 
   it("13º com pago zerado: diz que não há informação, sem 'atrasado'", async () => {
     loadVisaoGeralDataMock.mockResolvedValue(
       makeRaw({
         decimoTerceiro: {
-          empenhado: 1_000_000,
-          empenhadoBruto: 1_000_000,
-          liquidado: 0,
+          ano: 2026,
+          anoAnterior: null,
+          mesReferencia: null,
           pago: 0,
-          percentual_pago: 0,
-          pctPago: 0,
+          pagoAnoAnterior: null,
+          pagoAnoAnteriorAteMesmoMes: null,
+          grupos: [],
         },
       }),
     );
@@ -244,6 +270,7 @@ describe("VisaoGeralPage", () => {
     expect(
       screen.getByText("Ainda sem informação de pagamento"),
     ).toBeInTheDocument();
+    expect(screen.queryByText("Servidores ativos")).toBeNull();
     expect(within(blocoDecimoTerceiro()).queryByRole("progressbar")).toBeNull();
     expect(screen.queryByText(/atrasad|não pagou/i)).toBeNull();
   });
