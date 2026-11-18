@@ -4,6 +4,7 @@ import {
   fmtDate,
   fmtNumber,
   ModalDialog,
+  SectionHeader,
   SegmentedButton,
 } from "@transparencia/ui";
 import { ArrowRight, ChevronDown, ExternalLink } from "lucide-react";
@@ -284,16 +285,17 @@ export function FarmaciaSentinelas({
     : essenciais;
 
   return (
-    <section
-      className="border-ink flex flex-col gap-5 border-t-2 pt-7"
-      aria-labelledby="farmacia-sentinelas-titulo"
-    >
+    <section aria-labelledby="farmacia-sentinelas-titulo">
       <div className="space-y-1">
-        <h2 id="farmacia-sentinelas-titulo">Remédios essenciais</h2>
-        <p className="text-mute2 text-[13px]">
-          Em quantas das {fmtNumber(totalUnidadesAtivas)} unidades cada remédio
-          da lista nacional aparece no estoque. Clique para buscar.
-        </p>
+        <SectionHeader
+          title="Remédios essenciais"
+          description={
+            <>
+              Em quantas das {fmtNumber(totalUnidadesAtivas)} unidades cada
+              remédio da lista nacional aparece no estoque. Clique para buscar.
+            </>
+          }
+        />
       </div>
 
       <details className="group border-line border-y px-1 py-3">
