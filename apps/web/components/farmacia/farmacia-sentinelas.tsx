@@ -298,12 +298,12 @@ export function FarmaciaSentinelas({
         />
       </div>
 
-      <details className="group mb-3">
-        <summary className="text-mute2 hover:text-ink flex min-h-11 cursor-pointer items-center gap-1 text-xs font-medium select-none">
+      <details className="group">
+        <summary className="hover:text-ink flex min-h-11 cursor-pointer items-center gap-1 text-xs font-medium select-none">
           Como ler esta lista
           <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
         </summary>
-        <p className="caption mt-2">
+        <p className="caption">
           Remédios que o Ministério da Saúde considera essenciais, segundo a
           lista nacional (
           <a
@@ -326,7 +326,7 @@ export function FarmaciaSentinelas({
 
       <fieldset
         aria-label="Filtrar por categoria"
-        className="m-0 flex flex-wrap gap-2 border-0 p-0"
+        className="my-3 flex flex-wrap gap-2 border-0 p-0"
       >
         <SegmentedButton
           active={categoria === null}
