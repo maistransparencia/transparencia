@@ -1,4 +1,5 @@
 import { db } from "../client";
+import { readMartOrFallback } from "../missing-relation";
 
 export type StatusLrfPessoal = "normal" | "alerta" | "prudencial" | "excedido";
 
@@ -367,7 +368,11 @@ export async function getExecucaoDecimoTerceiroMetrics(
     query = query.where("empresa_id", "in", empresaIds);
   }
 
-  const linhas = (await query.execute()) as DecimoTerceiroMensalRow[];
+  const linhas = (await readMartOrFallback(
+    "fct_pessoal_decimo_terceiro_mensal",
+    () => query.execute(),
+    [],
+  )) as DecimoTerceiroMensalRow[];
   const linhasAno = linhas.filter((linha) => linha.ano === year);
   const linhasAnoAnterior = linhas.filter((linha) => linha.ano === year - 1);
 
