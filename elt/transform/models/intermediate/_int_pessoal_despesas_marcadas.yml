@@ -21,3 +21,26 @@ models:
               config:
                 severity: warn
                 where: "eh_decimo_terceiro"
+
+unit_tests:
+  - name: test_int_pessoal_despesas_marcadas_decimo_terceiro
+    description: "Valida o critério do 13º: reconhece '13 salario' e 'décimo terceiro'; descarta elemento 13, anulações, 'Nº 213' e empenho de anulação; deriva grupo e mês do empenho"
+    model: int_pessoal_despesas_marcadas
+    given:
+      - input: ref('fct_despesas')
+        rows:
+          - { portal_slug: "porciuncula_prefeitura", empenho_id: "1", elemento: "01", tipo_empenho: "OR", descricao: "13 SALARIO", data_empenho: "2025-12-10", mes: "12" }
+          - { portal_slug: "porciuncula_prefeitura", empenho_id: "2", elemento: "04", tipo_empenho: "OR", descricao: "DÉCIMO TERCEIRO SALÁRIO", data_empenho: null, mes: "11" }
+          - { portal_slug: "porciuncula_prefeitura", empenho_id: "3", elemento: "01", tipo_empenho: "OR", descricao: "VENCIMENTOS Nº 213", data_empenho: "2025-03-05", mes: "03" }
+          - { portal_slug: "porciuncula_prefeitura", empenho_id: "4", elemento: "01", tipo_empenho: "OR", descricao: "ANULA 13 SALARIO", data_empenho: "2025-12-11", mes: "12" }
+          - { portal_slug: "porciuncula_prefeitura", empenho_id: "5", elemento: "13", tipo_empenho: "OR", descricao: "13 SALARIO PATRONAL", data_empenho: "2025-12-12", mes: "12" }
+          - { portal_slug: "porciuncula_prefeitura", empenho_id: "6", elemento: "01", tipo_empenho: "AN", descricao: "13 SALARIO", data_empenho: "2025-12-13", mes: "12" }
+          - { portal_slug: "porciuncula_prefeitura", empenho_id: "7", elemento: "30", tipo_empenho: "OR", descricao: "13 SALARIO", data_empenho: "2025-12-14", mes: "12" }
+    expect:
+      rows:
+        - { empenho_id: "1", eh_decimo_terceiro: true, grupo_beneficiario: "inativos_pensionistas", mes_empenho: 12 }
+        - { empenho_id: "2", eh_decimo_terceiro: true, grupo_beneficiario: "ativos", mes_empenho: 11 }
+        - { empenho_id: "3", eh_decimo_terceiro: false, grupo_beneficiario: "inativos_pensionistas", mes_empenho: 3 }
+        - { empenho_id: "4", eh_decimo_terceiro: false, grupo_beneficiario: "inativos_pensionistas", mes_empenho: 12 }
+        - { empenho_id: "5", eh_decimo_terceiro: false, grupo_beneficiario: null, mes_empenho: 12 }
+        - { empenho_id: "6", eh_decimo_terceiro: false, grupo_beneficiario: "inativos_pensionistas", mes_empenho: 12 }

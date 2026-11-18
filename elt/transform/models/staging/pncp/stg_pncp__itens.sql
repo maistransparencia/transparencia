@@ -58,7 +58,7 @@ renamed as (
     from source
 )
 
-select
+select distinct on (r.cnpj_orgao, r.ano_compra, r.sequencial_compra, r.numero_item)
     r.numero_controle_pncp,
     r.cnpj_orgao,
     coalesce(o.portal_slug, case
@@ -84,3 +84,6 @@ select
 from renamed r
 left join orgaos_dedup o
     on o.cnpj_clean = regexp_replace(coalesce(r.cnpj_orgao, ''), '[^0-9]', '', 'g')
+-- o raw traz o mesmo item com o número de controle curto (CNPJ-11/2026) e longo (CNPJ-1-000011/2026);
+-- fica o longo, que é o formato de stg_pncp__compras
+order by r.cnpj_orgao, r.ano_compra, r.sequencial_compra, r.numero_item, (r.numero_controle_pncp ~ '-1-') desc
