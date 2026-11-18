@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { db } from "../client";
-import { isUndefinedTableError, readMartOrFallback } from "../missing-relation";
+import { readMartOrFallback } from "../missing-relation";
 
 describe("readMartOrFallback", () => {
   it("devolve o fallback quando o mart ainda não existe no banco", async () => {
@@ -28,11 +28,3 @@ describe("readMartOrFallback", () => {
   });
 });
 
-describe("isUndefinedTableError", () => {
-  it("reconhece só o código 42P01 do Postgres", () => {
-    expect(isUndefinedTableError({ code: "42P01" })).toBe(true);
-    expect(isUndefinedTableError({ code: "42703" })).toBe(false);
-    expect(isUndefinedTableError(new Error("42P01"))).toBe(false);
-    expect(isUndefinedTableError(null)).toBe(false);
-  });
-});

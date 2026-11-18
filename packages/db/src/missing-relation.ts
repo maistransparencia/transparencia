@@ -1,7 +1,7 @@
 /** Código do Postgres para tabela ou view inexistente (`undefined_table`). */
 const UNDEFINED_TABLE_CODE = "42P01";
 
-export function isUndefinedTableError(error: unknown): boolean {
+function isUndefinedTableError(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
