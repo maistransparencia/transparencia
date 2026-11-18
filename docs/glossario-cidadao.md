@@ -42,6 +42,8 @@ Tradução de termos da administração pública para o texto exibido no portal.
 | Unidade ativa (farmácia SUS) | Posto ou unidade de saúde que enviou a lista de estoque recentemente | |
 | Posição de estoque | A lista de estoque de um dia específico | |
 | SUS (Sistema Único de Saúde) | A rede pública e gratuita de saúde do país: postos, hospitais e farmácias mantidos com dinheiro público | |
+| Lista oficial de medicamentos do SUS | Relação de remédios que o SUS se compromete a oferecer. Cada município pode ter uma lista complementar | "RENAME" sem explicação |
+| Remédio de maior custo (Componente Especializado) | Remédio para doenças específicas ou de tratamento contínuo, entregue pelo estado em farmácia de referência | "Medicamento excepcional", "alto custo" sem contexto |
 | Produção do SUS | Atendimentos e internações que as unidades registraram no SUS | |
 | Por mil moradores | Para cada 1.000 pessoas que moram no município. Fica dentro do "Ver detalhes", para comparar anos; o topo mostra o número absoluto | |
 | Média por mês | Total de atendimentos (ou de internações) dividido pelos meses que a fonte já trouxe no ano, com o período dito na tela | |
