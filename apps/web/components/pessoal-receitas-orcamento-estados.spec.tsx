@@ -120,6 +120,7 @@ describe("estados de borda no padrão Divisórias", () => {
           pago: 1_160_000,
           pagoAnoAnterior: null,
           pagoAnoAnteriorAteMesmoMes: null,
+          anoAnteriorPagouSoDepois: false,
           grupos: [
             {
               grupo: "ativos",
@@ -127,6 +128,8 @@ describe("estados de borda no padrão Divisórias", () => {
               pagoAnoAnterior: 2_840_000,
               pagoAnoAnteriorAteMesmoMes: 100_000,
               abaixoDoMesmoPeriodo: true,
+              temRegua: true,
+              semPagamentoNosDoisPeriodos: false,
             },
             {
               grupo: "inativos_pensionistas",
@@ -134,6 +137,8 @@ describe("estados de borda no padrão Divisórias", () => {
               pagoAnoAnterior: 2_080_000,
               pagoAnoAnteriorAteMesmoMes: 1_010_000,
               abaixoDoMesmoPeriodo: false,
+              temRegua: true,
+              semPagamentoNosDoisPeriodos: false,
             },
           ],
         }}
@@ -159,6 +164,7 @@ describe("estados de borda no padrão Divisórias", () => {
           pago: 300,
           pagoAnoAnterior: null,
           pagoAnoAnteriorAteMesmoMes: null,
+          anoAnteriorPagouSoDepois: false,
           grupos: [
             {
               grupo: "ativos",
@@ -166,6 +172,8 @@ describe("estados de borda no padrão Divisórias", () => {
               pagoAnoAnterior: null,
               pagoAnoAnteriorAteMesmoMes: null,
               abaixoDoMesmoPeriodo: false,
+              temRegua: false,
+              semPagamentoNosDoisPeriodos: false,
             },
             {
               grupo: "inativos_pensionistas",
@@ -173,6 +181,8 @@ describe("estados de borda no padrão Divisórias", () => {
               pagoAnoAnterior: null,
               pagoAnoAnteriorAteMesmoMes: null,
               abaixoDoMesmoPeriodo: false,
+              temRegua: false,
+              semPagamentoNosDoisPeriodos: true,
             },
           ],
         }}
@@ -192,6 +202,7 @@ describe("estados de borda no padrão Divisórias", () => {
           pago: 0,
           pagoAnoAnterior: 4_500_000,
           pagoAnoAnteriorAteMesmoMes: 0,
+          anoAnteriorPagouSoDepois: true,
           grupos: [
             {
               grupo: "ativos",
@@ -199,6 +210,8 @@ describe("estados de borda no padrão Divisórias", () => {
               pagoAnoAnterior: 4_500_000,
               pagoAnoAnteriorAteMesmoMes: 0,
               abaixoDoMesmoPeriodo: false,
+              temRegua: true,
+              semPagamentoNosDoisPeriodos: true,
             },
             {
               grupo: "inativos_pensionistas",
@@ -206,6 +219,8 @@ describe("estados de borda no padrão Divisórias", () => {
               pagoAnoAnterior: 40_000,
               pagoAnoAnteriorAteMesmoMes: 0,
               abaixoDoMesmoPeriodo: false,
+              temRegua: true,
+              semPagamentoNosDoisPeriodos: true,
             },
           ],
         }}
@@ -215,6 +230,40 @@ describe("estados de borda no padrão Divisórias", () => {
       screen.getAllByText(/Nenhum pagamento registrado até outubro/),
     ).toHaveLength(2);
     expect(screen.getAllByText(/foram pagos depois/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Abaixo de/)).toBeNull();
+  });
+
+  it("13º sem pagamento no ano corrente e com ano anterior mostra o total do ano anterior", () => {
+    render(
+      <DecimoTerceiroCard
+        decimo13={{
+          ano: 2026,
+          anoAnterior: 2025,
+          mesReferencia: null,
+          pago: 0,
+          pagoAnoAnterior: 700,
+          pagoAnoAnteriorAteMesmoMes: null,
+          anoAnteriorPagouSoDepois: false,
+          grupos: [
+            {
+              grupo: "ativos",
+              pago: 0,
+              pagoAnoAnterior: 700,
+              pagoAnoAnteriorAteMesmoMes: null,
+              abaixoDoMesmoPeriodo: false,
+              temRegua: false,
+              semPagamentoNosDoisPeriodos: true,
+            },
+          ],
+        }}
+      />,
+    );
+    expect(
+      screen.getAllByText(/Nenhum pagamento registrado em 2026/),
+    ).toHaveLength(1);
+    expect(screen.getAllByText(/Em 2025, foram pagos/).length).toBeGreaterThan(
+      0,
+    );
     expect(screen.queryByText(/Abaixo de/)).toBeNull();
   });
 });

@@ -200,6 +200,7 @@ describe("VisaoGeralPage", () => {
           pago: 400_000,
           pagoAnoAnterior: null,
           pagoAnoAnteriorAteMesmoMes: null,
+          anoAnteriorPagouSoDepois: false,
           grupos: [
             {
               grupo: "ativos",
@@ -207,6 +208,8 @@ describe("VisaoGeralPage", () => {
               pagoAnoAnterior: null,
               pagoAnoAnteriorAteMesmoMes: null,
               abaixoDoMesmoPeriodo: false,
+              temRegua: false,
+              semPagamentoNosDoisPeriodos: false,
             },
             {
               grupo: "inativos_pensionistas",
@@ -214,6 +217,8 @@ describe("VisaoGeralPage", () => {
               pagoAnoAnterior: null,
               pagoAnoAnteriorAteMesmoMes: null,
               abaixoDoMesmoPeriodo: false,
+              temRegua: false,
+              semPagamentoNosDoisPeriodos: false,
             },
           ],
         },
@@ -261,6 +266,7 @@ describe("VisaoGeralPage", () => {
           pago: 0,
           pagoAnoAnterior: null,
           pagoAnoAnteriorAteMesmoMes: null,
+          anoAnteriorPagouSoDepois: false,
           grupos: [],
         },
       }),

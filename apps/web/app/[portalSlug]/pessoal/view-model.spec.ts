@@ -44,6 +44,7 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
       pago: 90,
       pagoAnoAnterior: null,
       pagoAnoAnteriorAteMesmoMes: null,
+      anoAnteriorPagouSoDepois: false,
       grupos: [
         {
           grupo: "ativos",
@@ -51,6 +52,8 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
           pagoAnoAnterior: 100,
           pagoAnoAnteriorAteMesmoMes: 50,
           abaixoDoMesmoPeriodo: false,
+          temRegua: true,
+          semPagamentoNosDoisPeriodos: false,
         },
         {
           grupo: "inativos_pensionistas",
@@ -58,6 +61,8 @@ function makeRaw(overrides: Record<string, unknown> = {}): RawData {
           pagoAnoAnterior: 100,
           pagoAnoAnteriorAteMesmoMes: 50,
           abaixoDoMesmoPeriodo: false,
+          temRegua: true,
+          semPagamentoNosDoisPeriodos: false,
         },
       ],
     },

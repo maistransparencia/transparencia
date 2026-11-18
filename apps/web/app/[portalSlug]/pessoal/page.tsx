@@ -283,7 +283,10 @@ export default async function PessoalPage({
       {decimo13 ? (
         <DecimoTerceiroCard decimo13={decimo13} />
       ) : (
-        <div className="border-line text-mute2 border-y py-6 text-center text-sm">
+        <div
+          id="decimo-terceiro"
+          className="border-line text-mute2 scroll-mt-20 border-y py-6 text-center text-sm"
+        >
           Sem dados de 13º salário para {selectedYear}.
         </div>
       )}

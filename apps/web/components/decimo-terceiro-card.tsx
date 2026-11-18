@@ -61,10 +61,14 @@ interface GrupoPainelProps {
 }
 
 function GrupoPainel({ grupo, ano, anoAnterior, mesNome }: GrupoPainelProps) {
-  const { pago, pagoAnoAnterior, pagoAnoAnteriorAteMesmoMes } = grupo;
+  const {
+    pago,
+    pagoAnoAnterior,
+    pagoAnoAnteriorAteMesmoMes,
+    temRegua,
+    semPagamentoNosDoisPeriodos,
+  } = grupo;
   const escala = Math.max(pago, pagoAnoAnteriorAteMesmoMes ?? 0);
-  const temRegua = anoAnterior !== null && pagoAnoAnteriorAteMesmoMes !== null;
-  const semPagamentoNosDoisPeriodos = pago === 0 && !pagoAnoAnteriorAteMesmoMes;
 
   return (
     <div
@@ -83,14 +87,14 @@ function GrupoPainel({ grupo, ano, anoAnterior, mesNome }: GrupoPainelProps) {
         <p className="text-sm">
           Nenhum pagamento registrado{mesNome ? ` até ${mesNome}` : ""} em {ano}
           {temRegua ? ` nem em ${anoAnterior}` : ""}.
-          {temRegua && pagoAnoAnterior ? (
+          {pagoAnoAnterior ? (
             <>
               {" "}
-              Em {anoAnterior}, os{" "}
+              Em {anoAnterior}, {temRegua ? "os " : "foram pagos "}
               <span title={fmtCurrency(pagoAnoAnterior)}>
                 {fmtCompact(pagoAnoAnterior)}
-              </span>{" "}
-              foram pagos depois disso.
+              </span>
+              {temRegua ? " foram pagos depois disso." : " no ano todo."}
             </>
           ) : null}
         </p>
@@ -105,7 +109,7 @@ function GrupoPainel({ grupo, ano, anoAnterior, mesNome }: GrupoPainelProps) {
           {temRegua ? (
             <LinhaBarra
               rotulo={`${anoAnterior} (até ${mesNome})`}
-              valor={pagoAnoAnteriorAteMesmoMes}
+              valor={pagoAnoAnteriorAteMesmoMes ?? 0}
               escala={escala}
               tom="anterior"
             />
@@ -134,6 +138,7 @@ export function DecimoTerceiroCard({ decimo13 }: DecimoTerceiroCardProps) {
     pago,
     pagoAnoAnterior,
     pagoAnoAnteriorAteMesmoMes,
+    anoAnteriorPagouSoDepois,
     grupos,
   } = decimo13;
   const mesNome = mesReferencia !== null ? nomeDoMes(mesReferencia) : null;
@@ -155,7 +160,7 @@ export function DecimoTerceiroCard({ decimo13 }: DecimoTerceiroCardProps) {
           pagoAnoAnteriorAteMesmoMes !== null &&
           mesNome ? (
             <dd className="caption mt-1">
-              {pagoAnoAnteriorAteMesmoMes === 0 && pagoAnoAnterior ? (
+              {anoAnteriorPagouSoDepois && pagoAnoAnterior ? (
                 <>
                   Em {anoAnterior}, nada tinha sido pago até {mesNome}: os{" "}
                   <span title={fmtCurrency(pagoAnoAnterior)}>
@@ -174,7 +179,24 @@ export function DecimoTerceiroCard({ decimo13 }: DecimoTerceiroCardProps) {
               )}
             </dd>
           ) : null}
+          {anoAnterior !== null &&
+          pagoAnoAnteriorAteMesmoMes === null &&
+          pagoAnoAnterior ? (
+            <dd className="caption mt-1">
+              Em {anoAnterior}, foram pagos{" "}
+              <span title={fmtCurrency(pagoAnoAnterior)}>
+                {fmtCompact(pagoAnoAnterior)}
+              </span>{" "}
+              no ano todo.
+            </dd>
+          ) : null}
         </dl>
+        <p className="caption mt-3">
+          Os valores seguem o mês em que a Prefeitura reservou o dinheiro (o
+          empenho), que aproxima o mês do pagamento. Só vale o que ela publicou:
+          não aparecer pagamento aqui não quer dizer que ele não tenha sido
+          feito.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -196,15 +218,11 @@ export function DecimoTerceiroCard({ decimo13 }: DecimoTerceiroCardProps) {
         </summary>
         <div className="caption mt-2 space-y-2">
           <p>
-            Os valores são contados pelo mês em que a Prefeitura reservou o
-            dinheiro (o empenho), que serve de aproximação para o mês do
-            pagamento. A comparação vai até o último mês com despesa registrada
-            em {ano}.
+            A comparação vai até o último mês com despesa registrada em {ano}.
           </p>
           <p>
             A divisão em grupos vem do tipo de despesa registrado, não do cargo
-            da pessoa. Só vale o que a Prefeitura publicou: não aparecer
-            pagamento aqui não quer dizer que ele não tenha sido feito.
+            da pessoa.
           </p>
         </div>
       </details>
