@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "dotenv": "18.0.10",
-    "kysely": "0.29.8",
+    "kysely": "0.29.9",
     "pg": "8.23.1"
   },
   "devDependencies": {
