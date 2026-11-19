@@ -1,4 +1,22 @@
+import pytest
+
 from elt.core import db
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "postgres://u:p@localhost:5544/db",
+        "postgresql://u:p@localhost:5544/db",
+    ],
+)
+def test_normalize_database_url_uses_psycopg2_driver(url):
+    assert db.normalize_database_url(url) == "postgresql+psycopg2://u:p@localhost:5544/db"
+
+
+def test_normalize_database_url_keeps_explicit_driver():
+    url = "postgresql+psycopg2://u:p@localhost:5544/db"
+    assert db.normalize_database_url(url) == url
 
 
 def test_create_tables_creates_expected_tables(conn):

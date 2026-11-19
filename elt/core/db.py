@@ -15,6 +15,14 @@ _table_cache: dict[tuple[str, str], Table] = {}
 Connectable = Union[Engine, Connection]
 
 
+def normalize_database_url(url: str) -> str:
+    # provedores (ex.: Supabase) entregam "postgres://", que o SQLAlchemy 2 não reconhece
+    for scheme in ("postgres://", "postgresql://"):
+        if url.startswith(scheme):
+            return "postgresql+psycopg2://" + url[len(scheme) :]
+    return url
+
+
 def get_engine() -> Engine:
     global _engine
     if _engine is None:
@@ -22,9 +30,7 @@ def get_engine() -> Engine:
         url = os.environ.get("DATABASE_URL")
         if not url:
             raise RuntimeError("DATABASE_URL environment variable is not set")
-        if url.startswith("postgresql://"):
-            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
-        _engine = create_engine(url)
+        _engine = create_engine(normalize_database_url(url))
     return _engine
 
 
