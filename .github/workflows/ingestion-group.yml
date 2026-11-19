@@ -327,11 +327,18 @@ jobs:
           fi
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           for portal in $(echo '${{ needs.setup.outputs.portals }}' | jq -r '.[]'); do
-            echo "Notificando webhook para o portal: $portal"
+            # carga falha não pode virar "success": o webhook purga cache e avisa os cidadãos
+            if grep -qx "$portal" load_failures.txt; then
+              echo "Notificando falha de carga para o portal: $portal"
+              PAYLOAD="{\"portalSlug\": \"$portal\", \"status\": \"failure\", \"errorMessage\": \"Carga com falha de fonte; dado anterior preservado\", \"timestamp\": \"$TIMESTAMP\"}"
+            else
+              echo "Notificando webhook para o portal: $portal"
+              PAYLOAD="{\"portalSlug\": \"$portal\", \"status\": \"success\", \"timestamp\": \"$TIMESTAMP\"}"
+            fi
             curl -s -f -X POST "$WEBHOOK_URL" \
               -H "Authorization: Bearer ${{ secrets.INTERNAL_API_SECRET }}" \
               -H "Content-Type: application/json" \
-              -d "{\"portalSlug\": \"$portal\", \"status\": \"success\", \"timestamp\": \"$TIMESTAMP\"}" || echo "Aviso: Falha ao notificar webhook para $portal"
+              -d "$PAYLOAD" || echo "Aviso: Falha ao notificar webhook para $portal"
           done
         env:
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
