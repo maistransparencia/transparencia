@@ -17,7 +17,7 @@ TAMANHO_PAGINA_CNES = 20
 
 
 def _sessao(estoque, cnes):
-    # Como na API real: `offset` é o número da página e o CNES ignora `limit` (20 por página).
+    # Como na API real: `offset` é o deslocamento em linhas e o CNES ignora `limit` (20 por página).
     def get(url, params=None, **_):
         e_estoque = "estoque-medicamentos" in url
         fonte = estoque if e_estoque else cnes
@@ -28,7 +28,7 @@ def _sessao(estoque, cnes):
         lista = fonte.get("parametros", fonte.get("estabelecimentos", [])) if isinstance(fonte, dict) else fonte
         chave = "parametros" if e_estoque else "estabelecimentos"
         tamanho = params["limit"] if e_estoque else TAMANHO_PAGINA_CNES
-        inicio = params["offset"] * tamanho
+        inicio = params["offset"]
         return _resposta({chave: lista[inicio : inicio + tamanho]})
 
     sessao = MagicMock()
