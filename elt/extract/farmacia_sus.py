@@ -227,12 +227,13 @@ class FarmaciaSusExtractor:
     def _extract_paginado(self, endpoint: str, ibge6: str, session: requests.Session) -> list[dict[str, Any]]:
         acumulado: list[dict[str, Any]] = []
         anterior: str | None = None
-        # Nesta API `offset` é o número da página, e o CNES ignora `limit` (sempre 20 por página):
-        # só a página vazia indica o fim.
-        for pagina in range(MAXIMO_PAGINAS):
+        # Nesta API `offset` é o deslocamento em linhas, e o CNES ignora `limit` (sempre 20 por página):
+        # avançamos pelo que a página trouxe e só a página vazia indica o fim.
+        deslocamento = 0
+        for _ in range(MAXIMO_PAGINAS):
             corpo = self._request(
                 endpoint,
-                {"codigo_municipio": ibge6, "limit": TAMANHO_PAGINA, "offset": pagina},
+                {"codigo_municipio": ibge6, "limit": TAMANHO_PAGINA, "offset": deslocamento},
                 session,
             )
             registros = _extrair_registros(corpo)
@@ -242,6 +243,7 @@ class FarmaciaSusExtractor:
                 return acumulado
             anterior = assinatura
             acumulado.extend(registros)
+            deslocamento += len(registros)
         raise RuntimeError(f"Limite de {MAXIMO_PAGINAS} páginas atingido em {endpoint}: extração truncada")
 
     def extract(self, portal_slug: str, cod_ibge: int | str) -> dict[str, list[dict[str, Any]]]:
